@@ -1,0 +1,62 @@
+# ---- Segredos e configurações locais ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+local_settings.py
+settings_local.py
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---- Ambientes virtuais ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- Django ----
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+/static_root/
+
+# ---- Testes e cobertura ----
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+
+# ---- Logs e temporários ----
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# ---- Editores e sistema operacional ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Ferramentas locais ----
+.claude/settings.local.json
