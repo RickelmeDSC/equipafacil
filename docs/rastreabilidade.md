@@ -1,6 +1,6 @@
 # Rastreabilidade — requisitos, regras e testes
 
-> **Documento não finalizado.** Resumo da especificação funcional **v3** registrada no Jira (épicos EQF-4, EQF-5 e EQF-6, 30/10/2026). As decisões técnicas foram aprovadas, mas a documentação acadêmica **ainda aguarda revisão** das equipes de Requisitos (Rafael Ferreira e Ivisson) e Testes (Alexandre Abreu e Vinícius Soares). Em caso de divergência, vale o Jira.
+> **Documento não finalizado.** Resumo da especificação técnica **v3** registrada no Jira (épicos EQF-4, EQF-5 e EQF-6, 30/10/2026), que é a referência de planejamento. O **Documento de Requisitos v1.1** é o documento acadêmico, revisado tecnicamente e não publicado neste repositório; a validação acadêmica final aguarda Rafael Ferreira e Ivisson, e a revisão dos cenários de teste segue com a equipe de Testes (Alexandre Abreu e Vinícius Soares). Em caso de divergência entre este resumo e as fontes oficiais (Jira e Documento v1.1), valem as fontes oficiais; divergências entre elas devem ser registradas no Jira.
 
 ## Requisitos funcionais
 
@@ -61,6 +61,6 @@ Há ainda uma cobertura complementar (FC01–FC14), fora da contagem acadêmica,
 | Desenvolvimento | DEV-04 (EQF-16) CT01–CT08; DEV-05 (EQF-17) CT09–CT10; DEV-06 (EQF-18) CT11–CT14; DEV-07 (EQF-19) CT15–CT16 |
 | Testes | QA-02 (EQF-22) positivos; QA-03 (EQF-23) negativos; QA-04 (EQF-24) revisão; QA-05 (EQF-25) dados; QA-06 (EQF-26) execução |
 
-## Pendências da especificação
+## Decisões I1–I5
 
-As inconsistências I1–I5 da v3 têm propostas registradas no Jira, **ainda pendentes de aprovação**. Nenhuma foi aplicada aos RF ou RN acima.
+As decisões I1–I5 da v3 foram **aprovadas por Rickelme David em 01/11/2026**. O detalhamento está no Jira e no Documento de Requisitos v1.1. Este resumo de RF e RN **não foi alterado** e ainda não incorpora esse detalhamento: antes de implementar funcionalidade afetada (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada.

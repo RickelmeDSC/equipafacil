@@ -7,8 +7,10 @@ Instruções para sessões do Claude Code neste repositório. Leia antes de qual
 EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de equipamentos, usado por funcionários autenticados de uma locadora: equipamentos, clientes, aluguéis, devoluções e histórico.
 
 - Planejamento: Jira, projeto `EQF` — https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2
-- **Especificação funcional v3** (épicos EQF-4 Requisitos, EQF-5 Desenvolvimento, EQF-6 Testes) é a referência **provisória**: decisões técnicas aprovadas, documentação acadêmica ainda em revisão. Resumo em `docs/rastreabilidade.md`.
-- Inconsistências I1–I5 da v3 e suas propostas estão **pendentes de aprovação**. Não as trate como decididas.
+- **Especificação técnica v3** no Jira (épicos EQF-4 Requisitos, EQF-5 Desenvolvimento, EQF-6 Testes): referência de **planejamento**. Resumo em `docs/rastreabilidade.md`.
+- **Documento de Requisitos v1.1**: documento **acadêmico**, revisado tecnicamente. Não é publicado neste repositório — nunca adicione o DOCX ao Git. A v3 e a v1.1 não são versões concorrentes do mesmo arquivo.
+- **Decisões I1–I5**: aprovadas por Rickelme em 01/11/2026. O detalhamento está no Jira e no Documento v1.1; os resumos em `docs/` ainda não o incorporam. Antes de implementar algo afetado por I1–I5 (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada; se ela não estiver disponível na sessão, pergunte.
+- Validação acadêmica final dos requisitos: aguardando Rafael Ferreira e Ivisson.
 - Prazos: primeira entrega 03/11/2026; entrega final 15/11/2026.
 
 ## Estado atual
@@ -17,7 +19,7 @@ Repositório apenas com documentação. **Django ainda não foi iniciado.** Não
 
 ## Stack definida
 
-- Python + **Django** (framework definido; não sugerir troca).
+- Python 3.13 (ambiente local disponível) + **Django** (framework definido; não sugerir troca). A versão do Django é definida em DEV-02, apenas entre séries com suporte oficial ao Python 3.13; não fixe versão por conta própria.
 - Django Templates + Bootstrap no frontend (sem SPA).
 - PostgreSQL (Neon previsto); Render previsto para hospedagem.
 - Django Auth para autenticação (sem cadastro público, sem recuperação de senha por e-mail).
@@ -45,7 +47,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Escopo
 
-- Implemente apenas requisitos aprovados na especificação vigente (RF001–RF008, RN001–RN004 e decisões D1–D9, N2–N6, D8, TZ).
+- Implemente apenas requisitos aprovados (RF001–RF008, RN001–RN004 e decisões D1–D9, N2–N6, TZ e I1–I5), conforme a especificação técnica v3 e o Documento de Requisitos v1.1.
 - Não invente requisitos, campos, telas ou integrações (ex.: multa, WhatsApp, reservas, pagamentos).
 - Ambiguidade de requisito → pare e pergunte; registre a dúvida para o Jira em vez de decidir sozinho.
 - Não altere atividades do Jira sem pedido explícito.
@@ -63,12 +65,30 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 - Relacione testes aos cenários `CTxx` e às coberturas complementares `FCxx`.
 - Datas em testes devem ser relativas à data atual em `America/Recife`.
 
-## Git e revisão
+## Fluxo de trabalho
 
-- Commits semânticos em português: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
-- Uma branch por atividade (`feat/eqf-16-crud-equipamentos`); nunca commitar direto na `main`.
-- PR com o template do repositório, citando a atividade Jira e os RF/RN/CT.
-- **Revisão humana obrigatória antes de merge e antes de qualquer deploy.** Não fazer merge, force push ou deploy por conta própria.
+1. **Planejar antes de implementar**: confirmar a atividade do Jira, os RF/RN/CT envolvidos e o contrato frontend × backend; apresentar um plano curto antes de escrever código.
+2. **Uma branch por atividade**, criada a partir da `main` atualizada. Nunca commitar direto na `main`.
+
+   | Branch | Uso |
+   |--------|-----|
+   | `main` | Versão integrada e revisada |
+   | `docs/<descricao>` | Documentação |
+   | `feat/backend-eqf-NN-<descricao>` | Backend, banco e regras de negócio (ex.: `feat/backend-eqf-16-equipamentos`) |
+   | `feat/frontend-eqf-NN-<descricao>` | Templates, estilos e interface |
+   | `fix/eqf-NN-<descricao>` | Correções |
+
+3. **Testes automatizados** vinculados aos RF e CT, passando antes de declarar algo concluído (ver seção Testes).
+4. **Commits semânticos** em português: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
+5. **Verificação de segurança** antes de cada commit: revisar o diff, confirmar que só entraram arquivos da atividade e que não há segredo, `.env` ou dado real.
+6. **Pull Request** com o template do repositório, citando a atividade Jira e os RF/RN/CT; **code review humano obrigatório antes do merge**.
+7. Mudanças em requisitos, regras de negócio ou cenários de teste exigem revisão humana das equipes responsáveis e registro no Jira — nunca são decididas pelo Claude.
+8. **Deploy somente após autorização explícita** de Rickelme.
+
+### Limites do Claude Code
+
+- Não fazer push, abrir PR, merge, force push, deploy nem alterar recursos externos (GitHub, Jira, Neon, Render) sem autorização explícita na tarefa da sessão.
+- Este arquivo orienta, mas **não é controle técnico**. Os bloqueios efetivos são as permissões em `.claude/settings.json` e o ruleset da `main` no GitHub. Não os altere para afrouxar regras sem pedido explícito.
 
 ## Segurança
 

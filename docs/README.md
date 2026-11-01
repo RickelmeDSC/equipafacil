@@ -7,6 +7,12 @@ Documentação técnica de apoio ao desenvolvimento. A fonte oficial do planejam
 | [arquitetura-planejada.md](arquitetura-planejada.md) | Stack, divisão frontend/backend e páginas previstas |
 | [rastreabilidade.md](rastreabilidade.md) | RF001–RF008, RN001–RN004 e cenários CT01–CT16 |
 
-**Situação:** documentação em planejamento, baseada na especificação v3, que ainda aguarda revisão acadêmica das equipes de Requisitos e Testes. Não é versão final.
+**Situação:** documentação em planejamento. Não é versão final.
 
-Os documentos acadêmicos oficiais (modelos do professor) não são publicados neste repositório.
+| Referência | Situação |
+|------------|----------|
+| Especificação técnica v3 (Jira) | Referência de planejamento |
+| Documento de Requisitos v1.1 | Documento acadêmico revisado tecnicamente; validação acadêmica final aguardando Rafael Ferreira e Ivisson |
+| Decisões I1–I5 | Aprovadas por Rickelme David em 01/11/2026; detalhamento no Jira e no Documento v1.1, ainda não incorporado a estes resumos |
+
+Os documentos acadêmicos oficiais (modelos do professor e o Documento de Requisitos em DOCX) não são publicados neste repositório.

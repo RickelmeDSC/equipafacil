@@ -2,19 +2,32 @@
 
 > **Estado: planejamento.** Nada abaixo foi implementado ou configurado. Não há projeto Django, banco de dados, ambiente de hospedagem nem deploy.
 
-Referência: especificação v3, épico EQF-5 (Desenvolvimento do Sistema) no Jira. Detalhes de organização do projeto serão definidos em DEV-01 (EQF-13) e DEV-02 (EQF-14).
+Referências: especificação técnica v3, épico EQF-5 (Desenvolvimento do Sistema) no Jira, e Documento de Requisitos v1.1 (acadêmico, não publicado neste repositório). Detalhes de organização do projeto serão definidos em DEV-01 (EQF-13) e DEV-02 (EQF-14).
 
 ## Stack
 
 | Camada | Tecnologia | Observação |
 |--------|-----------|------------|
-| Linguagem | Python 3 | Versão a definir em DEV-02 |
-| Framework | Django | Aplicação monolítica com renderização no servidor |
+| Linguagem | Python 3.13 | Versão disponível no ambiente local; confirmação final em DEV-02 |
+| Framework | Django | Aplicação monolítica com renderização no servidor. Versão a definir em DEV-02 (ver abaixo) |
 | Interface | Django Templates + Bootstrap | HTML, CSS e JavaScript leve; responsiva |
 | Autenticação | Django Auth | Apenas funcionários; contas criadas pelo administrador; sem cadastro público nem recuperação de senha por e-mail |
-| Banco de dados | PostgreSQL | Hospedagem prevista no **Neon** |
-| Hospedagem | **Render** | Previsto para DEV-08 |
-| Fuso operacional | `America/Recife` | "Data atual" sempre no fuso local |
+| Banco de dados | PostgreSQL | Hospedagem planejada no **Neon** |
+| Hospedagem | **Render** | Planejada para DEV-08 |
+| Valores monetários | `Decimal` / `DecimalField` | Duas casas decimais; nunca `float` |
+| Fuso operacional | `America/Recife` | "Data atual" e datas de negócio sempre no fuso local, nunca o dia UTC |
+
+### Compatibilidade Django × Python 3.13
+
+Consulta à documentação oficial do Django em 01/11/2026 ([FAQ de instalação](https://docs.djangoproject.com/en/dev/faq/install/) e [página de download](https://www.djangoproject.com/download/)). Séries com suporte oficial ativo que aceitam Python 3.13:
+
+| Série | Suporte estendido até |
+|-------|------------------------|
+| 5.2 LTS | abril de 2028 |
+| 6.0 | abril de 2027 |
+| 6.1 | dezembro de 2027 |
+
+A escolha da série e da versão exata fica para DEV-02, com nova consulta às fontes oficiais. Nenhuma versão está fixada.
 
 ## Divisão frontend / backend
 
@@ -50,5 +63,5 @@ Mudanças nesse contrato são combinadas entre os dois antes da implementação.
 
 ## Pontos em aberto
 
-- Inconsistências I1–I5 da especificação v3 (aluguel com retirada futura, correção de registros, reativação inválida, prioridades, armazenamento do CPF) aguardam decisão.
-- Estrutura de apps Django, versão do Python, ferramentas de teste e lint: DEV-01/DEV-02.
+- Decisões I1–I5 (aluguel com retirada futura, correção de registros, reativação inválida, prioridades, armazenamento do CPF) foram aprovadas em 01/11/2026. O detalhamento está no Jira e no Documento de Requisitos v1.1 e deve ser considerado na modelagem antes da implementação.
+- Estrutura de apps Django, versão do Django, ferramentas de teste e lint: DEV-01/DEV-02.
