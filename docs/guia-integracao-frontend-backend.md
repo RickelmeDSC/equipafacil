@@ -3,13 +3,13 @@
 **Versão:** 1.0 — alinhamento pré-implementação  
 **Data:** 01/11/2026  
 **Status:** Proposta de contrato para leitura e validação conjunta de Rickelme e Raphael; **não é contrato técnico já implementado**.  
-**Referências:** Documento de Requisitos v1.1 (01/11/2026); especificação técnica v3 e decisões I1–I5 aprovadas no Jira EQF.  
+**Referências:** Documento de Requisitos v1.1 (01/11/2026) e especificação técnica v3 no Jira EQF. As decisões I1–I5 foram aprovadas em 01/11/2026; o detalhamento oficial permanece no Documento de Requisitos v1.1 e no Jira.  
 **Jira:** https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2  
 **Repositório:** https://github.com/RickelmeDSC/equipafacil
 
-## Acordo operacional confirmado por mensagem (02/11/2026)
+## Acordo operacional
 
-Raphael confirmou que fará seu trabalho **em uma branch separada** e que, depois, Rickelme fará a **auditoria antes de qualquer merge**. Esse acordo confirma o fluxo Git, **não** constitui aceite dos nomes propostos de URLs, variáveis de contexto ou templates. Rickelme também orientou Raphael a ler o repositório antes de trabalhar e a avisar ao finalizar seus commits.
+Acordo confirmado por mensagem entre Rickelme e Raphael. Raphael confirmou que fará seu trabalho **em uma branch separada** e que, depois, Rickelme fará a **auditoria antes de qualquer merge**. Esse acordo confirma o fluxo Git, **não** constitui aceite dos nomes propostos de URLs, variáveis de contexto ou templates. Rickelme também orientou Raphael a ler o repositório antes de trabalhar e a avisar ao finalizar seus commits.
 
 **Rotina combinada:** (1) ler o repositório e este guia; (2) abrir branch `feat/frontend-eqf-NN-*` na base acordada; (3) implementar só o escopo frontend aprovado; (4) criar commits e comunicar Rickelme; (5) abrir PR apenas quando alinhado; (6) Rickelme audita e revisa antes de autorizar merge. O merge **não é automático**. Os dois devem observar a proteção de `main` e evitar conflito com o PR #1 aberto.
 
@@ -72,8 +72,8 @@ Os nomes a seguir são **sugestões** para um documento de contrato assinado por
 
 | Área | Nome Django sugerido (`{% url ... %}`) | Método/uso pretendido |
 |---|---|---|
-| Login | `accounts:login` | GET/POST |
-| Logout | `accounts:logout` | POST |
+| Login | `<app_autenticacao>:login` | GET/POST |
+| Logout | `<app_autenticacao>:logout` | POST |
 | Equipamentos | `equipamentos:lista` | GET |
 | Cadastro equipamento | `equipamentos:criar` | GET/POST |
 | Edição equipamento | `equipamentos:editar` | GET/POST |
@@ -82,6 +82,8 @@ Os nomes a seguir são **sugestões** para um documento de contrato assinado por
 | Aluguel | `alugueis:criar` | GET/POST |
 | Devolução | `alugueis:devolver` | GET/POST |
 | Histórico | `alugueis:historico` | GET |
+
+**Decisão pendente — autenticação:** o nome da aplicação e do namespace de autenticação (por exemplo, `accounts` ou `usuarios`) **não está definido** e será fixado no contrato técnico. `<app_autenticacao>` na tabela é apenas um marcador.
 
 **Pendente:** o backend deve publicar a tabela final contendo `namespace`, `name`, parâmetros (`pk` ou outro), métodos, URL e a view responsável. Raphael deve usar `{% url %}` em vez de caminhos hardcoded.
 
@@ -129,6 +131,8 @@ static/
 ```
 
 Nomes e estrutura são **proposta para alinhar a integração**, não obrigação de recriar os arquivos antes de combinar com Rickelme. Evitar misturar `templates/` de app e globais sem acordo explícito.
+
+**Bootstrap — proposta recomendada:** Bootstrap 5.3 servido como **arquivos estáticos locais** do projeto, dentro de `static/`, sem CDN. É uma recomendação **ainda sujeita à validação conjunta** de Rickelme e Raphael; a versão exata, o local dos arquivos e a forma de inclusão nos templates serão registrados no contrato.
 
 ### 5.4 Regras de formulários
 
@@ -189,8 +193,8 @@ Se o frontend precisar de campo/contexto/rota diferente, abrir solicitação com
 
 1. **URLs e names finais:** validar após DEV-01/DEV-02, antes de templates finais.
 2. **Campos reais dos Forms e contexto:** definir com exemplos de GET/POST e estados de erro.
-3. **Convenção de templates e layout:** aprovar os diretórios sugeridos.
-4. **Fluxo de autenticação:** URLs e tela de login; professor ainda precisa confirmar a classificação como transversal.
+3. **Convenção de templates e layout:** aprovar os diretórios sugeridos e a proposta de Bootstrap 5.3 com arquivos estáticos locais.
+4. **Fluxo de autenticação:** nome da aplicação/namespace de autenticação, URLs e tela de login; professor ainda precisa confirmar a classificação como transversal.
 5. **Identidade GitHub de Raphael:** username confirmado e convite `Write` aceito.
 6. **PR #1 documental:** integrar após revisão, sem depender disso para rascunhar a interface, mas sem perder as regras de segurança.
 7. **Modelo acadêmico final e testes Gherkin:** acompanhar a validação da documentação até 03/11.
