@@ -2,13 +2,15 @@
 
 > **PROPOSTA — AGUARDANDO VALIDAÇÃO DE RICKELME E RAPHAEL.**
 >
-> Versão 0.3 — 01/11/2026. Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o escopo de DEV-03 (EQF-15) registrado no Jira. **Nada aqui está implementado**: não existe projeto Django, model ou migration no repositório. Models, migrations e diagrama de dados são entregas de DEV-03, que segue **bloqueado** pela REQ-04 (EQF-10).
+> Versão 0.4 — 02/11/2026. Numeração alinhada à do contrato e do plano; o conteúdo técnico é o da versão 0.3 (01/11/2026), com ajustes apenas na legenda, nos links e nas referências de integração. Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o escopo de DEV-03 (EQF-15) registrado no Jira. **Nada aqui está implementado**: não existe projeto Django, model ou migration no repositório. Models, migrations e diagrama de dados são entregas de DEV-03, que segue **bloqueado** pela REQ-04 (EQF-10).
 >
-> **Fontes:** Documento de Requisitos v1.1 (RF001–RF008, RN001–RN004, D1–D9, N2–N6, TZ, I1–I5), decisões D10–D15 aprovadas por Rickelme, auditoria do Jira de 01/11/2026, [`rastreabilidade.md`](rastreabilidade.md), [`arquitetura-planejada.md`](arquitetura-planejada.md) e o [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md). Nesta branch, baseada na `main`, os resumos do repositório ainda tratam I1–I5 como pendentes; a atualização deles está no PR #1.
+> **Fontes:** Documento de Requisitos v1.1 (RF001–RF008, RN001–RN004, D1–D9, N2–N6, TZ, I1–I5), decisões D10–D15 aprovadas por Rickelme e registradas no EQF-5, auditoria do Jira de 01/11/2026, [`rastreabilidade.md`](rastreabilidade.md), [`arquitetura-planejada.md`](arquitetura-planejada.md) e o [guia de integração](guia-integracao-frontend-backend.md).
+>
+> **Integração:** o guia entra na `main` por Pull Request próprio; enquanto ele não estiver integrado na branch em que este documento é lido, o link acima não abre. As versões de `rastreabilidade.md` e `arquitetura-planejada.md` anteriores ao PR #1 (`docs/alinhamento-workspace`) tratam I1–I5 como pendentes e não citam D10–D15; nesse caso, valem as decisões aprovadas registradas no Jira.
 
 Documentos relacionados: [contrato técnico frontend × backend](contrato-tecnico-frontend-backend.md) e [plano backend DEV-01 a DEV-03](plano-backend-dev01-dev03.md).
 
-**Legenda:** **Aprovado** (v1.1, I1–I5, D10–D15); **Jira (texto antigo)** (texto superado por decisão posterior); **Proposta técnica** (sugestão de Rickelme); **Pendente de validação** (depende de aceite ou decisão adicional).
+**Legenda:** **Aprovado** (v1.1, I1–I5, D10–D15); **Proposta técnica** (sugestão de Rickelme); **Pendente de validação** (depende de aceite ou decisão adicional).
 
 ## 1. Princípios
 

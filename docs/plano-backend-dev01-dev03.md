@@ -2,7 +2,7 @@
 
 > **PROPOSTA — AGUARDANDO VALIDAÇÃO DE RICKELME E RAPHAEL.**
 >
-> Versão 0.4 — 01/11/2026. Reflete o Jira depois da atualização de 01/11/2026: D10–D15 registradas no EQF-5 e DEV-01 (EQF-13) em andamento. Planejamento apenas: **DEV-02 e DEV-03 não foram iniciados**, não existe código Django no repositório e este documento não altera nada no Jira. Os documentos do DEV-01 são locais (branch `docs/contrato-tecnico-dev01`) e **ainda não foram publicados no GitHub**.
+> Versão 0.4 — 01/11/2026, com revisão editorial em 02/11/2026 (referências de integração, sem mudança técnica). Reflete o Jira depois da atualização de 01/11/2026: D10–D15 registradas no EQF-5 e DEV-01 (EQF-13) em andamento. Planejamento apenas: **DEV-02 e DEV-03 não foram iniciados**, não existe código Django no repositório e este documento não altera nada no Jira. Os documentos do DEV-01 entram na `main` por Pull Request próprio, somente depois da revisão de Raphael.
 
 Documentos relacionados: [contrato técnico frontend × backend](contrato-tecnico-frontend-backend.md) e [modelagem proposta](modelagem-proposta.md).
 
@@ -18,7 +18,7 @@ Retrato de 01/11/2026, depois da atualização do Jira; não é uma consulta em 
 | EQF-15 — DEV-03 | A Fazer, **bloqueado** | Rickelme | Medium | 08/11/2026 | Nenhum |
 | EQF-10 — REQ-04 | Em Andamento | Ivisson | Highest | 03/11/2026 | Sem comentários nem validação final registrada |
 
-O comentário no EQF-13 registra o progresso; os documentos continuam sem anexo no Jira, porque ainda não estão publicados. O PR #1 continua aberto.
+Nessa data, o comentário no EQF-13 registrava o progresso, sem anexo nem link para os documentos do DEV-01, que ainda não estavam publicados; o PR #1 estava aberto.
 
 ## 2. Responsáveis no Jira e responsáveis técnicos
 
@@ -71,7 +71,7 @@ Regras: no máximo um aluguel aberto por equipamento, com restrição efetiva no
 
 Aprovadas por Rickelme e **já registradas na descrição do EQF-5** (01/11/2026).
 
-| Decisão | Conteúdo | Onde está nos documentos locais |
+| Decisão | Conteúdo | Onde está nos documentos do DEV-01 |
 |---------|----------|---------------------------------|
 | D10 — Inativação | Todo equipamento ativo sem aluguel aberto pode ser inativado, com ou sem histórico; exclusão física só sem histórico e sem aluguel aberto; reativação exige dados válidos e nenhum aluguel aberto | Modelagem §2; contrato P04 e §9.2 |
 | D11 — Código | Remove espaços das extremidades; único sem diferenciar maiúsculas; grafia preservada; reforço no PostgreSQL; imutável após o primeiro aluguel | Modelagem §2; contrato §7.1 |
@@ -84,7 +84,7 @@ A validação acadêmica da autenticação como requisito transversal continua p
 
 ## 5. Como DEV-01 atende os critérios de aceite
 
-| Critério | Evidência local | Situação |
+| Critério | Evidência nos documentos | Situação |
 |----------|-----------------|----------|
 | 1. Aplicações definidas e justificadas | [Contrato §2](contrato-tecnico-frontend-backend.md#2-arquitetura-dev-01) | Proposta, aguardando aceite |
 | 2. Estrutura e convenções documentadas | Contrato §2 a §10; [modelagem](modelagem-proposta.md) | Proposta, aguardando aceite |
@@ -143,16 +143,16 @@ Sugestão para discussão, que não altera prazos do Jira; prioridades do Jira p
 
 1. **REQ-04 em andamento** mantém DEV-03 bloqueado e pode comprimir DEV-04 a DEV-08.
 2. **Prazo:** sete dias entre o prazo de DEV-03 (08/11) e a entrega final (15/11).
-3. **PR #1 aberto:** a `main`, e portanto esta branch, ainda trata I1–I5 como pendentes.
+3. **Instruções anteriores ao PR #1:** enquanto o PR #1 não estiver integrado, a `main` e as branches criadas a partir dela tratam I1–I5 como pendentes e não citam D10–D15 no `CLAUDE.md` nem na rastreabilidade; valem as decisões aprovadas registradas no Jira.
 4. **Divisão de trabalho:** em DEV-04, DEV-05 e DEV-07 o responsável no Jira (Raphael) depende do backend de Rickelme; atrasos no backend atrasam a entrega dele.
 5. **Concorrência:** testes exigem PostgreSQL local ou de desenvolvimento.
 6. **Mensagens sem texto** (sucesso, aviso de cancelamento, atraso) precisam ser definidas antes da implementação.
 
-**Ordem de integração das branches documentais (pendência, sem alteração nesta tarefa):**
+**Ordem recomendada de integração das branches documentais** (merges feitos por Rickelme na interface do GitHub, com "Create a merge commit"; squash ou rebase mudariam os commits do PR #1 e os duplicariam no PR do guia):
 
-1. PR #1 (`docs/alinhamento-workspace`), de preferência com merge commit.
-2. `docs/guia-integracao-raphael`, que herda os dois commits do PR #1.
-3. `docs/contrato-tecnico-dev01`, baseada na `main`; antes do PR, atualizar com a `main` integrada, de forma não destrutiva.
+1. PR #1 (`docs/alinhamento-workspace`): instruções, permissões do Claude Code e rastreabilidade com I1–I5 e D10–D15.
+2. `docs/guia-integracao-raphael`: herda os dois primeiros commits do PR #1; o PR do guia, aberto depois do merge do PR #1, mostra só os commits do guia.
+3. `docs/contrato-tecnico-dev01`: criada a partir da `main` inicial e sem arquivos em comum com as anteriores, por isso não precisa ser atualizada antes do PR. O PR pode ser aberto como rascunho para a revisão de Raphael; o merge vem por último, depois do aceite (contrato, seção 14).
 
 ## 11. Texto final para o EQF-13
 

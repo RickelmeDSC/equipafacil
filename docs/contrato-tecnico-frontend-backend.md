@@ -2,11 +2,11 @@
 
 > **PROPOSTA — AGUARDANDO VALIDAÇÃO DE RICKELME E RAPHAEL.**
 >
-> Versão 0.4 — 01/11/2026. Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o contrato visual do épico EQF-5 (páginas P01–P10, fluxos, mensagens propostas e indicadores). As decisões D10–D15 já constam na descrição do EQF-5, atualizada em 01/11/2026. Este documento é local (branch `docs/contrato-tecnico-dev01`) e **ainda não foi publicado no GitHub**.
+> Versão 0.4 — 01/11/2026, com revisão editorial em 02/11/2026 (links e referências de integração, sem mudança técnica). Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o contrato visual do épico EQF-5 (páginas P01–P10, fluxos, mensagens propostas e indicadores). As decisões D10–D15 já constam na descrição do EQF-5, atualizada em 01/11/2026. Este documento entra na `main` por Pull Request próprio, somente depois da revisão de Raphael e do aceite da seção 14.
 >
 > **Nada aqui está implementado**: não existe projeto Django, URL, view, formulário ou template no repositório. Raphael **não aprovou** nenhum nome de rota, campo, variável ou template deste documento.
 >
-> **Relação com o guia:** detalha a seção 5 do [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md) (branch `docs/guia-integracao-raphael`) e **não o substitui**. Diferenças na seção 12.
+> **Relação com o guia:** detalha a seção 5 do [guia de integração](guia-integracao-frontend-backend.md) e **não o substitui**. Diferenças na seção 12. O guia entra na `main` por Pull Request próprio, antes deste contrato na ordem recomendada; enquanto ele não estiver integrado na branch em que este documento é lido, o link não abre.
 
 Documentos relacionados: [modelagem proposta](modelagem-proposta.md) e [plano backend DEV-01 a DEV-03](plano-backend-dev01-dev03.md).
 
@@ -335,7 +335,7 @@ Cada arquivo tem **um** responsável. Ninguém edita arquivo do outro.
 
 ### 12.2 Guia de integração
 
-| Guia (branch `docs/guia-integracao-raphael`) | Este contrato | Motivo |
+| Guia de integração | Este contrato | Motivo |
 |----------------------------------------------|---------------|--------|
 | `<app_autenticacao>:login` e `<app_autenticacao>:logout` | `login` e `logout`, nativos, sem namespace | Sem app de autenticação (D15) |
 | Não lista página inicial | `inicio` e `inicio.html` | P01 |
