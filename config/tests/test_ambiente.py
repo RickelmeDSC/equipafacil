@@ -439,6 +439,47 @@ class SettingsEmProcessoSeparadoTests(SimpleTestCase):
             "whitenoise.storage.CompressedManifestStaticFilesStorage",
         )
 
+    def test_producao_simulada_no_render(self):
+        resultado = self._executar(
+            {
+                "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
+                "DJANGO_DEBUG": "False",
+                "DATABASE_URL": URL_NEON_FICTICIA,
+                "RENDER_EXTERNAL_HOSTNAME": "equipafacil.onrender.com",
+                "DJANGO_SECURE_PROXY_SSL_HEADER": "True",
+            },
+            codigo=(
+                "from django.conf import settings as s; "
+                "print(s.ALLOWED_HOSTS, s.SECURE_PROXY_SSL_HEADER, "
+                "s.SECURE_SSL_REDIRECT, s.SECURE_HSTS_SECONDS)"
+            ),
+        )
+        self.assertEqual(resultado.returncode, 0, resultado.stderr)
+        self.assertEqual(
+            resultado.stdout.strip(),
+            "['equipafacil.onrender.com'] ('HTTP_X_FORWARDED_PROTO', 'https') True 0",
+        )
+
+    def test_proxy_desligado_e_hsts_configuravel(self):
+        resultado = self._executar(
+            {
+                "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
+                "DJANGO_DEBUG": "False",
+                "DATABASE_URL": URL_NEON_FICTICIA,
+                "DJANGO_ALLOWED_HOSTS": "equipafacil.exemplo.test",
+                "DJANGO_SECURE_HSTS_SECONDS": "3600",
+            },
+            codigo=(
+                "from django.conf import settings as s; "
+                "print(s.ALLOWED_HOSTS, s.SECURE_PROXY_SSL_HEADER, "
+                "s.SECURE_HSTS_SECONDS)"
+            ),
+        )
+        self.assertEqual(resultado.returncode, 0, resultado.stderr)
+        self.assertEqual(
+            resultado.stdout.strip(), "['equipafacil.exemplo.test'] None 3600"
+        )
+
 
 class SegredosNaoVersionadosTests(SimpleTestCase):
     def test_settings_sem_segredo_literal(self):

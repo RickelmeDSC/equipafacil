@@ -31,6 +31,11 @@ SECRET_KEY = obter_obrigatorio("DJANGO_SECRET_KEY")
 DEBUG = obter_booleano("DJANGO_DEBUG", padrao=False)
 validar_chave_secreta(SECRET_KEY, DEBUG)
 ALLOWED_HOSTS = obter_lista("DJANGO_ALLOWED_HOSTS")
+# O Render define RENDER_EXTERNAL_HOSTNAME (subdomínio onrender.com), que também é
+# o Host usado pelo health check.
+_HOST_RENDER = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+if _HOST_RENDER and _HOST_RENDER not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_HOST_RENDER)
 CSRF_TRUSTED_ORIGINS = obter_lista("DJANGO_CSRF_TRUSTED_ORIGINS")
 
 INSTALLED_APPS = [
