@@ -64,4 +64,4 @@ Mudanças nesse contrato são combinadas entre os dois antes da implementação.
 ## Pontos em aberto
 
 - Decisões I1–I5 (aluguel com retirada futura, correção de registros, reativação inválida, prioridades, armazenamento do CPF) foram aprovadas em 01/11/2026. O detalhamento está no Jira e no Documento de Requisitos v1.1 e deve ser considerado na modelagem antes da implementação.
-- Estrutura de apps Django: proposta no contrato DEV-01, ainda sem aceite. Versão do Django e runner de testes (padrão do Django) definidos em DEV-02; ferramentas de lint (`black`, `ruff`) ainda não configuradas.
+- Estrutura de apps Django: proposta no contrato DEV-01, ainda sem aceite. Versão do Django, runner de testes (padrão do Django) e ferramentas de qualidade (`ruff` e `black`) definidos em DEV-02. Validação em PostgreSQL pendente (`docs/postgresql-local.md`).

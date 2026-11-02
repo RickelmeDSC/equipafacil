@@ -89,12 +89,13 @@ Na raiz do repositório:
 ```powershell
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
 O projeto usa só o Python do `.venv`, nunca o Python global. Se o PowerShell não permitir executar o `Activate.ps1`, troque `python` por `.\.venv\Scripts\python.exe` nos comandos, sem ativar o ambiente.
 
-`requirements.txt` fixa Django 5.2.18 (série LTS) e psycopg 3.3.6 (driver do PostgreSQL), com as dependências deles.
+- `requirements.txt`: dependências de execução (Django 5.2.18, série LTS, e psycopg 3.3.6, driver do PostgreSQL). É o único arquivo usado fora do desenvolvimento.
+- `requirements-dev.txt`: inclui o anterior e as ferramentas de qualidade (Ruff 0.17.3 e Black 26.10.1), configuradas em `pyproject.toml`.
 
 ### Configuração (`.env`)
 
@@ -107,7 +108,7 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 
 | Variável | Uso |
 |----------|-----|
-| `DJANGO_SECRET_KEY` | Obrigatória; uma chave própria por ambiente |
+| `DJANGO_SECRET_KEY` | Obrigatória; uma chave própria por ambiente. Com `DJANGO_DEBUG=False`, o projeto não inicia com chave fraca (menos de 50 caracteres, como a do `.env.example`) |
 | `DJANGO_DEBUG` | `True` só no desenvolvimento local; padrão `False` |
 | `DJANGO_ALLOWED_HOSTS` | Hosts aceitos, separados por vírgula |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | Origens HTTPS confiáveis, separadas por vírgula |
@@ -118,7 +119,7 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 
 ### Banco de dados
 
-- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, crie um banco e um usuário próprios no seu PostgreSQL e preencha `DB_ENGINE=postgresql` e as variáveis `DB_*` no `.env`. Neon e o banco de produção ainda não existem.
+- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, crie um banco e um usuário próprios e preencha `DB_ENGINE=postgresql` e as variáveis `DB_*` no `.env`, seguindo o procedimento seguro em [`docs/postgresql-local.md`](docs/postgresql-local.md). **A validação em PostgreSQL ainda está pendente.** Neon e o banco de produção ainda não existem.
 - **SQLite (`DB_ENGINE=sqlite`) é um recurso temporário de desenvolvimento.** O projeto o recusa com `DJANGO_DEBUG=False`. Ele não substitui o PostgreSQL: as restrições do banco e os testes de concorrência previstos a partir de DEV-03 exigem PostgreSQL.
 
 ### Verificações e testes
@@ -127,9 +128,14 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 python manage.py check
 python manage.py makemigrations --check --dry-run
 python manage.py test
+ruff check .
+black --check .
+python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS.
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=3)`: os três testes de `config/tests/test_postgresql.py` só rodam com PostgreSQL.
+
+`black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
 
 Verificação de produção simulada, em um terminal separado (não conecta ao banco; os valores são fictícios):
 
@@ -154,11 +160,28 @@ python manage.py runserver
 
 Acesse http://127.0.0.1:8000/, que redireciona para o login. O Django Admin (http://127.0.0.1:8000/admin/) é o único meio de criar contas de funcionários; não há cadastro público nem recuperação de senha por e-mail. Crie o superusuário só no seu ambiente local, com senha própria.
 
+### Templates provisórios
+
+`templates/registration/login.html` e `templates/inicio.html` existem só para validar a autenticação e serão substituídos pelo frontend. Para a troca não quebrar o backend nem os testes, a nova versão deve manter:
+
+- **Login:** o caminho `registration/login.html` (padrão do `LoginView`), formulário `method="post"` com `{% csrf_token %}`, os campos `username` e `password` e o campo oculto `next`.
+- **Saída:** um formulário `method="post"` para `{% url 'logout' %}` com `{% csrf_token %}`; logout por link (GET) não funciona.
+- Saída de dados sempre com o escape automático do Django (sem `|safe` em dados do usuário).
+
+Os nomes `login`, `logout` e `inicio` ainda dependem do aceite do contrato DEV-01.
+
+### Advertências para produção (DEV-08)
+
+- `security.W004` (HSTS) continua em aberto: defina `DJANGO_SECURE_HSTS_SECONDS` só quando todo o site estiver em HTTPS.
+- Atrás do proxy do Render, ative `DJANGO_SECURE_PROXY_SSL_HEADER=True`; sem isso, o redirecionamento para HTTPS entra em laço.
+- Arquivos estáticos ainda não são servidos com `DJANGO_DEBUG=False` (falta definir `collectstatic` e o servidor de estáticos).
+- Não há limite de tentativas de login nem política de segurança de conteúdo (CSP); a sessão dura o padrão do Django (duas semanas). São decisões pendentes, não configuradas.
+
 ### Limitações desta etapa
 
 - Sem modelos, migrations ou regras de domínio; nenhum RF001–RF008 implementado.
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
-- Testes executados só com SQLite; nada foi testado em PostgreSQL ainda.
+- Testes executados só com SQLite; **nada foi testado em PostgreSQL ainda** (procedimento em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
 - Sem Bootstrap, arquivos estáticos próprios, Neon, Render ou deploy.
 
 ## Prazos

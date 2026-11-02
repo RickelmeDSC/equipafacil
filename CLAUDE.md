@@ -63,7 +63,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Convenções de código Python
 
-- PEP 8, formatação com `black` e lint com `ruff` (quando o projeto for configurado).
+- PEP 8, formatação com `black` e lint com `ruff`, configurados em `pyproject.toml` (versões em `requirements-dev.txt`). Antes de cada commit: `ruff check .` e `black --check .`; formate só os arquivos alterados na atividade.
 - Nomes de domínio em português, coerentes com a especificação (`Equipamento`, `Cliente`, `Aluguel`); código Python em `snake_case`, classes em `PascalCase`.
 - Type hints em funções de serviço; regras de negócio em camada de serviço/model, não em views ou templates.
 - Mensagens ao usuário em português, conforme a tabela de mensagens do épico EQF-5.
