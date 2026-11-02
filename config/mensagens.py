@@ -4,7 +4,8 @@ Os textos são as mensagens propostas na tabela do épico EQF-5 (Jira), transcri
 literalmente. São referências de interface ainda não aprovadas como texto
 definitivo: se o EQF-5 mudar, ajuste aqui. Mensagens sem texto no EQF-5 ficam
 marcadas como internas, com texto provisório; chegam a uma tela só a confirmação
-de exclusão ausente (P04) e o cliente inexistente (P07), ambas em POST manipulado.
+de exclusão ausente (P04), o cliente inexistente e a ação ausente ou inválida
+(P07), todas em POST manipulado ou fora dos botões da página.
 """
 
 CAMPO_OBRIGATORIO = "Preencha os campos obrigatórios."
@@ -46,6 +47,7 @@ NENHUM_REGISTRO = "Nenhum registro encontrado."
 # Internas: sem texto no EQF-5; texto provisório até definição.
 CONFIRMACAO_DE_EXCLUSAO_AUSENTE = "Confirme a exclusão para continuar."
 CLIENTE_INEXISTENTE = "Selecione um cliente cadastrado."
+ACAO_DO_ALUGUEL_INVALIDA = "Escolha calcular o resumo ou registrar o aluguel."
 ALUGUEL_INALTERAVEL = "Aluguel registrado não pode ser alterado."
 VALORES_DO_ALUGUEL_INCONSISTENTES = (
     "Diárias e valor contratado não correspondem às datas e à diária contratada."

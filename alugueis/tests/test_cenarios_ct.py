@@ -40,6 +40,7 @@ class CenariosDeAlugueisTests(TestCase):
                 "equipamento": (equipamento or self.equipamento).pk,
                 "data_retirada": hoje().isoformat(),
                 "data_devolucao_prevista": dias(2).isoformat(),
+                "acao": "registrar",
             },
         )
 

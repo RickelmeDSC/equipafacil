@@ -12,7 +12,7 @@ Escopo: RF006 (registro), RF007 (devolução) e RF008 (histórico), com RN001–
 |------|-----------------|
 | Regras aprovadas | RF006–RF008, RN001–RN004, I1 (retirada futura reserva o equipamento; sem devolução antes da retirada), I2 (aluguel e devolução não são corrigidos), D13 (formulário único com resumo e aviso de não cancelamento), fuso `America/Recife`, Decimal |
 | Proposta técnica (PR #2, sem aceite) | Rotas `alugueis:historico`, `alugueis:criar`, `alugueis:devolver`; templates; variáveis `data_atual`, `data_minima`, `data_maxima`, `diarias_equipamentos`, `sem_equipamentos_disponiveis`, `sem_clientes`, `pode_devolver`, `situacao`, `situacao_codigo` |
-| Decisões técnicas provisórias desta etapa | Prévia calculada no servidor (botão `acao=previa`); variável `resumo`; CPF mascarado na seleção de clientes; ordem do histórico; textos indefinidos no EQF-5 |
+| Decisões técnicas provisórias desta etapa | Prévia calculada no servidor e confirmação explícita (campo `acao` = `previa` ou `registrar`); variável `resumo`; CPF mascarado na seleção de clientes; ordem do histórico; textos indefinidos no EQF-5 |
 | Mensagens | EQF-5 (`config/mensagens.py`), inclusive "A data de devolução não pode ser posterior à data atual."; internas provisórias: "Selecione um cliente cadastrado." |
 | Pendências acadêmicas | CT11–CT16 com a equipe de Testes; auditoria QA-AUD-01 (não disponível nesta sessão); CT16 é obrigatório e está ausente do documento v1.1 da equipe de QA |
 
@@ -21,7 +21,7 @@ Escopo: RF006 (registro), RF007 (devolução) e RF008 (histórico), com RN001–
 | Página | Rota (nome) | Método | Comportamento |
 |--------|-------------|--------|---------------|
 | P08 — histórico | `/alugueis/` (`alugueis:historico`) | GET | Todos os aluguéis, do mais recente (`-data_retirada`, `-pk`), inclusive de equipamentos inativos. Sem filtros nem paginação (contrato, 9.4). Vazio: "Nenhum registro encontrado." |
-| P07 — novo aluguel | `/alugueis/novo/` (`alugueis:criar`) | GET, POST | Formulário único. POST com `acao=previa`: valida e mostra o resumo, **sem gravar**. POST sem `acao` (ou outro valor): registra e vai para P08 |
+| P07 — novo aluguel | `/alugueis/novo/` (`alugueis:criar`) | GET, POST | Formulário único. POST com `acao=previa`: valida e mostra o resumo, **sem gravar**. POST com `acao=registrar`: registra e vai para P08. Sem `acao`, com outro valor ou com mais de um: **nada é gravado** e o formulário volta (200) com os dados e o erro geral "Escolha calcular o resumo ou registrar o aluguel." |
 | P09 — devolução | `/alugueis/<pk>/devolver/` (`alugueis:devolver`) | GET, POST | Aluguel em leitura e a data real (inicial: data atual). Sucesso → P08 |
 
 Sem rotas de cancelamento, edição, exclusão ou detalhe de aluguel, e sem endpoint JSON. Todas exigem login; outros métodos recebem 405; `pk` inexistente recebe 404. `Aluguel` não está no Django Admin.
@@ -48,6 +48,20 @@ Sem rotas de cancelamento, edição, exclusão ou detalhe de aluguel, e sem endp
 | `alugueis/devolver.html` (P09) | `object`, `form`, `pode_devolver`, `data_atual`, `data_minima`, `data_maxima` |
 
 `situacao`, `situacao_codigo` e `pode_devolver` são métodos do modelo, chamados sem argumentos no template (usam a data atual).
+
+## Contrato dos botões de P07 (D13)
+
+Desde a correção `fix/eqf-18-confirmacao-aluguel`, o registro exige confirmação explícita. Como não há cancelamento na v1, o registro **nunca** é o comportamento padrão de um POST.
+
+| Botão | Atributos obrigatórios | Efeito |
+|-------|------------------------|--------|
+| Prévia | `type="submit" name="acao" value="previa"` | Valida e calcula o resumo no servidor; não grava |
+| Confirmação | `type="submit" name="acao" value="registrar"` | Revalida tudo na transação, grava e redireciona para P08 |
+
+- O valor é comparado exatamente (minúsculas, sem espaços) e deve vir uma única vez no POST.
+- Enter dentro de um campo envia o **primeiro** botão de envio do formulário: mantenha a prévia antes da confirmação no HTML. Um envio sem botão (por exemplo, `form.submit()` em JavaScript) não grava nada.
+- O backend continua sendo a fonte de verdade: diárias, diária e total são recalculados no registro, nunca lidos da tela.
+- A página provisória só mostra o botão de confirmação depois de uma prévia válida. Mostrar a confirmação desde o início é decisão do frontend, desde que o resumo apareça antes do registro (D13).
 
 ## Prévia (D13)
 
@@ -118,7 +132,7 @@ Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhu
 
 ## Integração visual (Raphael)
 
-- Trocar os três templates provisórios mantendo nomes de campos, `{% csrf_token %}`, os botões de P07 (`acao=previa` opcional; o botão de registro pode não ter `acao`), `form.non_field_errors` em P09 e os links por `{% url %}`.
+- Trocar os três templates provisórios mantendo nomes de campos, `{% csrf_token %}`, os dois botões de P07 com `name="acao"` (`previa` e `registrar`, ambos obrigatórios), `form.non_field_errors` em P07 e P09 e os links por `{% url %}`.
 - Valores: `|floatformat:"2g"` produz `1.500,00` com a localização pt-br; datas com `|date:"d/m/Y"`.
 - `situacao_codigo` (`ativo`, `atrasado`, `encerrado`, `encerrado_com_atraso`) serve para o estilo do selo; o texto é `situacao`.
 - Textos indefinidos no EQF-5 (provisórios nos templates): aviso de não cancelamento, "Nenhum cliente cadastrado.", "Nenhum equipamento disponível para aluguel." e a explicação da devolução antes da retirada.
@@ -131,12 +145,14 @@ Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhu
 | `alugueis/tests/test_views.py` | 27 | P07 (contexto, seleção, prévia, registro, datas, indisponível, cliente inexistente, valores manipulados, corrida entre formulário e serviço, data atual em Recife), P08 (vazio, quatro situações, valores congelados, inativo, ordem, consultas), P09 (contexto, devolução, datas, segunda devolução, retirada futura, 404), segurança |
 | `alugueis/tests/test_cenarios_ct.py` | 6 | CT11–CT16 automatizados |
 | `alugueis/tests/test_concorrencia_devolucao.py` | 4 | Cenários 2 e 6 (só PostgreSQL) |
+| `alugueis/tests/test_confirmacao.py` | 10 | Confirmação explícita: prévia não grava; só `acao=registrar` grava; sem ação, ação desconhecida, vazia ou repetida não gravam; valores manipulados; duplo clique; dados preservados nos erros; retirada futura |
+| `alugueis/tests/test_concorrencia_confirmacao.py` | 1 | Duas confirmações simultâneas pela view: um único aluguel aberto, a segunda recebe erro de campo (só PostgreSQL) |
 
 CT11–CT16 foram **automatizados**, não executados manualmente. As expectativas seguem `docs/rastreabilidade.md`: CT11, 3 diárias a R$ 50,00 = R$ 150,00; CT12, recusa de equipamento com aluguel ativo; CT13, devolução com a data atual libera o equipamento; CT14, segunda devolução recusada; CT15, histórico com dados e situação; CT16, histórico vazio com mensagem e sem dados inexistentes. A auditoria QA-AUD-01 não estava disponível; se ela corrigir alguma expectativa, os testes devem ser ajustados.
 
 ## Pendências
 
-1. Aceite do contrato (PR #2): variáveis novas (`resumo`, `acao=previa`), prévia no servidor × JavaScript, CPF mascarado na seleção.
-2. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de opções, indicação de atraso, mensagens de sucesso, cliente inexistente.
+1. Aceite do contrato (PR #2): variável nova `resumo`, campo `acao` (`previa`/`registrar`), prévia no servidor × JavaScript, CPF mascarado na seleção.
+2. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de opções, indicação de atraso, mensagens de sucesso, cliente inexistente, ação ausente ou inválida.
 3. QA-AUD-01 e validação acadêmica de CT11–CT16.
 4. DEV-07 (EQF-19): registrar no Jira que o RF008 foi implementado aqui, e definir o que resta para a atividade.

@@ -35,7 +35,7 @@ Ainda não existem `base.html`, `includes/navbar.html`, `includes/messages.html`
 | `templates/inicio.html` | Hoje é do backend (provisório) e recebe um link a cada etapa; o definitivo é de Raphael. Combinar o momento da troca para os dois não editarem ao mesmo tempo |
 | `templates/registration/login.html` | Provisório do backend; o definitivo (P10) é de Raphael e precisa manter `form`, `next` e o POST com CSRF |
 | `config/urls.py` | Do backend. Nomes de rota são contrato: Raphael usa `{% url %}` e pede mudanças por PR |
-| Templates de cada app | O backend define campos, variáveis e botões (`acao=previa`, `confirmacao=sim`); Raphael define o HTML. Mudança de variável exige atualizar o contrato |
+| Templates de cada app | O backend define campos, variáveis e botões (`acao=previa` e `acao=registrar` em P07, `confirmacao=sim` em P04); Raphael define o HTML. Mudança de variável exige atualizar o contrato |
 | `config/settings.py` (`TEMPLATES`, `STATICFILES_DIRS`, WhiteNoise) | Do backend; afeta onde o frontend coloca arquivos. Hoje: `templates/` e `static/` na raiz |
 | `*/forms.py` | Do backend. O contrato prevê classes do Bootstrap nos widgets, ainda não aplicadas; combinar quando o Bootstrap entrar |
 

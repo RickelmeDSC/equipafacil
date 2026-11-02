@@ -64,6 +64,7 @@ class RegistroTests(ComFuncionario):
             "equipamento": self.equipamento.pk,
             "data_retirada": _iso(hoje()),
             "data_devolucao_prevista": _iso(dias(2)),
+            "acao": "registrar",  # confirmação explícita (sem ela, nada é gravado)
         }
         dados.update(campos)
         return self.client.post(URL_CRIAR, dados)
@@ -427,6 +428,7 @@ class SegurancaTests(TestCase):
             "data_retirada": _iso(hoje()),
             "data_devolucao_prevista": _iso(hoje()),
             "data_devolucao_real": _iso(hoje()),
+            "acao": "registrar",
         }
 
     def _estado(self):

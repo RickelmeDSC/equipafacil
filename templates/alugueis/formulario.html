@@ -3,8 +3,9 @@ PROVISÓRIO (DEV-06): página mínima para validar o backend de P07 (novo alugue
 Layout, Bootstrap, textos e a prévia em JavaScript definitivos são do frontend, conforme o contrato DEV-01.
 Variáveis: form, resumo (só depois de "Calcular resumo"), data_atual, data_minima,
 diarias_equipamentos (via json_script), sem_equipamentos_disponiveis, sem_clientes.
-Botões: name="acao" value="previa" calcula o resumo no servidor, sem gravar; sem "acao"
-(ou com outro valor), o POST registra. O backend recalcula tudo ao registrar.
+Botões (obrigatórios, campo "acao"): name="acao" value="previa" calcula o resumo no servidor,
+sem gravar; name="acao" value="registrar" grava. Sem "acao", com outro valor ou com mais de um,
+nada é gravado e o formulário volta com erro. O backend recalcula tudo ao registrar.
 Textos do aviso de cancelamento e da ausência de opções: indefinidos no EQF-5 (provisórios).
 {% endcomment %}<!doctype html>
 <html lang="pt-br">
@@ -34,7 +35,7 @@ Textos do aviso de cancelamento e da ausência de opções: indefinidos no EQF-5
       </section>
       {% endif %}
       <button type="submit" name="acao" value="previa">Calcular resumo</button>
-      {% if resumo %}<button type="submit" name="acao" value="registrar">Registrar</button>{% endif %}
+      {% if resumo %}<button type="submit" name="acao" value="registrar">Registrar aluguel</button>{% endif %}
     </form>
     {% endif %}
     {{ diarias_equipamentos|json_script:"diarias-equipamentos" }}

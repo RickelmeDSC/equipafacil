@@ -26,8 +26,18 @@ from alugueis.models import Aluguel
 from config import mensagens
 from config.formularios import aplicar_erros
 
-# Valor do botão de prévia (D13). Sem ele, o POST registra o aluguel.
+# Botões de P07 (D13), campo ``acao``: a prévia não grava; só ``registrar``
+# grava. Sem ação, com ação desconhecida ou com mais de uma, nada é gravado:
+# não há cancelamento na v1, então o registro nunca é o comportamento padrão.
 ACAO_PREVIA = "previa"
+ACAO_REGISTRAR = "registrar"
+ACOES = (ACAO_PREVIA, ACAO_REGISTRAR)
+
+
+def _acao_pedida(request: HttpRequest) -> str | None:
+    """A ação do POST, só se houver exatamente um valor conhecido."""
+    valores = request.POST.getlist("acao")
+    return valores[0] if len(valores) == 1 and valores[0] in ACOES else None
 
 
 @require_safe
@@ -49,25 +59,34 @@ def historico(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def criar(request: HttpRequest) -> HttpResponse:
-    """P07 (D13): formulário único; a prévia não grava e o registro recalcula tudo."""
+    """P07 (D13): formulário único; a prévia não grava e o registro recalcula tudo.
+
+    Só ``acao=registrar`` grava. Erros devolvem o formulário com os dados
+    informados (HTTP 200).
+    """
     hoje = timezone.localdate()
     form = AluguelForm(request.POST if request.method == "POST" else None, hoje=hoje)
     resumo = None
-    if request.method == "POST" and form.is_valid():
-        dados = {
-            "cliente_id": form.cleaned_data["cliente"].pk,
-            "equipamento_id": form.cleaned_data["equipamento"].pk,
-            "data_retirada": form.cleaned_data["data_retirada"],
-            "data_devolucao_prevista": form.cleaned_data["data_devolucao_prevista"],
-        }
-        try:
-            if request.POST.get("acao") == ACAO_PREVIA:
-                resumo = services.simular_aluguel(**dados)
-            else:
-                services.registrar_aluguel(**dados)
-                return redirect("alugueis:historico")
-        except ValidationError as erro:
-            aplicar_erros(form, erro)
+    if request.method == "POST":
+        acao = _acao_pedida(request)
+        valido = form.is_valid()
+        if acao is None:
+            form.add_error(None, mensagens.ACAO_DO_ALUGUEL_INVALIDA)
+        elif valido:
+            dados = {
+                "cliente_id": form.cleaned_data["cliente"].pk,
+                "equipamento_id": form.cleaned_data["equipamento"].pk,
+                "data_retirada": form.cleaned_data["data_retirada"],
+                "data_devolucao_prevista": form.cleaned_data["data_devolucao_prevista"],
+            }
+            try:
+                if acao == ACAO_PREVIA:
+                    resumo = services.simular_aluguel(**dados)
+                else:
+                    services.registrar_aluguel(**dados)
+                    return redirect("alugueis:historico")
+            except ValidationError as erro:
+                aplicar_erros(form, erro)
 
     equipamentos = list(equipamentos_para_escolha())
     return render(
