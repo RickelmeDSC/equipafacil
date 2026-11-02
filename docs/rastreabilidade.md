@@ -1,6 +1,6 @@
 # Rastreabilidade — requisitos, regras e testes
 
-> **Documento não finalizado.** Resumo da especificação funcional **v3** registrada no Jira (épicos EQF-4, EQF-5 e EQF-6, 30/10/2026). As decisões técnicas foram aprovadas, mas a documentação acadêmica **ainda aguarda revisão** das equipes de Requisitos (Rafael Ferreira e Ivisson) e Testes (Alexandre Abreu e Vinícius Soares). Em caso de divergência, vale o Jira.
+> **Documento não finalizado.** Resumo da especificação técnica **v3** registrada no Jira (épicos EQF-4, EQF-5 e EQF-6, 30/10/2026), que é a referência de planejamento. O **Documento de Requisitos v1.1** é o documento acadêmico, revisado tecnicamente e não publicado neste repositório; a validação acadêmica final aguarda Rafael Ferreira e Ivisson, e a revisão dos cenários de teste segue com a equipe de Testes (Alexandre Abreu e Vinícius Soares). Em caso de divergência entre este resumo e as fontes oficiais (Jira e Documento v1.1), valem as fontes oficiais; divergências entre elas devem ser registradas no Jira.
 
 ## Requisitos funcionais
 
@@ -9,7 +9,7 @@
 | RF001 | Cadastrar equipamentos | Alta | Nome, código único, categoria da lista fixa, descrição opcional e diária > R$ 0,00; criado ativo | RN002 |
 | RF002 | Consultar e pesquisar equipamentos | Alta | Pesquisa por nome ou código, com situação e disponibilidade calculada no backend | RN001, RN003 |
 | RF003 | Editar informações de equipamentos | Alta | Mesmas validações do RF001; código imutável após o primeiro aluguel; nova diária não afeta aluguéis existentes | RN002, RN003, RN004 |
-| RF004 | Excluir, inativar ou reativar equipamentos | Alta | Exclusão só sem histórico; inativação com histórico e sem aluguel ativo; reativação preservando histórico | RN003, RN002 |
+| RF004 | Excluir, inativar ou reativar equipamentos | Alta | Exclusão só sem histórico; inativação com histórico e sem aluguel ativo; reativação preservando histórico. Interpretação técnica: D10 (abaixo) | RN003, RN002 |
 | RF005 | Cadastrar, listar, consultar e editar clientes | Alta | Nome completo e CPF válido e único; CPF imutável após o primeiro aluguel; telefone e e-mail opcionais; sem exclusão | RN002, RN003 |
 | RF006 | Registrar aluguel | Alta | Equipamento disponível; datas em America/Recife; diárias inclusivas; valor contratado congelado | RN001–RN004 |
 | RF007 | Registrar devolução | Alta | Somente aluguel ativo, uma única vez; data real entre retirada e data atual; indica atraso, sem multa | RN001, RN004 |
@@ -25,6 +25,21 @@ Requisito técnico transversal (sem numeração RF): acesso restrito a funcioná
 | RN002 | Validação de dados | Campos obrigatórios; formatos (CPF, telefone, e-mail, categoria, diária); unicidade de código e CPF; imutabilidade após o primeiro aluguel; validação no backend |
 | RN003 | Integridade e exclusão/inativação | Exclusão física só sem histórico; inativação sem aluguel ativo; reativação; clientes não são excluídos; devoluções não são alteradas retroativamente |
 | RN004 | Datas, duração e valores | Datas em America/Recife; retirada ≥ data atual; diárias = (prevista − retirada) + 1; valor em decimal exato; regras de atraso, sem multa |
+
+## Decisões complementares D10–D15
+
+Aprovadas por Rickelme David e registradas na descrição do épico EQF-5 no Jira em 01/11/2026. Complementam a interpretação técnica dos RF e RN acima: **não alteram o texto normativo** dos requisitos, não criam requisitos novos e não mudam os 16 cenários de teste. A equipe de Requisitos avalia se D10, D11 e D12 exigem atualização do Documento de Requisitos v1.1, que trata esses pontos de forma mais geral.
+
+| Decisão | Interpretação técnica | RF / RN |
+|---------|-----------------------|---------|
+| D10 — Inativação | Todo equipamento ativo sem aluguel aberto pode ser inativado, com ou sem histórico; amplia a leitura do resumo do RF004 ("inativação com histórico"). Exclusão física continua só sem histórico e sem aluguel aberto; reativação exige dados válidos e nenhum aluguel aberto | RF004, RN003 |
+| D11 — Código | Remove espaços das extremidades; único sem diferenciar maiúsculas e minúsculas; grafia informada preservada; reforço no PostgreSQL; imutável após o primeiro aluguel | RF001, RF003, RN002 |
+| D12 — CPF e telefone | CPF: remove só pontos e hífen, recusa outros caracteres, 11 dígitos, dígitos verificadores, recusa dígitos todos iguais, único, exibido formatado, imutável após o primeiro aluguel. Telefone: opcional, máscara usual, DDD, 10 ou 11 dígitos, exibido formatado | RF005, RN002 |
+| D13 — Aluguel em uma etapa | Formulário único; resumo antes da gravação; aviso de que não há cancelamento; sem página adicional; o backend recalcula e revalida antes de gravar | RF006, RN001, RN004 |
+| D14 — Clientes | Consulta pela listagem, com cadastro e edição; sem pesquisa e sem página de detalhe na primeira versão | RF005 |
+| D15 — Funcionários | Django Auth; contas provisionadas pelo administrador via Django Admin, restrito a administradores autorizados; sem cadastro público, sem recuperação de senha e sem perfis novos | Requisito transversal (D1), FC12 |
+
+O detalhamento técnico de D10–D15 (rotas, formulários, modelagem) está nos documentos do DEV-01 (`contrato-tecnico-frontend-backend.md`, `modelagem-proposta.md` e `plano-backend-dev01-dev03.md`), que são propostas até o aceite de Rickelme e Raphael e entram na `main` por PR próprio.
 
 ## Cenários de teste planejados
 
@@ -61,6 +76,6 @@ Há ainda uma cobertura complementar (FC01–FC14), fora da contagem acadêmica,
 | Desenvolvimento | DEV-04 (EQF-16) CT01–CT08; DEV-05 (EQF-17) CT09–CT10; DEV-06 (EQF-18) CT11–CT14; DEV-07 (EQF-19) CT15–CT16 |
 | Testes | QA-02 (EQF-22) positivos; QA-03 (EQF-23) negativos; QA-04 (EQF-24) revisão; QA-05 (EQF-25) dados; QA-06 (EQF-26) execução |
 
-## Pendências da especificação
+## Decisões I1–I5
 
-As inconsistências I1–I5 da v3 têm propostas registradas no Jira, **ainda pendentes de aprovação**. Nenhuma foi aplicada aos RF ou RN acima.
+As decisões I1–I5 da v3 foram **aprovadas por Rickelme David em 01/11/2026**. O detalhamento está no Jira e no Documento de Requisitos v1.1. O resumo de RF e RN acima **não reproduz** esse detalhamento: antes de implementar funcionalidade afetada (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada.
