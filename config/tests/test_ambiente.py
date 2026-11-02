@@ -154,11 +154,19 @@ class BancoDeDadosTests(SimpleTestCase):
 class SettingsEmProcessoSeparadoTests(SimpleTestCase):
     """Carrega config.settings em outro processo, com ambiente controlado."""
 
-    def _executar(self, variaveis: dict[str, str]) -> subprocess.CompletedProcess:
+    _CODIGO_PADRAO = (
+        "from django.conf import settings as s; "
+        "print(s.DEBUG, s.SESSION_COOKIE_SECURE, s.CSRF_COOKIE_SECURE, "
+        "s.SECURE_SSL_REDIRECT, s.DATABASES['default']['ENGINE'])"
+    )
+
+    def _executar(
+        self, variaveis: dict[str, str], codigo: str = _CODIGO_PADRAO
+    ) -> subprocess.CompletedProcess:
         ambiente = {
             chave: valor
             for chave, valor in os.environ.items()
-            if not chave.startswith(("DJANGO_", "DB_"))
+            if not chave.startswith(("DJANGO_", "DB_", "DATABASE_URL", "RENDER"))
         }
         ambiente.update(
             {
@@ -168,11 +176,6 @@ class SettingsEmProcessoSeparadoTests(SimpleTestCase):
             }
         )
         ambiente.update(variaveis)
-        codigo = (
-            "from django.conf import settings as s; "
-            "print(s.DEBUG, s.SESSION_COOKIE_SECURE, s.CSRF_COOKIE_SECURE, "
-            "s.SECURE_SSL_REDIRECT, s.DATABASES['default']['ENGINE'])"
-        )
         return subprocess.run(
             [sys.executable, "-c", codigo],
             cwd=BASE_DIR,
@@ -238,6 +241,26 @@ class SettingsEmProcessoSeparadoTests(SimpleTestCase):
         )
         self.assertEqual(resultado.returncode, 0, resultado.stderr)
         self.assertEqual(resultado.stdout.split()[0], "False")
+
+    def test_producao_simulada_usa_manifesto_comprimido_do_whitenoise(self):
+        resultado = self._executar(
+            {
+                "DJANGO_SECRET_KEY": secrets.token_urlsafe(50),
+                "DJANGO_DEBUG": "False",
+                "DB_NAME": "equipafacil",
+                "DB_USER": "equipafacil",
+                "DB_SSLMODE": "require",
+            },
+            codigo=(
+                "from django.conf import settings as s; "
+                "print(s.STORAGES['staticfiles']['BACKEND'])"
+            ),
+        )
+        self.assertEqual(resultado.returncode, 0, resultado.stderr)
+        self.assertEqual(
+            resultado.stdout.strip(),
+            "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        )
 
 
 class SegredosNaoVersionadosTests(SimpleTestCase):

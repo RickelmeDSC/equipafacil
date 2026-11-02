@@ -71,6 +71,20 @@ class EstruturaTests(SimpleTestCase):
         self.assertIn(settings.BASE_DIR / "static", settings.STATICFILES_DIRS)
         self.assertEqual(settings.STATIC_ROOT, settings.BASE_DIR / "staticfiles")
 
+    def test_whitenoise_logo_apos_o_security_middleware(self):
+        middleware = settings.MIDDLEWARE
+        posicao = middleware.index("django.middleware.security.SecurityMiddleware")
+        self.assertEqual(
+            middleware[posicao + 1], "whitenoise.middleware.WhiteNoiseMiddleware"
+        )
+
+    def test_desenvolvimento_usa_armazenamento_simples_de_estaticos(self):
+        # Os testes rodam com DJANGO_DEBUG=True: sem manifesto nem collectstatic.
+        self.assertEqual(
+            settings.STORAGES["staticfiles"]["BACKEND"],
+            "django.contrib.staticfiles.storage.StaticFilesStorage",
+        )
+
     def test_mensagens_habilitadas(self):
         self.assertTrue(apps.is_installed("django.contrib.messages"))
         self.assertIn(
