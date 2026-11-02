@@ -6,6 +6,7 @@ Documentação técnica de apoio ao desenvolvimento. A fonte oficial do planejam
 |-----------|----------|
 | [arquitetura-planejada.md](arquitetura-planejada.md) | Stack, divisão frontend/backend e páginas previstas |
 | [rastreabilidade.md](rastreabilidade.md) | RF001–RF008, RN001–RN004 e cenários CT01–CT16 |
+| [guia-integracao-frontend-backend.md](guia-integracao-frontend-backend.md) | Acordo operacional e proposta de contrato frontend × backend (ainda não aprovada nem implementada) |
 
 **Situação:** documentação em planejamento. Não é versão final.
 
