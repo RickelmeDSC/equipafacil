@@ -1,9 +1,9 @@
 # EquipaFácil — Guia de Integração Frontend ↔ Backend
 
-**Versão:** 1.0 — alinhamento pré-implementação  
-**Data:** 01/11/2026  
+**Versão:** 1.1 — alinhamento pré-implementação; revisão de 02/11/2026 alinha o guia a D14 e D10  
+**Data:** 01/11/2026 (revisado em 02/11/2026)  
 **Status:** Proposta de contrato para leitura e validação conjunta de Rickelme e Raphael; **não é contrato técnico já implementado**.  
-**Referências:** Documento de Requisitos v1.1 (01/11/2026) e especificação técnica v3 no Jira EQF. As decisões I1–I5 foram aprovadas em 01/11/2026; o detalhamento oficial permanece no Documento de Requisitos v1.1 e no Jira.  
+**Referências:** Documento de Requisitos v1.1 (01/11/2026) e especificação técnica v3 no Jira EQF. As decisões I1–I5 foram aprovadas em 01/11/2026; o detalhamento oficial permanece no Documento de Requisitos v1.1 e no Jira. As decisões complementares D10–D15, aprovadas por Rickelme, estão registradas na descrição do épico EQF-5.  
 **Jira:** https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2  
 **Repositório:** https://github.com/RickelmeDSC/equipafacil
 
@@ -41,13 +41,13 @@ A equipe de Testes (Alexandre/Vinícius) mantém os cenários Gherkin CT01–CT1
 | Equipamentos — cadastro | Nome, código, categoria fixa, valor de diária, descrição opcional; exibir erros do Django Form | RF001 |
 | Equipamentos — edição | Mesmos campos; indicar código bloqueado após histórico; não prometer edição retroativa | RF003 |
 | Equipamentos — ações | Confirmação de exclusão, inativação ou reativação quando permitidas; mensagens de bloqueio | RF004 |
-| Clientes — listagem/detalhe | Busca/navegação se prevista no contrato; exibir dados e estado vazio | RF005 |
+| Clientes — listagem | Lista dos clientes cadastrados, com acesso à edição; estado vazio. Sem pesquisa e sem página de detalhe na v1 (D14) | RF005 |
 | Clientes — cadastro/edição | Nome completo, CPF, telefone opcional, e-mail opcional; máscaras apenas visuais | RF005 |
 | Aluguéis — registro | Seleção de cliente/equipamento disponível, retirada, devolução prevista, resumo da quantidade de diárias e do valor **servido pelo backend** | RF006 |
 | Devolução | Identificar aluguel ativo, informar data real, confirmação e resultado com atraso sem multa | RF007 |
 | Histórico | Listagem de cliente/equipamento/datas/diária contratada/total/status; mensagem para lista vazia | RF008 |
 
-**Não incluir na v1:** cadastro público, recuperação de senha por e-mail, cobrança, multa, manutenção, WhatsApp/SMS, exclusão de clientes, edição/cancelamento de aluguéis ou devoluções já registrados.
+**Não incluir na v1:** cadastro público, recuperação de senha por e-mail, cobrança, multa, manutenção, WhatsApp/SMS, exclusão de clientes, pesquisa de clientes e página de detalhe de cliente (D14), edição/cancelamento de aluguéis ou devoluções já registrados. A pesquisa de **equipamentos** (RF002) continua no escopo.
 
 ## 4. Regras funcionais que o frontend deve refletir — sem duplicar validação no cliente
 
@@ -58,7 +58,7 @@ A equipe de Testes (Alexandre/Vinícius) mantém os cenários Gherkin CT01–CT1
 5. **Aluguéis (I1):** retirada **hoje ou no futuro**, nunca no passado, no calendário `America/Recife`. Ao registrar aluguel futuro, o equipamento fica indisponível **imediatamente**. **Não existe cancelamento** nessa versão; destacar isso antes de confirmar quando relevante.
 6. **Diárias e valor:** diárias inclusivas = `(devolução prevista − retirada) + 1`; valor contratado = diárias × diária do equipamento no registro. O backend calcula e congela o valor decimal. Qualquer prévia em JS é apenas informativa e nunca fonte da verdade.
 7. **Devoluções:** data real entre a retirada e a data atual local; somente uma devolução por aluguel ativo. O atraso gera indicação visual, **sem multa**. Devolução registrada não pode ser editada (I2).
-8. **Exclusão/inativação:** equipamento sem histórico pode ser excluído após confirmação; com histórico, apenas inativado quando sem aluguel ativo; com aluguel ativo, não excluir nem inativar. Reativação validada no backend (I3).
+8. **Exclusão/inativação (D10):** equipamento sem histórico e sem aluguel ativo pode ser excluído após confirmação; com histórico, não pode ser excluído. Todo equipamento ativo sem aluguel ativo pode ser inativado, com ou sem histórico; com aluguel ativo, não excluir nem inativar. Reativação validada no backend (I3).
 9. **Histórico:** status Ativo, Atrasado, Encerrado e Encerrado com atraso; mostrar estado vazio corretamente (CT16).
 10. **Autenticação:** somente funcionários com conta criada administrativamente e Django Auth. Nunca disponibilizar fluxo público de cadastro. A contagem acadêmica de oito RFs ainda depende da confirmação do professor.
 
@@ -78,7 +78,7 @@ Os nomes a seguir são **sugestões** para um documento de contrato assinado por
 | Cadastro equipamento | `equipamentos:criar` | GET/POST |
 | Edição equipamento | `equipamentos:editar` | GET/POST |
 | Ações equipamento | `equipamentos:excluir`, `equipamentos:inativar`, `equipamentos:reativar` | POST para mutações; GET de confirmação se necessário |
-| Clientes | `clientes:lista`, `clientes:detalhe`, `clientes:criar`, `clientes:editar` | GET e/ou GET/POST |
+| Clientes | `clientes:lista`, `clientes:criar`, `clientes:editar` (sem rota de detalhe, D14) | GET e/ou GET/POST |
 | Aluguel | `alugueis:criar` | GET/POST |
 | Devolução | `alugueis:devolver` | GET/POST |
 | Histórico | `alugueis:historico` | GET |
@@ -117,7 +117,6 @@ templates/
     confirmar_exclusao.html
   clientes/
     lista.html
-    detalhe.html
     formulario.html
   alugueis/
     formulario.html
@@ -143,6 +142,18 @@ Nomes e estrutura são **proposta para alinhar a integração**, não obrigaçã
 - Ações destrutivas exigem confirmação explícita; não executar exclusão por link GET.
 - Não adicionar scripts CDN ou dependências externas sem acordo e avaliação de conectividade/deploy.
 
+### 5.5 Diferenças em relação ao contrato técnico proposto
+
+O contrato técnico do DEV-01 (`docs/contrato-tecnico-frontend-backend.md`, proposto no PR #2) detalha esta seção e propõe as diferenças abaixo. **Elas continuam propostas até o aceite de Raphael** e nenhuma tela deve depender delas antes disso. Só a remoção do detalhe de cliente já está aplicada neste guia, porque decorre de D14, decisão aprovada.
+
+| Este guia | Contrato proposto (PR #2) | Situação |
+|---|---|---|
+| `<app_autenticacao>:login` e `<app_autenticacao>:logout` | `login` e `logout` nativos, sem app de autenticação nem namespace | Aguarda aceite de Raphael |
+| Não lista página inicial | `inicio` e `inicio.html` (P01) | Aguarda aceite de Raphael |
+| `equipamentos/confirmar_exclusao.html` | Página `equipamentos:acoes` (`equipamentos/acoes.html`), com a confirmação de exclusão dentro dela | Aguarda aceite de Raphael |
+| Bootstrap 5.3 local "dentro de `static/`" | `static/vendor/bootstrap/` | Aguarda aceite de Raphael |
+| `clientes:detalhe` e `clientes/detalhe.html` | Removidos | Aplicado neste guia (D14) |
+
 ## 6. Divisão de arquivos para evitar conflitos
 
 | Área/arquivo | Responsável principal |
@@ -150,14 +161,15 @@ Nomes e estrutura são **proposta para alinhar a integração**, não obrigaçã
 | `config/`, `*/models.py`, `*/forms.py`, `*/services.py`, `*/views.py`, `*/urls.py`, migrations, testes de domínio | Rickelme |
 | `templates/**`, `static/css/**`, `static/js/**` | Raphael |
 | `CLAUDE.md`, `.claude/**`, `docs/arquitetura-planejada.md`, dependências e deploy | Rickelme, com revisão de Raphael quando afetar a interface |
-| `docs/contrato-frontend-backend.md` (documento de contrato após acordo) | Ambos, com alterações revisadas |
+| `docs/contrato-tecnico-frontend-backend.md` (contrato proposto no PR #2; vale após o aceite) | Ambos, com alterações revisadas |
 
 Se o frontend precisar de campo/contexto/rota diferente, abrir solicitação com exemplo de tela e uso. **Não editar backend para “fazer a página funcionar” sem coordenação.** De modo equivalente, o backend não deve renomear contratos consumidos sem avisar Raphael.
 
 ## 7. Fluxo de Git e Pull Requests
 
 - `main` está protegida e exige PR e aprovação; sem push direto, force push ou exclusão.
-- Rickelme trabalha em branches `feat/backend-eqf-NN-*`; Raphael em `feat/frontend-eqf-NN-*`; documentação em `docs/*`.
+- Rickelme trabalha em branches `feat/backend-eqf-NN-*`; Raphael em `feat/frontend-eqf-NN-*`; correções em `fix/eqf-NN-*`; manutenção em `chore/*`; documentação em `docs/*`.
+- Integração na `main` por PR com **merge commit**, sem squash, para preservar o histórico e evitar commits duplicados entre PRs dependentes.
 - Um PR por entrega lógica, com descrição do RF/CT afetado, prints quando houver interface e comandos de teste.
 - Nunca misturar trabalho da branch `docs/alinhamento-workspace` ou do PR #1 em outra branch por acidente.
 - Antes de abrir PR: atualizar branch de forma não destrutiva e conferir diff/arquivos alterados; resolver conflitos em conjunto.
@@ -170,7 +182,7 @@ Se o frontend precisar de campo/contexto/rota diferente, abrir solicitação com
 
 **Etapa 1 — Contrato:** Rickelme publica o contrato real de rotas, forms, contexto, nomes de templates e autenticação; Raphael aprova ou pede ajustes. *Sem essa etapa, criar apenas wireframes/HTML estático sem suposições de integração.*
 
-**Etapa 2 — Frontend:** Raphael implementa `base.html`, navegação, login, listas, formulários, detalhe de cliente, devolução e histórico conforme contrato; faz revisão responsiva e de acessibilidade.
+**Etapa 2 — Frontend:** Raphael implementa `base.html`, navegação, login, listas, formulários, devolução e histórico conforme contrato (sem página de detalhe de cliente, D14); faz revisão responsiva e de acessibilidade.
 
 **Etapa 3 — Integração:** ambos verificam cenários CT01–CT16 com QA; corrigem incompatibilidades sem reescrever as regras de negócio.
 
@@ -195,7 +207,7 @@ Se o frontend precisar de campo/contexto/rota diferente, abrir solicitação com
 2. **Campos reais dos Forms e contexto:** definir com exemplos de GET/POST e estados de erro.
 3. **Convenção de templates e layout:** aprovar os diretórios sugeridos e a proposta de Bootstrap 5.3 com arquivos estáticos locais.
 4. **Fluxo de autenticação:** nome da aplicação/namespace de autenticação, URLs e tela de login; professor ainda precisa confirmar a classificação como transversal.
-5. **Identidade GitHub de Raphael:** username confirmado e convite `Write` aceito.
+5. **Acesso de Raphael ao GitHub:** há evidência indireta de que a conta GitHub de Raphael já tem acesso ao repositório, mas a permissão efetiva (`Write`) ainda não foi conferida diretamente na lista de colaboradores. Confirmar essa permissão ao solicitar a revisão do primeiro PR. **Até essa confirmação, a pendência não está totalmente resolvida.**
 6. **PR #1 documental:** integrar após revisão, sem depender disso para rascunhar a interface, mas sem perder as regras de segurança.
 7. **Modelo acadêmico final e testes Gherkin:** acompanhar a validação da documentação até 03/11.
 
@@ -206,4 +218,4 @@ Se o frontend precisar de campo/contexto/rota diferente, abrir solicitação com
 - Rickelme — leitura e aprovação do contrato: **pendente**.
 - Raphael — leitura, dúvidas e aprovação do contrato: **pendente**.
 
-**Princípio de controle:** nenhum nome de URL, campo, contexto ou comportamento novo fica “aprovado por silêncio”. Registrar o acordo em `docs/contrato-frontend-backend.md` ou em comentário de PR antes de depender dele na implementação.
+**Princípio de controle:** nenhum nome de URL, campo, contexto ou comportamento novo fica “aprovado por silêncio”. Registrar o acordo em `docs/contrato-tecnico-frontend-backend.md` ou em comentário de PR antes de depender dele na implementação.
