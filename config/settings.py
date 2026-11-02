@@ -49,6 +49,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     # WhiteNoise serve os arquivos estáticos; fica logo após o SecurityMiddleware.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # /healthz/ responde aqui, antes da sessão e do banco (config/middleware.py).
+    "config.middleware.HealthCheckMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -114,6 +116,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = obter_booleano("DJANGO_SECURE_SSL_REDIRECT", padrao=not DEBUG)
+# O health check responde também por HTTP, sem redirecionar.
+SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
 SECURE_HSTS_SECONDS = obter_inteiro("DJANGO_SECURE_HSTS_SECONDS", padrao=0)
 if obter_booleano("DJANGO_SECURE_PROXY_SSL_HEADER", padrao=False):
     # Só ative atrás de um proxy que sempre define X-Forwarded-Proto.
