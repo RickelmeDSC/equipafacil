@@ -1,4 +1,6 @@
 """Registro do app equipamentos no Django Admin.
 
-Nenhum modelo registrado nesta etapa (DEV-02); o registro acompanha os modelos de DEV-03.
+Intencionalmente vazio: os modelos de domínio não são registrados no Admin, que
+fica restrito à administração de contas de funcionários (D15). Assim, as regras
+dos serviços não são contornadas pelo Admin (modelagem proposta, seção 7).
 """
