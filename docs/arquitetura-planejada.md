@@ -1,6 +1,6 @@
 # Arquitetura planejada
 
-> **Estado: planejamento, com a fundação de DEV-02 em preparação.** Existem o projeto Django, os apps sem modelos e a autenticação nativa (veja o README). Não há modelos de domínio, banco PostgreSQL configurado, ambiente de hospedagem nem deploy.
+> **Estado: planejamento, com a fundação de DEV-02 em preparação.** Existem o projeto Django, os apps sem modelos e a autenticação nativa (veja o README). Há PostgreSQL local de desenvolvimento e testes, validado (`docs/postgresql-local.md`). Não há modelos de domínio, banco de produção (Neon), ambiente de hospedagem nem deploy.
 
 Referências: especificação técnica v3, épico EQF-5 (Desenvolvimento do Sistema) no Jira, e Documento de Requisitos v1.1 (acadêmico, não publicado neste repositório). Detalhes de organização do projeto serão definidos em DEV-01 (EQF-13) e DEV-02 (EQF-14).
 
@@ -64,4 +64,4 @@ Mudanças nesse contrato são combinadas entre os dois antes da implementação.
 ## Pontos em aberto
 
 - Decisões I1–I5 (aluguel com retirada futura, correção de registros, reativação inválida, prioridades, armazenamento do CPF) foram aprovadas em 01/11/2026. O detalhamento está no Jira e no Documento de Requisitos v1.1 e deve ser considerado na modelagem antes da implementação.
-- Estrutura de apps Django: proposta no contrato DEV-01, ainda sem aceite. Versão do Django, runner de testes (padrão do Django) e ferramentas de qualidade (`ruff` e `black`) definidos em DEV-02. Validação em PostgreSQL pendente (`docs/postgresql-local.md`).
+- Estrutura de apps Django: proposta no contrato DEV-01, ainda sem aceite. Versão do Django, runner de testes (padrão do Django) e ferramentas de qualidade (`ruff` e `black`) definidos em DEV-02. Fundação validada no PostgreSQL 18.6 local em 02/11/2026 (`docs/postgresql-local.md`).

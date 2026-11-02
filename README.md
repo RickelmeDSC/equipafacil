@@ -49,7 +49,7 @@ Requisito técnico transversal: acesso restrito a funcionários autenticados (Dj
 | Hospedagem | Render (previsto) |
 | Gestão | Jira (Kanban), GitHub |
 
-Até agora estão configurados apenas o Python, o Django e o ambiente local. PostgreSQL definitivo, Neon e Render ainda não. Veja [`docs/arquitetura-planejada.md`](docs/arquitetura-planejada.md).
+Até agora estão configurados o Python, o Django e o ambiente local, com PostgreSQL local validado para desenvolvimento e testes. Neon (banco de produção) e Render ainda não. Veja [`docs/arquitetura-planejada.md`](docs/arquitetura-planejada.md).
 
 ## Equipes
 
@@ -80,7 +80,7 @@ Até agora estão configurados apenas o Python, o Django e o ambiente local. Pos
 
 - Windows com PowerShell (comandos abaixo) e Git.
 - Python **3.13** (`py -3.13 --version`).
-- PostgreSQL 14 ou superior é o banco-alvo; opcional nesta etapa (veja [Banco de dados](#banco-de-dados)).
+- PostgreSQL 14 ou superior é o banco-alvo (validado com o 18.6 local); para começar, o SQLite temporário também funciona (veja [Banco de dados](#banco-de-dados)).
 
 ### Ambiente virtual e dependências
 
@@ -119,7 +119,7 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 
 ### Banco de dados
 
-- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, crie um banco e um usuário próprios e preencha `DB_ENGINE=postgresql` e as variáveis `DB_*` no `.env`, seguindo o procedimento seguro em [`docs/postgresql-local.md`](docs/postgresql-local.md). **A validação em PostgreSQL ainda está pendente.** Neon e o banco de produção ainda não existem.
+- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, siga [`docs/postgresql-local.md`](docs/postgresql-local.md): um usuário sem privilégios elevados, um banco de desenvolvimento e um banco de testes, com a senha no `pgpass.conf`. **Validado localmente em 02/11/2026** (PostgreSQL 18.6, 64 testes aprovados, nenhum pulado). Neon e o banco de produção ainda não existem.
 - **SQLite (`DB_ENGINE=sqlite`) é um recurso temporário de desenvolvimento.** O projeto o recusa com `DJANGO_DEBUG=False`. Ele não substitui o PostgreSQL: as restrições do banco e os testes de concorrência previstos a partir de DEV-03 exigem PostgreSQL.
 
 ### Verificações e testes
@@ -133,7 +133,7 @@ black --check .
 python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=3)`: os três testes de `config/tests/test_postgresql.py` só rodam com PostgreSQL.
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=3)`: os três testes de `config/tests/test_postgresql.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
 
 `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
 
@@ -181,7 +181,7 @@ Os nomes `login`, `logout` e `inicio` ainda dependem do aceite do contrato DEV-0
 
 - Sem modelos, migrations ou regras de domínio; nenhum RF001–RF008 implementado.
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
-- Testes executados só com SQLite; **nada foi testado em PostgreSQL ainda** (procedimento em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
+- Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
 - Sem Bootstrap, arquivos estáticos próprios, Neon, Render ou deploy.
 
 ## Prazos
