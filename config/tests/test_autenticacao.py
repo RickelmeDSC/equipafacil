@@ -93,6 +93,59 @@ class LoginTests(TestCase):
         self.client.force_login(self.funcionario)
         self.assertEqual(self.client.post(reverse("inicio")).status_code, 405)
 
+    def test_login_troca_a_chave_da_sessao(self):
+        # Evita fixação de sessão: a chave anterior ao login não continua válida.
+        sessao = self.client.session
+        sessao["marcador"] = "anonimo"
+        sessao.save()
+        chave_anterior = sessao.session_key
+        self.client.post(
+            reverse("login"),
+            {"username": "funcionario.teste", "password": self.senha},
+        )
+        self.assertIn(SESSION_KEY, self.client.session)
+        self.assertNotEqual(self.client.session.session_key, chave_anterior)
+
+    def test_login_ignora_redirecionamento_para_outro_site(self):
+        resposta = self.client.post(
+            reverse("login"),
+            {
+                "username": "funcionario.teste",
+                "password": self.senha,
+                "next": "https://site-externo.example/",
+            },
+        )
+        self.assertRedirects(resposta, reverse("inicio"), fetch_redirect_response=False)
+
+    def test_login_respeita_next_interno(self):
+        resposta = self.client.post(
+            reverse("login"),
+            {"username": "funcionario.teste", "password": self.senha, "next": "/"},
+        )
+        self.assertRedirects(resposta, "/", fetch_redirect_response=False)
+
+    def test_login_sem_token_csrf_e_recusado(self):
+        cliente = Client(enforce_csrf_checks=True)
+        resposta = cliente.post(
+            reverse("login"),
+            {"username": "funcionario.teste", "password": self.senha},
+        )
+        self.assertEqual(resposta.status_code, 403)
+        self.assertNotIn(SESSION_KEY, cliente.session)
+
+    def test_login_com_token_csrf_autentica(self):
+        cliente = Client(enforce_csrf_checks=True)
+        cliente.get(reverse("login"))
+        resposta = cliente.post(
+            reverse("login"),
+            {
+                "username": "funcionario.teste",
+                "password": self.senha,
+                "csrfmiddlewaretoken": cliente.cookies["csrftoken"].value,
+            },
+        )
+        self.assertRedirects(resposta, reverse("inicio"), fetch_redirect_response=False)
+
 
 class LogoutTests(TestCase):
     def setUp(self):
@@ -136,6 +189,30 @@ class AdminTests(TestCase):
         self.administrador = modelo.objects.create_superuser(
             username="admin.teste", password=_senha_temporaria()
         )
+
+    def test_usuario_comum_nao_recebe_permissoes_administrativas(self):
+        senha = _senha_temporaria()
+        self.funcionario.set_password(senha)
+        self.funcionario.save()
+        resposta = self.client.post(
+            reverse("login"), {"username": "funcionario.teste", "password": senha}
+        )
+        self.assertRedirects(resposta, reverse("inicio"), fetch_redirect_response=False)
+        self.funcionario.refresh_from_db()
+        self.assertFalse(self.funcionario.is_staff)
+        self.assertFalse(self.funcionario.is_superuser)
+        self.assertEqual(self.funcionario.get_all_permissions(), set())
+        self.assertFalse(self.funcionario.groups.exists())
+
+    def test_equipe_sem_permissao_nao_gerencia_contas(self):
+        # Acesso ao Admin não basta: gerir contas exige permissão explícita (D15).
+        equipe = get_user_model().objects.create_user(
+            username="equipe.teste", password=_senha_temporaria(), is_staff=True
+        )
+        self.client.force_login(equipe)
+        self.assertEqual(self.client.get("/admin/").status_code, 200)
+        self.assertEqual(self.client.get("/admin/auth/user/").status_code, 403)
+        self.assertEqual(self.client.get("/admin/auth/user/add/").status_code, 403)
 
     def test_funcionario_sem_permissao_nao_acessa_o_admin(self):
         self.client.force_login(self.funcionario)
