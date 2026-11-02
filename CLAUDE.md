@@ -9,7 +9,16 @@ EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de 
 - Planejamento: Jira, projeto `EQF` — https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2
 - **Especificação técnica v3** no Jira (épicos EQF-4 Requisitos, EQF-5 Desenvolvimento, EQF-6 Testes): referência de **planejamento**. Resumo em `docs/rastreabilidade.md`.
 - **Documento de Requisitos v1.1**: documento **acadêmico**, revisado tecnicamente. Não é publicado neste repositório — nunca adicione o DOCX ao Git. A v3 e a v1.1 não são versões concorrentes do mesmo arquivo.
-- **Decisões I1–I5**: aprovadas por Rickelme em 01/11/2026. O detalhamento está no Jira e no Documento v1.1; os resumos em `docs/` ainda não o incorporam. Antes de implementar algo afetado por I1–I5 (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada; se ela não estiver disponível na sessão, pergunte.
+- **Decisões I1–I5**: aprovadas por Rickelme em 01/11/2026. O detalhamento está no Jira e no Documento v1.1; o resumo `docs/rastreabilidade.md` não o reproduz. Antes de implementar algo afetado por I1–I5 (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada; se ela não estiver disponível na sessão, pergunte.
+- **Decisões complementares D10–D15**: aprovadas por Rickelme e registradas na descrição do épico EQF-5 no Jira em 01/11/2026. Complementam a interpretação técnica dos RF/RN, sem alterar o texto normativo nem criar requisitos novos:
+  - D10 — inativação de equipamento sem aluguel aberto, com ou sem histórico (RF004);
+  - D11 — normalização do código e unicidade sem diferenciar maiúsculas e minúsculas (RF001, RF003, RN002);
+  - D12 — validações adicionais de CPF e telefone (RF005, RN002);
+  - D13 — aluguel em formulário único, com resumo antes da gravação (RF006);
+  - D14 — clientes sem pesquisa na primeira versão; consulta pela listagem (RF005);
+  - D15 — contas de funcionários provisionadas pelo administrador via Django Admin (D1).
+
+  Resumo em `docs/rastreabilidade.md`. O detalhamento técnico está em `docs/contrato-tecnico-frontend-backend.md`, `docs/modelagem-proposta.md` e `docs/plano-backend-dev01-dev03.md`, que continuam **propostas** até o aceite de Rickelme e Raphael e entram na `main` por PR próprio. Se esses arquivos não existirem na branch da sessão, o contrato do DEV-01 ainda não foi integrado: consulte o EQF-5 e, se a decisão não estiver disponível, pergunte. A equipe de Requisitos avalia se D10, D11 e D12 exigem atualização do Documento v1.1, que trata esses pontos de forma mais geral; divergência com o documento acadêmico é registrada para essa equipe, não resolvida pelo Claude.
 - Validação acadêmica final dos requisitos: aguardando Rafael Ferreira e Ivisson.
 - Prazos: primeira entrega 03/11/2026; entrega final 15/11/2026.
 
@@ -47,7 +56,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Escopo
 
-- Implemente apenas requisitos aprovados (RF001–RF008, RN001–RN004 e decisões D1–D9, N2–N6, TZ e I1–I5), conforme a especificação técnica v3 e o Documento de Requisitos v1.1.
+- Implemente apenas requisitos aprovados (RF001–RF008, RN001–RN004 e decisões D1–D9, N2–N6, TZ, I1–I5 e D10–D15), conforme a especificação técnica v3, incluindo as decisões complementares registradas no EQF-5, e o Documento de Requisitos v1.1.
 - Não invente requisitos, campos, telas ou integrações (ex.: multa, WhatsApp, reservas, pagamentos).
 - Ambiguidade de requisito → pare e pergunte; registre a dúvida para o Jira em vez de decidir sozinho.
 - Não altere atividades do Jira sem pedido explícito.
