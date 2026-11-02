@@ -78,14 +78,16 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 1. **Planejar antes de implementar**: confirmar a atividade do Jira, os RF/RN/CT envolvidos e o contrato frontend × backend; apresentar um plano curto antes de escrever código.
 2. **Uma branch por atividade**, criada a partir da `main` atualizada. Nunca commitar direto na `main`.
+   **Uma única pasta de trabalho** (a raiz do repositório), com uma branch ativa por vez, trocada com `git switch`. **Não use `git worktree`** neste repositório (decisão de Rickelme em 02/11/2026). Antes de trocar de branch, a árvore precisa estar limpa; não use `git reset --hard` nem descarte alterações para trocar.
 
    | Branch | Uso |
    |--------|-----|
-   | `main` | Versão integrada e revisada |
+   | `main` | Versão integrada e revisada, sempre estável |
    | `docs/<descricao>` | Documentação |
    | `feat/backend-eqf-NN-<descricao>` | Backend, banco e regras de negócio (ex.: `feat/backend-eqf-16-equipamentos`) |
    | `feat/frontend-eqf-NN-<descricao>` | Templates, estilos e interface |
    | `fix/eqf-NN-<descricao>` | Correções |
+   | `chore/<descricao>` | Manutenção (dependências, ferramentas, configuração) |
 
 3. **Testes automatizados** vinculados aos RF e CT, passando antes de declarar algo concluído (ver seção Testes).
 4. **Commits semânticos** em português: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
