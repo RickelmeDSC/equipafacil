@@ -1,4 +1,4 @@
-"""Serviço transacional de registro de aluguel e prévia (RF006, RN001, RN004, I1, D13).
+"""Serviços transacionais de aluguel e devolução (RF006, RF007, RN001, RN004, I1, I2, D13).
 
 O serviço recebe só identificadores e datas; diária, diárias e valor são sempre
 recalculados a partir do banco, nunca recebidos da tela (D13). A prévia usa as
@@ -8,10 +8,11 @@ Protocolo de bloqueios (PostgreSQL; no SQLite ``select_for_update()`` não tem
 efeito), sempre com a linha do equipamento primeiro:
 
 - registro de aluguel: equipamento → cliente;
+- devolução: equipamento → aluguel;
 - edição, exclusão, inativação e reativação de equipamento: só o equipamento;
 - edição de cliente: só o cliente.
 
-Ninguém espera por um equipamento segurando um cliente, então não
+Ninguém espera por um equipamento segurando um cliente ou um aluguel, então não
 há ciclo de espera. O índice único parcial ``aluguel_um_aberto_por_equipamento``
 continua sendo a última barreira contra dois aluguéis abertos.
 """
@@ -138,4 +139,44 @@ def registrar_aluguel(
             raise ValidationError(
                 {"equipamento": mensagens.EQUIPAMENTO_INDISPONIVEL}
             ) from None
+    return aluguel
+
+
+def registrar_devolucao(
+    *, aluguel_id: int, data_devolucao_real: date, hoje: date | None = None
+) -> Aluguel:
+    """Grava a devolução uma única vez (RF007, RN004, I1, I2).
+
+    Data real entre a retirada e a data atual em America/Recife. Atraso é só
+    indicado pela situação calculada: sem multa e sem recálculo do valor. A
+    gravação é condicional ("só se ainda aberto"), além do bloqueio da linha.
+    """
+    hoje = hoje or timezone.localdate()
+    # O equipamento de um aluguel nunca muda (I2): pode ser lido antes do bloqueio.
+    equipamento_id = (
+        Aluguel.objects.filter(pk=aluguel_id)
+        .values_list("equipamento_id", flat=True)
+        .first()
+    )
+    if equipamento_id is None:
+        raise Aluguel.DoesNotExist
+
+    with transaction.atomic():
+        Equipamento.objects.select_for_update().get(pk=equipamento_id)
+        aluguel = Aluguel.objects.select_for_update().get(pk=aluguel_id)
+        if not aluguel.aberto:
+            raise ValidationError(mensagens.ALUGUEL_ENCERRADO)
+        if data_devolucao_real < aluguel.data_retirada:
+            raise ValidationError(
+                {"data_devolucao_real": mensagens.DEVOLUCAO_ANTES_DA_RETIRADA}
+            )
+        if data_devolucao_real > hoje:
+            raise ValidationError({"data_devolucao_real": mensagens.DEVOLUCAO_FUTURA})
+        aluguel.data_devolucao_real = data_devolucao_real
+        aluguel.full_clean()
+        gravados = Aluguel.objects.filter(
+            pk=aluguel_id, data_devolucao_real__isnull=True
+        ).update(data_devolucao_real=data_devolucao_real)
+        if gravados != 1:  # pragma: no cover - defesa além do bloqueio
+            raise ValidationError(mensagens.ALUGUEL_ENCERRADO)
     return aluguel

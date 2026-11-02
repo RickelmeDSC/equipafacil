@@ -1,4 +1,4 @@
-"""Formulário de aluguel (P07) (RF006, RN001, RN004, I1, D13).
+"""Formulários de aluguel (P07) e devolução (P09) (RF006, RF007, RN001, RN004, I1, D13).
 
 Só identificadores e datas entram: diária, diárias e valores nunca vêm do
 navegador. As opções mostradas são só orientação; os serviços revalidam tudo
@@ -95,3 +95,15 @@ class AluguelForm(forms.Form):
                 for campo, mensagens_do_campo in erro.message_dict.items():
                     self.add_error(campo, mensagens_do_campo)
         return dados
+
+
+class DevolucaoForm(forms.Form):
+    data_devolucao_real = _campo_de_data("Data de devolução")
+
+    def __init__(self, *args, data_minima: date, data_maxima: date, **kwargs):
+        super().__init__(*args, **kwargs)
+        widget = self.fields["data_devolucao_real"].widget
+        widget.attrs["min"] = data_minima.strftime(_FORMATO_ISO)
+        widget.attrs["max"] = data_maxima.strftime(_FORMATO_ISO)
+        if not self.is_bound:
+            self.initial.setdefault("data_devolucao_real", data_maxima)

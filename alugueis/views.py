@@ -1,6 +1,6 @@
-"""Views de aluguéis: registro (P07) e histórico (P08).
+"""Views de aluguéis: registro (P07), histórico (P08) e devolução (P09).
 
-RF006, RF008, RN001, RN004, I1, D13. Todas exigem login
+RF006–RF008, RN001, RN004, I1, I2, D13. Todas exigem login
 (LoginRequiredMiddleware). GET só lê; gravação é POST com CSRF e segue
 POST/redirect/GET. Sem cancelamento e sem edição de aluguel. Rotas, nomes de
 template e variáveis seguem o contrato proposto (PR #2), ainda sem aceite.
@@ -10,14 +10,15 @@ usam a própria data atual ao gravar.
 """
 
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_safe
 
 from alugueis import services
 from alugueis.forms import (
     AluguelForm,
+    DevolucaoForm,
     clientes_para_escolha,
     equipamentos_para_escolha,
 )
@@ -84,5 +85,44 @@ def criar(request: HttpRequest) -> HttpResponse:
             },
             "sem_equipamentos_disponiveis": not equipamentos,
             "sem_clientes": not clientes_para_escolha().exists(),
+        },
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def devolver(request: HttpRequest, pk: int) -> HttpResponse:
+    """P09: devolução única, com data entre a retirada e a data atual."""
+    aluguel = get_object_or_404(
+        Aluguel.objects.select_related("cliente", "equipamento"), pk=pk
+    )
+    hoje = timezone.localdate()
+    form = DevolucaoForm(
+        request.POST if request.method == "POST" else None,
+        data_minima=aluguel.data_retirada,
+        data_maxima=hoje,
+    )
+    if request.method == "POST" and form.is_valid():
+        try:
+            services.registrar_devolucao(
+                aluguel_id=pk,
+                data_devolucao_real=form.cleaned_data["data_devolucao_real"],
+            )
+        except Aluguel.DoesNotExist:
+            raise Http404 from None
+        except ValidationError as erro:
+            aplicar_erros(form, erro)
+            aluguel.refresh_from_db()
+        else:
+            return redirect("alugueis:historico")
+    return render(
+        request,
+        "alugueis/devolver.html",
+        {
+            "object": aluguel,
+            "form": form,
+            "pode_devolver": aluguel.pode_devolver(hoje),
+            "data_atual": hoje,
+            "data_minima": aluguel.data_retirada,
+            "data_maxima": hoje,
         },
     )

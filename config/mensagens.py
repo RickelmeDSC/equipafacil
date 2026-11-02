@@ -29,6 +29,7 @@ PREVISTA_ANTES_DA_RETIRADA = "A devolução prevista não pode ser anterior à r
 DEVOLUCAO_ANTES_DA_RETIRADA = (
     "A data de devolução não pode ser anterior à data de retirada."
 )
+DEVOLUCAO_FUTURA = "A data de devolução não pode ser posterior à data atual."
 ALUGUEL_ENCERRADO = "Este aluguel já foi encerrado."
 EXCLUSAO_COM_HISTORICO = (
     "Não é possível excluir: equipamento com histórico de locação. "

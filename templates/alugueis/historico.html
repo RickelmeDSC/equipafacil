@@ -32,7 +32,7 @@ situacao, situacao_codigo, pode_devolver), empty_message. Valores congelados; se
           <td>R$ {{ aluguel.valor_diaria_contratada|floatformat:"2g" }}</td>
           <td>R$ {{ aluguel.valor_contratado|floatformat:"2g" }}</td>
           <td data-situacao="{{ aluguel.situacao_codigo }}">{{ aluguel.situacao }}</td>
-          <td></td>
+          <td>{% if aluguel.pode_devolver %}<a href="{% url 'alugueis:devolver' aluguel.pk %}">Registrar devolução</a>{% endif %}</td>
         </tr>
         {% empty %}
         <tr><td colspan="10">{{ empty_message }}</td></tr>
