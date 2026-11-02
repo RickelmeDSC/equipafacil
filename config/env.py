@@ -146,6 +146,9 @@ def configurar_banco(
                 "OPTIONS": {
                     "sslmode": ambiente.get("DB_SSLMODE", "prefer").strip() or "prefer",
                 },
+                # O banco de testes (test_<DB_NAME>) nasce em UTF8 a partir do
+                # template0, mesmo que o template1 do servidor use outra codificação.
+                "TEST": {"CHARSET": "UTF8", "TEMPLATE": "template0"},
             }
         }
     raise ImproperlyConfigured("DB_ENGINE deve ser 'postgresql' ou 'sqlite'.")

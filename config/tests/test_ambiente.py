@@ -130,6 +130,7 @@ class BancoDeDadosTests(SimpleTestCase):
         self.assertEqual(banco["HOST"], "localhost")
         self.assertEqual(banco["PORT"], "5432")
         self.assertEqual(banco["OPTIONS"], {"sslmode": "prefer"})
+        self.assertEqual(banco["TEST"], {"CHARSET": "UTF8", "TEMPLATE": "template0"})
 
     def test_postgresql_respeita_sslmode(self):
         banco = configurar_banco(
