@@ -1,12 +1,14 @@
 # Contrato técnico frontend × backend — EquipaFácil
 
-> **RASCUNHO PROVISÓRIO — PROPOSTA PARA VALIDAÇÃO DE RICKELME E RAPHAEL**
+> **PROPOSTA PARA VALIDAÇÃO DE RICKELME E RAPHAEL**
 >
-> Versão 0.1 — 01/11/2026. **Nada aqui está implementado**: não existe projeto Django, URL, view, formulário ou template no repositório. Raphael **não aprovou** nenhum nome de rota, campo, variável ou template deste documento.
+> Versão 0.2 — 01/11/2026, reconciliada com o Documento de Requisitos v1.1 e com a auditoria do Jira de 01/11/2026 (escopo de DEV-01, DEV-02 e DEV-03). Continua sendo **proposta até o aceite conjunto** (seção 12).
 >
-> **Limitação:** a auditoria do Jira (Tarefa 08A-WEB) não foi concluída. Não foram conferidos os critérios oficiais de DEV-01 (EQF-13), DEV-02 (EQF-14) e DEV-03 (EQF-15) nem a tabela de mensagens do épico EQF-5. **Todos os textos de mensagem são provisórios.** Itens marcados **[verificar]** dependem dessa conferência.
+> **Nada aqui está implementado**: não existe projeto Django, URL, view, formulário ou template no repositório. Raphael **não aprovou** nenhum nome de rota, campo, variável ou template deste documento.
 >
-> **Relação com o guia:** este documento detalha a seção 5 do [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md) (branch `docs/guia-integracao-raphael`) e **não o substitui**. As diferenças estão listadas na seção 9.
+> **Mensagens:** a tabela oficial de mensagens do épico EQF-5 ainda não foi conferida. **Todos os textos de mensagem abaixo são provisórios.**
+>
+> **Relação com o guia:** detalha a seção 5 do [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md) (branch `docs/guia-integracao-raphael`) e **não o substitui**. Diferenças na seção 10.
 
 Documentos relacionados: [modelagem proposta](modelagem-proposta.md) e [plano backend DEV-01 a DEV-03](plano-backend-dev01-dev03.md).
 
@@ -14,178 +16,210 @@ Documentos relacionados: [modelagem proposta](modelagem-proposta.md) e [plano ba
 
 | Marcação | Significado |
 |----------|-------------|
-| **Aprovado** | Consta da especificação técnica v3, do resumo em [`rastreabilidade.md`](rastreabilidade.md) ou das decisões I1–I5 |
+| **Aprovado** | Consta do Documento de Requisitos v1.1, da especificação técnica v3 ou das decisões I1–I5 |
 | **Proposta** | Sugestão técnica de Rickelme, ainda não validada |
 | **Decisão conjunta** | Precisa do acordo de Rickelme e Raphael antes de implementar |
-| **Depende de implementação** | Só será confirmado quando o código existir (DEV-02 em diante) |
+| **Interpretação pendente** | O requisito admite mais de uma leitura; não vira regra sem decisão registrada |
+| **Depende de implementação** | Só será confirmado com o código (DEV-02 em diante) |
 
-## 2. Arquitetura proposta
+## 2. Arquitetura proposta (DEV-01)
 
-Um único projeto Django com renderização no servidor. Sem API REST, sem endpoints JSON e sem framework de frontend (**Aprovado**: Django Templates + Bootstrap).
+Um único projeto Django, renderizado no servidor. Sem API REST, sem endpoints JSON e sem framework de frontend (**Aprovado**: Django Templates + Bootstrap).
 
 | Parte | Nome proposto | Conteúdo | Situação |
 |-------|---------------|----------|----------|
-| Projeto | `config` | `settings.py`, `urls.py`, `wsgi.py`, `asgi.py` | Proposta |
-| Início | app `core`, namespace `core` | Página inicial (P01) e utilidades compartilhadas do backend | Proposta |
-| Equipamentos | app `equipamentos`, namespace `equipamentos` | RF001–RF004 | Proposta |
-| Clientes | app `clientes`, namespace `clientes` | RF005 | Proposta |
-| Aluguéis | app `alugueis`, namespace `alugueis` | RF006–RF008 (aluguel, devolução e histórico) | Proposta |
-| Autenticação | **sem app própria**: views do `django.contrib.auth`, nomes `login` e `logout` sem namespace | Login e logout (D1) | Decisão conjunta |
+| Projeto | `config` | Configurações, URLs raiz, página inicial e rotas de login e logout | Proposta |
+| Equipamentos | app e namespace `equipamentos` | RF001–RF004 | Proposta |
+| Clientes | app e namespace `clientes` | RF005 | Proposta |
+| Aluguéis | app e namespace `alugueis` | RF006–RF008 (aluguel, devolução e histórico) | Proposta |
+| Autenticação | **sem app própria**: views nativas do `django.contrib.auth`, rotas `login` e `logout` | Requisito transversal (D1) | Proposta, sujeita à validação do contrato |
 | Templates | diretório global `templates/` | Todas as páginas | Proposta (alinhada ao guia) |
 | Estáticos | `static/css/`, `static/js/`, `static/vendor/bootstrap/` | CSS, JS e Bootstrap 5.3 local | Decisão conjunta |
 
-**Por que não criar app de autenticação:** login e logout usam `LoginView` e `LogoutView` do Django sem código próprio, e as contas são criadas pelo administrador (D1). Isso resolve a decisão pendente do guia (`accounts` ou `usuarios`) sem criar app nova — mas **depende do acordo de Raphael**.
+**Justificativa:**
 
-**Proteção das rotas (Aprovado: login obrigatório):** proposta de usar `LoginRequiredMiddleware`, disponível em todas as séries do Django compatíveis com Python 3.13 listadas na arquitetura. Assim toda página exige login, exceto `login`, marcada como pública. Usuário não autenticado é levado a `login` com `?next=`.
+- **Três apps de domínio**, uma por grupo de requisitos, com nomes ASCII em português. Aluguel, devolução e histórico ficam juntos porque operam sobre o mesmo modelo (`Aluguel`).
+- **Sem app de autenticação:** login e logout usam as views nativas do Django, sem código próprio, e as contas são criadas administrativamente (D1). Uma app só se justificaria com perfis ou telas próprias, que não estão previstos.
+- **Sem app `core`:** a página inicial (P01) é uma `TemplateView` registrada em `config/urls.py`.
+- **Regras de negócio em `services.py`** de cada app, com type hints; views apenas orquestram; templates apenas exibem.
+- **Templates globais**, como sugere o guia, para que todo o frontend fique numa árvore só, sob responsabilidade de Raphael.
 
-**Criação de contas de funcionário (D1):** feita pelo administrador, sem cadastro público nem recuperação de senha por e-mail. Mecanismo proposto: `createsuperuser` e o Django Admin restrito ao cadastro de usuários, **sem** registrar `Equipamento`, `Cliente` e `Aluguel` para edição livre. **[verificar]** o critério oficial de D1 no Jira.
+## 3. Autenticação (requisito transversal, D1)
 
-## 3. Convenções gerais
+| Item | Contrato proposto | Situação |
+|------|-------------------|----------|
+| Login de funcionários | `LoginView` nativa, formulário `AuthenticationForm`, template `registration/login.html` | Aprovado (D1); detalhes são proposta |
+| Logout | `LogoutView` nativa, **somente POST com CSRF** (a documentação do Django descreve o logout apenas por POST); formulário na barra de navegação | Proposta |
+| Redirecionamento após login | Para o parâmetro `next`, se houver; senão `inicio` (`LOGIN_REDIRECT_URL`) | Proposta |
+| Redirecionamento após logout | `login` (`LOGOUT_REDIRECT_URL`) | Proposta |
+| Proteção das rotas | `LoginRequiredMiddleware` depois de `AuthenticationMiddleware`; acesso sem login vai para `login` com `?next=` (v1.1: "o acesso sem autenticação é direcionado à tela de login") | Aprovado (regra); mecanismo é proposta |
+| Isenção da tela de login | A view de login precisa aceitar acesso anônimo. A documentação do Django não confirma se `LoginView` já vem isenta; em DEV-02, verificar e, se preciso, aplicar `login_not_required` ao registrar a rota | Depende de implementação |
+| Provisionamento de contas | Administrativo (D1): `createsuperuser` para o administrador e Django Admin restrito ao cadastro de usuários. `Equipamento`, `Cliente` e `Aluguel` **não** são registrados no Admin para edição livre, pois isso contornaria as regras | Proposta |
+| Cadastro público e recuperação de senha | Não existem. O projeto **não** inclui `django.contrib.auth.urls`, que traria rotas de troca e recuperação de senha | Aprovado (fora do escopo, v1.1) |
+| Perfis | Nenhum perfil adicional: todo funcionário autenticado tem o mesmo acesso | Aprovado (sem perfis previstos) |
+
+**Compatibilidade:** `LoginRequiredMiddleware` e `login_not_required` existem desde o Django 5.1, segundo as notas de versão e a referência de middleware oficiais. As três séries candidatas (5.2 LTS, 6.0 e 6.1) são posteriores, logo compatíveis; a escolha final da versão é de DEV-02.
+
+## 4. Convenções gerais
 
 1. **GET** só lê dados. Toda alteração usa **POST** com `{% csrf_token %}`.
-2. **POST bem-sucedido redireciona** (padrão POST/redirect/GET) e mostra a mensagem pelo framework `messages` do Django.
+2. **POST bem-sucedido redireciona** (padrão POST/redirect/GET) com mensagem do framework `messages`.
 3. **POST inválido** devolve a mesma página (HTTP 200) com o formulário preenchido e os erros.
-4. Recurso inexistente (`pk` inválido) retorna **404**; método não permitido retorna **405**.
-5. Todo cálculo (disponibilidade, diárias, valores, situação, atraso) vem pronto do backend. O template só exibe.
-6. Mensagens usam os níveis `success`, `warning` e `error`. O backend mapeia `error` para a classe `danger` do Bootstrap (`MESSAGE_TAGS`).
-7. Datas são exibidas como `dd/mm/aaaa` e valores como `R$ 1.500,00`, pela localização `pt-br` do Django, sem cálculo no template.
-8. Variáveis padrão do Django ficam em inglês (`object_list`, `object`, `form`, `page_obj`), por convenção do framework; atributos de domínio ficam em português (`disponivel`, `pode_excluir`).
+4. Recurso inexistente retorna **404**; método não permitido retorna **405**.
+5. Todo cálculo e toda validação ficam no backend. Flags e limites enviados ao template servem só para apresentação (seção 7.2).
+6. Níveis de mensagem `success`, `warning` e `error`; o backend mapeia `error` para a classe `danger` do Bootstrap.
+7. Datas exibidas como `dd/mm/aaaa` e valores como `R$ 1.500,00`, pela localização `pt-br`, sem cálculo no template.
+8. Variáveis padrão do Django em inglês (`object_list`, `object`, `form`); atributos de domínio em português.
 
-## 4. Contrato de rotas
+## 5. Tabela final do contrato
 
-Todas as rotas são **Proposta**; caminhos e nomes dependem de **decisão conjunta**. Todas exigem login, exceto a de login.
+Todas as linhas são **Proposta** até o aceite conjunto. Todas as rotas exigem login, exceto `login`. São 16 rotas e 14 templates.
 
-| Funcionalidade | Método | Caminho sugerido | Nome da URL | View responsável | Template | Dados de entrada | Redirecionamento após sucesso | Vazio ou erro |
-|----------------|--------|------------------|-------------|------------------|----------|------------------|-------------------------------|---------------|
-| Login (D1) | GET, POST | `/login/` | `login` | `LoginView` (Django) | `registration/login.html` | `username`, `password`, `next` | `next` ou `core:inicio` | Credenciais inválidas: mesma página com erro |
-| Logout (D1) | POST | `/logout/` | `logout` | `LogoutView` (Django) | — | Só CSRF | `login` | GET retorna 405 |
-| Início (P01) | GET | `/` | `core:inicio` | `InicioView` | `inicio.html` | — | — | — |
-| Listar e pesquisar equipamentos (RF002) | GET | `/equipamentos/` | `equipamentos:lista` | `EquipamentoListView` | `equipamentos/lista.html` | `?q=` (nome ou código) | — | Sem resultados: `empty_message` (CT04) |
-| Cadastrar equipamento (RF001) | GET, POST | `/equipamentos/novo/` | `equipamentos:criar` | `EquipamentoCreateView` | `equipamentos/formulario.html` | `EquipamentoForm` | `equipamentos:detalhe` | Erros de validação no formulário (CT02) |
-| Detalhes e ações do equipamento (RF002, RF004 — P04) | GET | `/equipamentos/<int:pk>/` | `equipamentos:detalhe` | `EquipamentoDetailView` | `equipamentos/detalhe.html` | `pk` | — | 404 |
-| Editar equipamento (RF003) | GET, POST | `/equipamentos/<int:pk>/editar/` | `equipamentos:editar` | `EquipamentoUpdateView` | `equipamentos/formulario.html` | `EquipamentoForm` | `equipamentos:detalhe` | Erros no formulário (CT06) |
-| Excluir equipamento (RF004) | GET (confirmação), POST | `/equipamentos/<int:pk>/excluir/` | `equipamentos:excluir` | `EquipamentoExcluirView` | `equipamentos/confirmar_exclusao.html` | Só CSRF | `equipamentos:lista` | Com histórico: volta a `equipamentos:detalhe` com erro (CT08) |
-| Inativar equipamento (RF004) | POST | `/equipamentos/<int:pk>/inativar/` | `equipamentos:inativar` | `EquipamentoInativarView` | — | Só CSRF | `equipamentos:detalhe` | Aluguel ativo: volta ao detalhe com erro |
-| Reativar equipamento (RF004, I3) | POST | `/equipamentos/<int:pk>/reativar/` | `equipamentos:reativar` | `EquipamentoReativarView` | — | Só CSRF | `equipamentos:detalhe` | Reativação inválida: volta ao detalhe com erro |
-| Listar clientes (RF005) | GET | `/clientes/` | `clientes:lista` | `ClienteListView` | `clientes/lista.html` | — | — | Sem clientes: `empty_message` |
-| Cadastrar cliente (RF005) | GET, POST | `/clientes/novo/` | `clientes:criar` | `ClienteCreateView` | `clientes/formulario.html` | `ClienteForm` | `clientes:detalhe` | Erros no formulário (CT10) |
-| Consultar cliente (RF005) | GET | `/clientes/<int:pk>/` | `clientes:detalhe` | `ClienteDetailView` | `clientes/detalhe.html` | `pk` | — | 404 |
-| Editar cliente (RF005) | GET, POST | `/clientes/<int:pk>/editar/` | `clientes:editar` | `ClienteUpdateView` | `clientes/formulario.html` | `ClienteForm` | `clientes:detalhe` | Erros no formulário |
-| Listar aluguéis / histórico (RF008) | GET | `/alugueis/` | `alugueis:historico` | `AluguelHistoricoView` | `alugueis/historico.html` | — | — | Sem registros: `empty_message` (CT16) |
-| Registrar aluguel (RF006) | GET, POST | `/alugueis/novo/` | `alugueis:criar` | `AluguelCreateView` | `alugueis/formulario.html` | `AluguelForm` e `etapa` | `alugueis:historico` | Indisponível (CT12) ou data inválida: formulário com erro |
-| Registrar devolução (RF007) | GET, POST | `/alugueis/<int:pk>/devolver/` | `alugueis:devolver` | `DevolucaoView` | `alugueis/devolver.html` | `DevolucaoForm` | `alugueis:historico` | Já encerrado (CT14): volta ao histórico com erro |
+| Caminho | Nome da URL | Namespace | Método | View | Form | Template | Variáveis de contexto | Redirecionamento | Requisito |
+|---------|-------------|-----------|--------|------|------|----------|-----------------------|------------------|-----------|
+| `/login/` | `login` | — | GET, POST | `LoginView` (nativa) | `AuthenticationForm` | `registration/login.html` | `form`, `next` | `next` ou `inicio` | D1 |
+| `/logout/` | `logout` | — | POST | `LogoutView` (nativa) | — | — | — | `login` | D1 |
+| `/` | `inicio` | — | GET | `TemplateView` | — | `inicio.html` | `user` | — | D1 (P01) |
+| `/equipamentos/` | `lista` | `equipamentos` | GET | `EquipamentoListView` | — (pesquisa `?q=`) | `equipamentos/lista.html` | `object_list`, `query`, `empty_message` | — | RF002 |
+| `/equipamentos/novo/` | `criar` | `equipamentos` | GET, POST | `EquipamentoCreateView` | `EquipamentoForm` | `equipamentos/formulario.html` | `form` | `equipamentos:lista` | RF001 |
+| `/equipamentos/<int:pk>/editar/` | `editar` | `equipamentos` | GET, POST | `EquipamentoUpdateView` | `EquipamentoForm` | `equipamentos/formulario.html` | `form`, `object`, `codigo_editavel` | `equipamentos:lista` | RF003 |
+| `/equipamentos/<int:pk>/acoes/` | `acoes` | `equipamentos` | GET | `EquipamentoAcoesView` | — | `equipamentos/acoes.html` | `object`, `tem_historico`, `tem_aluguel_ativo`, `pode_excluir`, `pode_inativar`, `pode_reativar` | — | RF004 |
+| `/equipamentos/<int:pk>/excluir/` | `excluir` | `equipamentos` | POST | `EquipamentoExcluirView` | Campo `confirmacao` | — | — | `equipamentos:lista`; recusa volta a `equipamentos:acoes` | RF004, RN003 |
+| `/equipamentos/<int:pk>/inativar/` | `inativar` | `equipamentos` | POST | `EquipamentoInativarView` | — | — | — | `equipamentos:acoes` | RF004, RN003 |
+| `/equipamentos/<int:pk>/reativar/` | `reativar` | `equipamentos` | POST | `EquipamentoReativarView` | — | — | — | `equipamentos:acoes` | RF004, RN003, I3 |
+| `/clientes/` | `lista` | `clientes` | GET | `ClienteListView` | — | `clientes/lista.html` | `object_list`, `empty_message` | — | RF005 |
+| `/clientes/novo/` | `criar` | `clientes` | GET, POST | `ClienteCreateView` | `ClienteForm` | `clientes/formulario.html` | `form` | `clientes:lista` | RF005 |
+| `/clientes/<int:pk>/editar/` | `editar` | `clientes` | GET, POST | `ClienteUpdateView` | `ClienteForm` | `clientes/formulario.html` | `form`, `object`, `cpf_editavel` | `clientes:lista` | RF005 |
+| `/alugueis/` | `historico` | `alugueis` | GET | `AluguelHistoricoView` | — | `alugueis/historico.html` | `object_list`, `empty_message` | — | RF008 |
+| `/alugueis/novo/` | `criar` | `alugueis` | GET, POST | `AluguelCreateView` | `AluguelForm` | `alugueis/formulario.html` | `form`, `data_atual`, `data_minima_retirada`, `sem_equipamentos_disponiveis`, `sem_clientes` | `alugueis:historico` | RF006 |
+| `/alugueis/<int:pk>/devolver/` | `devolver` | `alugueis` | GET, POST | `DevolucaoView` | `DevolucaoForm` | `alugueis/devolver.html` | `object`, `form`, `pode_devolver`, `data_atual`, `data_minima_devolucao`, `data_maxima_devolucao` | `alugueis:historico` | RF007 |
 
-**Fora do contrato:** exclusão de cliente, edição ou cancelamento de aluguel e devolução, cadastro público, recuperação de senha, endpoints JSON e qualquer rota de multa, pagamento ou reserva.
+**Notas:**
 
-**Pesquisa de clientes:** RF005 fala em listar e consultar, não em pesquisar. Nenhuma pesquisa foi prevista — **[verificar]**.
+- **Clientes:** a consulta é feita pela listagem (Jira e RF005); não há página de detalhe.
+- **Equipamentos:** uma única interface (P04, `equipamentos:acoes`) mostra as ações condicionais de exclusão, inativação e reativação. As três ações são rotas POST internas distintas, justificadas por terem regras e mensagens diferentes; nenhuma exige página de apresentação própria. A **confirmação da exclusão** é preservada dentro dessa interface (por exemplo, modal do Bootstrap), e o backend exige o campo `confirmacao` no POST, para que a exclusão nunca ocorra sem confirmação explícita.
+- **Fora do contrato:** exclusão de cliente, edição ou cancelamento de aluguel e devolução, cadastro público, recuperação de senha, endpoints JSON, pesquisa de clientes, multa, pagamento e reserva.
+- **Admin:** se adotado para o provisionamento de contas (seção 3), `/admin/` usa os templates do próprio Django e não faz parte do frontend.
 
-**Confirmação de inativação e reativação:** só a exclusão tem página de confirmação (CT07). Se inativação e reativação também precisarem de confirmação, ela pode ser um modal do Bootstrap no detalhe, sem rota nova — **decisão conjunta**.
+## 6. Contrato dos formulários
 
-## 5. Contrato dos formulários
+Os nomes da tarefa (EquipmentForm, ClientForm, RentalForm, ReturnForm, LoginForm) foram mapeados para nomes em português, seguindo a convenção de domínio do `CLAUDE.md` (**Proposta**). **Mensagens provisórias** até a conferência da tabela do EQF-5.
 
-Os nomes pedidos na tarefa (EquipmentForm, ClientForm, RentalForm, ReturnForm, LoginForm) foram mapeados para nomes em português, seguindo a convenção de domínio do `CLAUDE.md`. Isso é **Proposta**. **Todos os textos de mensagem são provisórios** até a conferência da tabela do EQF-5.
+**Responsabilidades comuns:**
 
-**Responsabilidade comum a todos:**
+- **Backend:** validação, normalização, unicidade, imutabilidade, cálculo e gravação via serviço; recusa de parâmetros HTTP manipulados (RN001 b, RN002 e). Classes do Bootstrap 5.3 aplicadas pelos widgets (`form-control`, `form-select`, `is-invalid`), para que Raphael não precise editar `forms.py`.
+- **Apresentação (Raphael):** layout, rótulos visíveis, máscaras apenas visuais, exibição de `form.non_field_errors` e dos erros de cada campo, acessibilidade.
 
-- **Backend:** validação, normalização, unicidade, imutabilidade, cálculo e gravação via serviço. Classes do Bootstrap 5.3 aplicadas pelos widgets (`form-control`, `form-select` e `is-invalid` quando há erro), para que Raphael não precise editar `forms.py`.
-- **Apresentação (Raphael):** layout, rótulos visíveis, ordem visual, máscaras apenas visuais, exibição de `form.non_field_errors` e dos erros de cada campo, e acessibilidade.
-
-### 5.1 `EquipamentoForm` (pedido: EquipmentForm) — RF001, RF003, RN002
+### 6.1 `EquipamentoForm` (pedido: EquipmentForm) — RF001, RF003, RN002
 
 | Campo | Tipo | Obrigatório | Validação no backend | Mensagem provisória |
 |-------|------|-------------|----------------------|---------------------|
-| `nome` | Texto (até 120) | Sim | Não vazio | "Informe o nome do equipamento." |
-| `codigo` | Texto (até 30) | Sim | Único; imutável após o primeiro aluguel | "Já existe um equipamento com este código." |
+| `nome` | Texto | Sim | Não vazio | "Informe o nome do equipamento." |
+| `codigo` | Texto | Sim | Único; imutável após o primeiro aluguel | "Já existe um equipamento com este código." |
 | `categoria` | Seleção (5 opções fixas) | Sim | Valor da lista | "Selecione uma categoria válida." |
 | `descricao` | Texto longo | Não | — | — |
 | `valor_diaria` | Decimal, 2 casas, aceita vírgula | Sim | Maior que R$ 0,00 | "A diária deve ser maior que R$ 0,00." |
 
-- **Valores iniciais:** formulário vazio no cadastro. `ativo` não aparece no formulário: o equipamento nasce ativo.
-- **Imutabilidade:** na edição, se `codigo_editavel` for falso, o campo `codigo` vem desabilitado e o backend ignora qualquer valor enviado.
-- **Sucesso (provisório):** "Equipamento cadastrado com sucesso." e "Equipamento atualizado com sucesso."
+- **Valores iniciais:** formulário vazio no cadastro; `ativo` não aparece, pois o equipamento nasce ativo (RF001).
+- **Imutabilidade (RF003):** se `codigo_editavel` for falso, o campo vem desabilitado, o backend ignora o valor enviado e a tela mostra mensagem clara de bloqueio, por exemplo "O código não pode ser alterado porque o equipamento já possui aluguel."
+- **Normalização do código** (remover espaços, ignorar maiúsculas): **Interpretação pendente**, não aplicada.
 
-### 5.2 `ClienteForm` (pedido: ClientForm) — RF005, RN002, I5
+### 6.2 `ClienteForm` (pedido: ClientForm) — RF005, RN002, I5
 
 | Campo | Tipo | Obrigatório | Validação no backend | Mensagem provisória |
 |-------|------|-------------|----------------------|---------------------|
-| `nome_completo` | Texto (até 150) | Sim | Não vazio | "Informe o nome completo do cliente." |
-| `cpf` | Texto, com ou sem máscara | Sim | Normaliza para 11 dígitos; dígitos verificadores; único; imutável após o primeiro aluguel | "CPF inválido." e "Já existe um cliente com este CPF." |
-| `telefone` | Texto, com ou sem máscara | Não | Normaliza para dígitos; 10 ou 11 com DDD | "Informe um telefone com DDD (10 ou 11 dígitos)." |
-| `email` | E-mail | Não | Formato | "Informe um e-mail válido." |
+| `nome_completo` | Texto | Sim | Não vazio | "Informe o nome completo do cliente." |
+| `cpf` | Texto | Sim | Remove **apenas** pontos e hífen; qualquer outro caractere é recusado; exatamente 11 dígitos; dígitos verificadores; único; imutável após o primeiro aluguel | "CPF inválido." e "Já existe um cliente com este CPF." |
+| `telefone` | Texto | Não | Brasileiro com DDD, 10 ou 11 dígitos, armazenado só com dígitos | "Informe um telefone com DDD (10 ou 11 dígitos)." |
+| `email` | E-mail | Não | Formato válido quando informado | "Informe um e-mail válido." |
 
-- **Valores iniciais:** na edição, CPF e telefone são exibidos formatados.
-- **Imutabilidade:** se `cpf_editavel` for falso, o campo `cpf` vem desabilitado e o backend ignora o valor enviado.
-- **Sucesso (provisório):** "Cliente cadastrado com sucesso." e "Cliente atualizado com sucesso."
+- **Valores iniciais:** na edição, CPF e telefone aparecem formatados.
+- **Imutabilidade:** se `cpf_editavel` for falso, o campo vem desabilitado, o backend ignora o valor e a tela mostra mensagem clara de bloqueio.
+- **Proposta:** quais caracteres do telefone são removidos na normalização (parênteses, espaços, hífen) e a recusa de CPF com todos os dígitos iguais não constam do v1.1 — ficam pendentes.
 
-### 5.3 `AluguelForm` (pedido: RentalForm) — RF006, RN001, RN004, I1
+### 6.3 `AluguelForm` (pedido: RentalForm) — RF006, RN001, RN002, RN004, I1
 
 | Campo | Tipo | Obrigatório | Validação no backend | Mensagem provisória |
 |-------|------|-------------|----------------------|---------------------|
 | `cliente` | Seleção de cliente | Sim | Cliente existente | "Selecione um cliente." |
-| `equipamento` | Seleção só de equipamentos disponíveis | Sim | Ativo e sem aluguel ativo, revalidado dentro da transação | "Equipamento indisponível para aluguel." (CT12) |
-| `data_retirada` | Data | Sim | Hoje ou no futuro, em `America/Recife` (I1) | "A data de retirada não pode ser anterior à data atual." |
-| `data_devolucao_prevista` | Data | Sim | Não anterior à retirada | "A devolução prevista não pode ser anterior à retirada." |
+| `equipamento` | Seleção só de equipamentos disponíveis | Sim | Ativo e sem aluguel ativo, revalidado na transação, inclusive contra requisição simultânea ou manipulada | "Equipamento indisponível para aluguel." (CT12) |
+| `data_retirada` | Data | Sim | Não anterior à data atual em `America/Recife` (retirada futura permitida, I1) | "A data de retirada não pode ser anterior à data atual." |
+| `data_devolucao_prevista` | Data | Sim | Igual ou posterior à retirada (mínimo de 1 diária) | "A devolução prevista não pode ser anterior à retirada." |
 
-- **Valores iniciais:** `data_retirada` igual à data atual em `America/Recife`.
-- **Calculado pelo backend, nunca enviado pelo formulário:** `valor_diaria_contratada`, `quantidade_diarias` e `valor_contratado`.
-- **Etapas (Proposta):** campo oculto `etapa` com valor `dados` ou `revisao`. No primeiro envio, o backend valida e devolve a mesma página com o **resumo calculado** e o aviso de que não há cancelamento nesta versão (I1). No envio de confirmação, o backend **revalida tudo**, recalcula e grava. Isso entrega o valor "servido pelo backend" sem endpoint JSON.
-- **Sucesso (provisório):** "Aluguel registrado. Valor contratado: R$ 150,00."
+- **Valores iniciais:** `data_retirada` = `data_atual`.
+- **Calculado pelo backend, nunca recebido do formulário:** `valor_diaria_contratada`, `quantidade_diarias` e `valor_contratado`. A mensagem de sucesso informa os valores calculados, por exemplo "Aluguel registrado: 3 diárias, valor contratado R$ 150,00."
+- **Etapa de revisão antes de gravar** (resumo calculado e aviso de que não há cancelamento): **Proposta opcional**, não obrigatória. O contrato base é um único envio.
 
-### 5.4 `DevolucaoForm` (pedido: ReturnForm) — RF007, I2
+### 6.4 `DevolucaoForm` (pedido: ReturnForm) — RF007, RN004, I1, I2
 
 | Campo | Tipo | Obrigatório | Validação no backend | Mensagem provisória |
 |-------|------|-------------|----------------------|---------------------|
-| `data_devolucao_real` | Data | Sim | Entre a retirada e a data atual; aluguel ainda ativo | "A data de devolução deve estar entre a retirada e a data atual." e "Este aluguel já foi encerrado." (CT14) |
+| `data_devolucao_real` | Data | Sim | Não anterior à retirada e não posterior à data atual; aluguel ainda ativo; registrada uma única vez | "A data de devolução deve estar entre a retirada e a data atual." e "Este aluguel já foi encerrado." (CT14) |
 
-- **Valores iniciais:** data atual em `America/Recife`.
-- **Imutabilidade:** depois de gravada, a devolução não pode ser editada (I2).
-- **Sucesso (provisório):** "Devolução registrada." Se houver atraso: "Devolução registrada com atraso." Nunca há multa.
+- **Valores iniciais:** `data_atual` (v1.1: "sugerida com a data atual").
+- **Antes da retirada** não há devolução possível (I1); **depois de gravada**, não há edição (I2).
+- **Sucesso (provisório):** "Devolução registrada." ou, com atraso, "Devolução registrada com atraso." Nunca há multa.
 
-### 5.5 Login (pedido: LoginForm) — D1
+### 6.5 Login (pedido: LoginForm) — D1
 
-Usa o `AuthenticationForm` padrão do Django, sem formulário próprio: campos `username` e `password` e a mensagem de erro padrão traduzida para pt-BR. Sem "lembrar-me", sem "esqueci minha senha" e sem link de cadastro.
+`AuthenticationForm` nativo do Django: `username` e `password`, mensagem de erro padrão traduzida. Sem "lembrar-me", sem "esqueci minha senha" e sem link de cadastro.
 
-## 6. Contrato dos templates
+## 7. Contrato dos templates
 
-Contexto disponível em todas as páginas: `user`, `messages`, `request` e `csrf_token`. Nomes, diretórios e blocos são **Proposta**, alinhados à seção 5.3 do guia.
+### 7.1 Templates
 
-| Template | URL | Variáveis de contexto | Formulário | Estados | Ações |
-|----------|-----|-----------------------|------------|---------|-------|
-| `base.html` | Todas | Globais | — | Autenticado; página de login sem menu | Blocos `title` e `content`; carrega Bootstrap local |
-| `includes/navbar.html` | Todas autenticadas | `user` | Logout (POST) | — | Links: Início, Equipamentos, Clientes, Novo aluguel, Histórico; sair |
-| `includes/messages.html` | Todas | `messages` | — | Sucesso, atenção, erro | Fechar alerta |
-| `includes/form_errors.html` | Páginas com formulário | `form` | — | Com ou sem `non_field_errors` | — |
-| `registration/login.html` | `login` | `form`, `next` | `AuthenticationForm` | Inicial; credenciais inválidas | Entrar |
-| `inicio.html` | `core:inicio` | `user` | — | — | Atalhos para as áreas (P01) |
-| `equipamentos/lista.html` | `equipamentos:lista` | `object_list`, `query`, `empty_message` | Pesquisa (GET `q`) | Com resultados; sem cadastro; pesquisa sem resultado (CT04) | Pesquisar; novo; ver detalhe |
-| `equipamentos/formulario.html` | `equipamentos:criar`, `equipamentos:editar` | `form`, `object` (edição), `codigo_editavel` (edição) | `EquipamentoForm` | Cadastro; edição; código bloqueado; erro de validação | Salvar; voltar |
-| `equipamentos/detalhe.html` | `equipamentos:detalhe` | `object`, `tem_historico`, `tem_aluguel_ativo`, `pode_excluir`, `pode_inativar`, `pode_reativar` | Inativar e reativar (POST) | Ativo disponível; ativo alugado; inativo | Editar; excluir; inativar; reativar — só os permitidos |
-| `equipamentos/confirmar_exclusao.html` | `equipamentos:excluir` | `object` | Confirmação (POST) | — | Confirmar; cancelar |
-| `clientes/lista.html` | `clientes:lista` | `object_list`, `empty_message` | — | Com clientes; sem clientes | Novo; ver detalhe |
-| `clientes/formulario.html` | `clientes:criar`, `clientes:editar` | `form`, `object` (edição), `cpf_editavel` (edição) | `ClienteForm` | Cadastro; edição; CPF bloqueado; erro | Salvar; voltar |
-| `clientes/detalhe.html` | `clientes:detalhe` | `object` | — | — | Editar (sem excluir) |
-| `alugueis/formulario.html` | `alugueis:criar` | `form`, `etapa`, `resumo` (na revisão), `sem_equipamentos_disponiveis`, `sem_clientes` | `AluguelForm` | Dados; revisão; erro; nenhum equipamento disponível; nenhum cliente | Revisar; confirmar; voltar |
-| `alugueis/devolver.html` | `alugueis:devolver` | `object` (aluguel), `form` | `DevolucaoForm` | Formulário; erro de data | Confirmar devolução; voltar |
-| `alugueis/historico.html` | `alugueis:historico` | `object_list`, `empty_message` | — | Com registros; sem registros (CT16) | Registrar devolução quando `pode_devolver` |
+Contexto global em todas as páginas: `user`, `messages`, `request` e `csrf_token`.
 
-**Atributos de domínio disponíveis nos objetos** (calculados no backend; ver a [modelagem](modelagem-proposta.md)):
+| Template | Rota | Formulário | Estados | Ações e conteúdo |
+|----------|------|------------|---------|------------------|
+| `base.html` | Todas | — | Autenticado; página de login sem menu | Blocos `title` e `content`; carrega Bootstrap local |
+| `includes/navbar.html` | Todas autenticadas | Logout (POST) | — | Início, Equipamentos, Clientes, Novo aluguel, Histórico, Sair |
+| `includes/messages.html` | Todas | — | Sucesso, atenção, erro | Fechar alerta |
+| `includes/form_errors.html` | Páginas com formulário | — | Com ou sem `non_field_errors` | — |
+| `registration/login.html` | `login` | `AuthenticationForm` | Inicial; credenciais inválidas | Entrar |
+| `inicio.html` | `inicio` | — | — | Atalhos para as áreas (P01) |
+| `equipamentos/lista.html` | `equipamentos:lista` | Pesquisa (GET `q`) | Com resultados; sem cadastro; pesquisa sem resultado (CT04) | Colunas: nome, código, categoria, diária, situação (Ativo/Inativo) e disponibilidade; links Editar e Ações |
+| `equipamentos/formulario.html` | `equipamentos:criar`, `equipamentos:editar` | `EquipamentoForm` | Cadastro; edição; código bloqueado; erro | Salvar; voltar |
+| `equipamentos/acoes.html` | `equipamentos:acoes` | Excluir (com confirmação), inativar, reativar — POST | Sem histórico; com histórico; com aluguel ativo; inativo | Só as ações permitidas; motivo quando a ação não está disponível |
+| `clientes/lista.html` | `clientes:lista` | — | Com clientes; sem clientes | Colunas: nome completo, CPF formatado, telefone formatado, e-mail; link Editar |
+| `clientes/formulario.html` | `clientes:criar`, `clientes:editar` | `ClienteForm` | Cadastro; edição; CPF bloqueado; erro | Salvar; voltar |
+| `alugueis/formulario.html` | `alugueis:criar` | `AluguelForm` | Formulário; erro; nenhum equipamento disponível; nenhum cliente | Registrar; voltar |
+| `alugueis/devolver.html` | `alugueis:devolver` | `DevolucaoForm` | Formulário; erro de data | Dados do aluguel; confirmar devolução; voltar |
+| `alugueis/historico.html` | `alugueis:historico` | — | Com registros; sem registros (CT16) | Colunas: cliente, equipamento (inclusive inativo), retirada, devolução prevista, devolução real, **quantidade de diárias**, diária contratada, valor contratado e situação; link Registrar devolução quando `pode_devolver` |
+
+### 7.2 Variáveis de contexto e onde aparecem
+
+Cada flag é **indicador de apresentação**: decide o que mostrar. A **validação obrigatória** acontece de novo no backend, no momento da ação, independentemente do que a tela mostrou.
+
+| Variável | Telas | Valor | Uso na apresentação | Validação obrigatória no backend |
+|----------|-------|-------|---------------------|----------------------------------|
+| `pode_excluir` | `equipamentos/acoes.html` | Sem histórico de aluguéis | Mostrar "Excluir" com confirmação | Serviço revalida "sem histórico" na transação; `PROTECT` no banco; exige `confirmacao` |
+| `pode_inativar` | `equipamentos/acoes.html` | Ativo, com histórico e sem aluguel ativo (caso sem histórico: interpretação pendente) | Mostrar "Inativar" | Serviço revalida com bloqueio da linha do equipamento |
+| `pode_reativar` | `equipamentos/acoes.html` | Inativo, dados cadastrais válidos e sem aluguel ativo (RN003 e) | Mostrar "Reativar" | Serviço revalida dados e ausência de aluguel ativo |
+| `tem_historico`, `tem_aluguel_ativo` | `equipamentos/acoes.html` | Fatos do equipamento | Explicar por que uma ação não aparece | — |
+| `codigo_editavel` | `equipamentos/formulario.html` (edição) | Nenhum aluguel associado | Campo desabilitado e mensagem de bloqueio | Formulário ignora o valor; serviço revalida na transação |
+| `cpf_editavel` | `clientes/formulario.html` (edição) | Nenhum aluguel associado | Campo desabilitado e mensagem de bloqueio | Formulário ignora o valor; serviço revalida na transação |
+| `pode_devolver` | `alugueis/historico.html` (por aluguel), `alugueis/devolver.html` | Aluguel ativo e `data_atual` igual ou posterior à retirada | Mostrar o link e o formulário de devolução | Atualização condicional (só grava se ainda ativo) e validação de datas |
+| `data_atual` | `alugueis/formulario.html`, `alugueis/devolver.html` | `timezone.localdate()` em `America/Recife` | Valor sugerido e exibição | Toda comparação de data usa a data calculada no servidor |
+| `data_minima_retirada` | `alugueis/formulario.html` | Igual a `data_atual` | Atributo `min` do campo de retirada | Retirada não anterior à data atual |
+| `data_minima_devolucao` | `alugueis/devolver.html` | Data de retirada do aluguel | Atributo `min` | Devolução real não anterior à retirada |
+| `data_maxima_devolucao` | `alugueis/devolver.html` | Igual a `data_atual` | Atributo `max` | Devolução real não posterior à data atual |
+| `sem_equipamentos_disponiveis` | `alugueis/formulario.html` | Nenhum equipamento ativo sem aluguel aberto | Aviso no lugar do formulário ou envio desabilitado | Serviço recusa aluguel de equipamento indisponível (RN001) |
+| `sem_clientes` | `alugueis/formulario.html` | Nenhum cliente cadastrado | Aviso com link para cadastrar cliente | Serviço exige cliente existente (RN002) |
+
+A devolução prevista mínima depende da retirada escolhida na própria tela; qualquer ajuste dinâmico em JavaScript é só informativo, e o backend valida "prevista igual ou posterior à retirada".
+
+### 7.3 Atributos dos objetos
 
 | Objeto | Atributos para exibição |
 |--------|-------------------------|
-| Equipamento | `nome`, `codigo`, `get_categoria_display`, `descricao`, `valor_diaria`, `ativo`, `disponivel` |
-| Cliente | `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email` |
-| Aluguel | `cliente`, `equipamento`, `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver` |
-| `resumo` (revisão do aluguel) | `cliente`, `equipamento`, `data_retirada`, `data_devolucao_prevista`, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado` |
+| Equipamento (lista) | `nome`, `codigo`, `get_categoria_display`, `valor_diaria`, `ativo`, `disponivel` |
+| Cliente (lista) | `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email` |
+| Aluguel (histórico e devolução) | `cliente`, `equipamento`, `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver` |
 
-**Regras de apresentação:**
+**Regras de apresentação:** botões só aparecem com a flag verdadeira; `situacao_codigo` serve só para o estilo do selo (o texto é `situacao`); estados vazios usam `empty_message` dentro de `{% empty %}`, sem dados inventados (CT04, CT16); sem paginação na v1; nenhum `|safe` em dado digitado; links sempre com `{% url %}`.
 
-- Botões de ação só aparecem quando a flag correspondente é verdadeira. O backend revalida tudo mesmo assim.
-- `situacao_codigo` (`ativo`, `atrasado`, `encerrado`, `encerrado_com_atraso`) serve só para escolher o estilo do selo; o texto exibido é `situacao`.
-- Estados vazios usam `empty_message` dentro de `{% empty %}`, sem tabela vazia nem dados inventados (CT04, CT16).
-- Paginação não está prevista na v1. Se for adotada, a variável é `page_obj`.
-- Nenhum `|safe` em dado digitado por usuário; nenhum `href` montado à mão: sempre `{% url %}`.
-
-## 7. Divisão de arquivos
+## 8. Divisão de arquivos
 
 Cada arquivo tem **um** responsável. Ninguém edita arquivo do outro.
 
@@ -197,50 +231,61 @@ Cada arquivo tem **um** responsável. Ninguém edita arquivo do outro.
 
 **Procedimento para pedir mudança em arquivo do outro:**
 
-1. Descrever o pedido em comentário de PR ou mensagem: tela afetada, rota, campo ou variável, exemplo de uso e motivo.
-2. O responsável pelo arquivo avalia e implementa na **própria** branch.
+1. Descrever o pedido em comentário de PR ou mensagem: tela, rota, campo ou variável, exemplo de uso e motivo.
+2. O responsável avalia e implementa na **própria** branch.
 3. Se o contrato mudar, atualizar este documento numa branch `docs/*`, com revisão dos dois.
-4. Até lá, a tela não depende do que foi pedido: usar dado fictício só em HTML estático, nunca em código integrado.
+4. Até lá, a tela não depende do pedido: dado fictício só em HTML estático, nunca em código integrado.
 5. Exceção (editar arquivo do outro) só com acordo explícito registrado no PR.
 
-## 8. Regras aprovadas cobertas
+## 9. Regras aprovadas cobertas
 
-| Regra | Onde aparece neste contrato |
-|-------|-----------------------------|
-| CPF com 11 dígitos armazenados, entrada com ou sem máscara, exibição formatada (I5) | 5.2; `cpf_formatado` |
-| Aluguel futuro permitido e indisponibilidade imediata após o registro (I1) | 5.3; restrição de aluguel ativo na modelagem |
-| Sem cancelamento (I1) | Fora do contrato; aviso na revisão do aluguel |
-| Sem edição de aluguel ou devolução registrados (I2) | Nenhuma rota de edição; 5.4 |
-| Valor diário congelado e diárias inclusivas (RN004) | Calculados pelo backend na gravação |
-| Sem multas | 5.4; nenhuma rota de multa |
-| Datas em `America/Recife` (TZ) | 5.3 e 5.4 |
-| Exclusão condicionada ao histórico (RN003) | Rota de exclusão; `pode_excluir` |
-| Reativação validada (I3) | Rota de reativação com erro no detalhe |
-| Login obrigatório (D1) | `LoginRequiredMiddleware`; todas as rotas, exceto `login` |
+| Regra (v1.1) | Onde aparece |
+|--------------|--------------|
+| CPF: remove só pontos e hífen, 11 dígitos armazenados, exibido formatado, imutável após o primeiro aluguel (RF005, RN002, I5) | 6.2; `cpf_formatado`, `cpf_editavel` |
+| Retirada futura permitida e indisponibilidade imediata (RF006, D2/D6, I1) | 6.3; restrição de aluguel aberto na modelagem |
+| Sem cancelamento; sem devolução antes da retirada (I1) | Nenhuma rota de cancelamento; `pode_devolver` |
+| Sem edição de aluguel ou devolução (I2) | Nenhuma rota de edição; 6.4 |
+| Diária congelada e diárias inclusivas (RN004, D3) | 6.3; calculado na gravação |
+| Atraso sem multa (RN004 g, D4) | 6.4; situações do histórico |
+| Datas em `America/Recife` (RN004 a, TZ) | `data_atual` e limites (7.2) |
+| Exclusão só sem histórico; inativação sem aluguel ativo (RF004, RN003, D5) | Rotas de equipamento; flags de 7.2 |
+| Reativação com dados válidos e sem aluguel ativo (RN003 e, N4, I3) | `pode_reativar`; teste complementar no plano |
+| Login obrigatório e contas administrativas (D1) | Seção 3 |
+| Histórico com cliente, equipamento, datas, diárias, valores e situação (RF008) | `alugueis/historico.html` |
 
-## 9. Diferenças em relação ao guia de integração
+## 10. Diferenças em relação ao guia de integração
 
-| Guia (branch `docs/guia-integracao-raphael`) | Este rascunho | Motivo |
+| Guia (branch `docs/guia-integracao-raphael`) | Esta proposta | Motivo |
 |----------------------------------------------|---------------|--------|
-| `<app_autenticacao>:login` e `<app_autenticacao>:logout` | `login` e `logout`, sem namespace e sem app própria | Usa as views do Django sem código próprio |
-| Não lista página inicial | `core:inicio` e `inicio.html` | Página P01 da arquitetura planejada |
-| Não lista detalhe de equipamento | `equipamentos:detalhe` e `equipamentos/detalhe.html` | Página P04 (excluir, inativar, reativar) |
-| `confirmar_exclusao.html` | Mantido | — |
-| Variáveis `object_list`, `object`, `form`, `query`, `empty_message` | Mantidas | — |
+| `<app_autenticacao>:login` e `<app_autenticacao>:logout` | `login` e `logout`, nativos, sem namespace | Sem app de autenticação (seção 3) |
+| Não lista página inicial | `inicio` e `inicio.html` | Página P01 |
+| `clientes:detalhe` e `clientes/detalhe.html` | Removidos | A consulta de clientes é feita pela listagem |
+| `equipamentos/confirmar_exclusao.html` | Confirmação dentro de `equipamentos/acoes.html` | Uma interface com ações condicionais, sem página extra |
+| Ações de equipamento sem página definida | `equipamentos:acoes` (P04) | Interface única das ações condicionais |
 | Bootstrap 5.3 local "dentro de `static/`" | Sugere `static/vendor/bootstrap/` | Separa biblioteca de terceiros do CSS próprio |
 
-## 10. Pontos que exigem validação de Raphael
+## 11. Pontos para validação de Rickelme e Raphael
 
-1. Nomes das apps e dos namespaces, e a autenticação sem app própria.
-2. Caminhos e nomes das URLs da seção 4.
-3. Lista de templates, blocos de `base.html` e includes.
-4. Nomes das variáveis de contexto e dos atributos de domínio.
-5. Classes do Bootstrap aplicadas pelos widgets, em vez de renderização manual de cada campo.
-6. Fluxo de duas etapas do aluguel (dados → revisão → confirmação).
-7. Confirmação de inativação e reativação (modal ou página).
-8. Local e responsável pelos arquivos do Bootstrap em `static/vendor/bootstrap/`.
+**Validação conjunta:**
 
-## 11. Aceite
+1. Apps e namespaces (`equipamentos`, `clientes`, `alugueis`), página inicial em `config` e autenticação sem app própria.
+2. Caminhos, nomes, views e redirecionamentos da tabela final (seção 5).
+3. Lista dos 14 templates, blocos de `base.html` e includes.
+4. Nomes das variáveis de contexto e dos atributos (seções 7.2 e 7.3).
+5. Forma da confirmação de exclusão dentro de `equipamentos/acoes.html` (modal ou bloco de confirmação).
+6. Classes do Bootstrap aplicadas pelos widgets do backend.
+7. Local e responsável pelos arquivos do Bootstrap em `static/vendor/bootstrap/`.
+8. Adoção ou não da etapa opcional de revisão no registro de aluguel.
+
+**Decisão de Rickelme (requisitos e backend):**
+
+9. Inativação de equipamento **sem** histórico: permitida ou apenas exclusão (RF004 e RN003 b citam a inativação "com histórico")?
+10. Normalização e sensibilidade a maiúsculas do código do equipamento.
+11. Caracteres removidos na normalização do telefone e recusa de CPF com todos os dígitos iguais.
+12. Uso do Django Admin para o provisionamento de contas.
+13. Conferência da tabela de mensagens do EQF-5 e substituição dos textos provisórios.
+
+## 12. Aceite
 
 Este documento não vale como contrato até o aceite registrado dos dois.
 

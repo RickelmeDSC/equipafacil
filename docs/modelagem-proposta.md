@@ -1,12 +1,10 @@
 # Modelagem proposta — EquipaFácil
 
-> **RASCUNHO PROVISÓRIO — PROPOSTA PARA VALIDAÇÃO DE RICKELME E RAPHAEL**
+> **PROPOSTA PARA VALIDAÇÃO DE RICKELME E RAPHAEL**
 >
-> Versão 0.1 — 01/11/2026. **Nada aqui está implementado**: não existe projeto Django, model ou migration no repositório.
+> Versão 0.2 — 01/11/2026, reconciliada com o Documento de Requisitos v1.1 e com a auditoria do Jira de 01/11/2026. **Nada aqui está implementado**: não existe projeto Django, model ou migration no repositório. A implementação dos models, das migrations e do diagrama de dados é escopo de DEV-03 (EQF-15).
 >
-> **Limitação:** a auditoria do Jira (Tarefa 08A-WEB) não foi concluída. Os critérios oficiais de DEV-01 (EQF-13), DEV-02 (EQF-14) e DEV-03 (EQF-15) não foram conferidos, e o Documento de Requisitos v1.1 não foi consultado diretamente. Itens marcados **[verificar]** dependem dessa conferência.
->
-> **Fontes:** [`rastreabilidade.md`](rastreabilidade.md) e [`arquitetura-planejada.md`](arquitetura-planejada.md) (resumos da especificação técnica v3), o [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md) e as decisões I1–I5 aprovadas por Rickelme em 01/11/2026. Nesta branch, baseada na `main`, os resumos ainda tratam I1–I5 como pendentes; a atualização deles está no PR #1.
+> **Fontes:** Documento de Requisitos v1.1 (RF001–RF008, RN001–RN004, decisões D1–D9, N2–N6, TZ e I1–I5), [`rastreabilidade.md`](rastreabilidade.md), [`arquitetura-planejada.md`](arquitetura-planejada.md) e o [guia de integração](https://github.com/RickelmeDSC/equipafacil/blob/docs/guia-integracao-raphael/docs/guia-integracao-frontend-backend.md). Nesta branch, baseada na `main`, os resumos do repositório ainda tratam I1–I5 como pendentes; a atualização deles está no PR #1.
 
 Documentos relacionados: [contrato técnico frontend × backend](contrato-tecnico-frontend-backend.md) e [plano backend DEV-01 a DEV-03](plano-backend-dev01-dev03.md).
 
@@ -14,67 +12,63 @@ Documentos relacionados: [contrato técnico frontend × backend](contrato-tecnic
 
 | Princípio | Como a modelagem atende | Origem |
 |-----------|-------------------------|--------|
-| Disponibilidade derivada | Não há campo `disponivel`; ela é calculada (ativo e sem aluguel ativo) | RN001 |
-| Um aluguel ativo por equipamento | Restrição única parcial no banco + bloqueio de linha na transação | RN001 |
-| Valores exatos | `DecimalField` com duas casas; nunca `float` | RN004 |
-| Datas de negócio | `DateField` interpretado no calendário `America/Recife` | RN004, TZ |
-| Valor contratado congelado | Diária, quantidade de diárias e valor contratado copiados para o aluguel no registro | RF003, RF006 |
-| Histórico preservado | Chaves estrangeiras com `PROTECT`; aluguéis nunca são editados nem excluídos | RN003, I2 |
-| Sem status manual de aluguel | Situação calculada a partir das datas | RF008 |
-| Validação no backend | Restrições no banco + validação em formulários e serviços; a tela nunca é a única barreira | RN002 |
+| Disponibilidade derivada | Não há campo `disponivel`; ela é calculada (ativo e sem aluguel aberto) | RN001 c |
+| Aluguel aberto persistido | **Proposta:** `data_devolucao_real` nula é o indicador persistido de aluguel aberto. Não existe coluna de status | RN001, RN004 f |
+| Um aluguel aberto por equipamento | Restrição única parcial sobre a coluna persistida + bloqueio de linha na transação | RN001 a, b |
+| Situação apenas de apresentação | Ativo, Atrasado, Encerrado e Encerrado com atraso são calculados; **nenhuma restrição de banco depende deles** | RF008, RN004 g |
+| Valores exatos | `DecimalField` com duas casas; nunca `float` | RN004 e, D9 |
+| Datas de negócio | `DateField` interpretado no calendário `America/Recife` | RN004 a, TZ |
+| Valor contratado congelado | Diária, quantidade de diárias e valor contratado copiados para o aluguel no registro | RF003, RF006, D3 |
+| Histórico preservado | Chaves estrangeiras com `PROTECT`; aluguéis não são editados nem excluídos | RN003, I2 |
+| Validação no backend | Restrições no banco + validação em formulários e serviços; a tela nunca é a única barreira | RN002 e |
 
-Convenções propostas: chave primária `BigAutoField` (padrão do Django), nomes de campos em português, restrições nomeadas. As restrições usam o parâmetro `condition=` de `CheckConstraint`, disponível em todas as séries do Django compatíveis com Python 3.13 listadas na arquitetura planejada.
+Convenções propostas: chave primária `BigAutoField` (padrão do Django), nomes de campos em português, restrições nomeadas. As restrições usam `CheckConstraint(condition=...)`, disponível desde o Django 5.1 e, portanto, em todas as séries candidatas (5.2 LTS, 6.0 e 6.1).
 
 ## 2. Equipamento
 
 | Campo | Tipo proposto | Regras | Situação |
 |-------|---------------|--------|----------|
 | `nome` | `CharField(max_length=120)` | Obrigatório | Obrigatoriedade aprovada (RF001); tamanho é proposta |
-| `codigo` | `CharField(max_length=30, unique=True)` | Obrigatório e único; imutável após o primeiro aluguel | Aprovado (RF001, RF003); tamanho e normalização são proposta |
-| `categoria` | `CharField(max_length=30, choices=Categoria.choices)` | Uma das cinco categorias fixas | Aprovado (RF001) |
+| `codigo` | `CharField(max_length=30, unique=True)` | Obrigatório e único; imutável após o primeiro aluguel | Aprovado (RF001, RF003, RN002, N3); tamanho é proposta |
+| `categoria` | `CharField(max_length=30, choices=Categoria.choices)` | Uma das cinco categorias fixas | Aprovado (RF001, D8) |
 | `descricao` | `TextField(blank=True)` | Opcional | Aprovado (RF001) |
-| `valor_diaria` | `DecimalField(max_digits=10, decimal_places=2)` | Maior que R$ 0,00 | Aprovado (RF001); `max_digits` é proposta |
+| `valor_diaria` | `DecimalField(max_digits=10, decimal_places=2)` | Maior que R$ 0,00, duas casas | Aprovado (RF001, D9); `max_digits` é proposta |
 | `ativo` | `BooleanField(default=True)` | Criado ativo; muda só por inativação ou reativação | Aprovado (RF001, RF004) |
 
-**Categorias (`TextChoices`):** Ferramentas, Equipamentos Audiovisuais, Informática, Construção Civil e Outros. Os rótulos são exatamente esses; os valores internos sugeridos são `ferramentas`, `audiovisuais`, `informatica`, `construcao_civil` e `outros`.
+**Categorias (`TextChoices`):** Ferramentas, Equipamentos Audiovisuais, Informática, Construção Civil e Outros. Valores internos sugeridos: `ferramentas`, `audiovisuais`, `informatica`, `construcao_civil` e `outros`.
 
-**Restrições no banco:**
+**Restrições no banco:** `equipamento_codigo_unico` (unicidade de `codigo`) e `equipamento_diaria_positiva` (`valor_diaria > 0`).
 
-- `equipamento_codigo_unico`: unicidade de `codigo`.
-- `equipamento_diaria_positiva`: `valor_diaria > 0`.
+**Atributos calculados (backend, nunca persistidos):**
 
-**Atributos calculados (backend):**
+| Atributo | Regra | Origem |
+|----------|-------|--------|
+| `disponivel` | `ativo` e nenhum aluguel aberto | RN001 c |
+| `tem_historico` | Existe pelo menos um aluguel do equipamento | RN003 |
+| `tem_aluguel_ativo` | Existe aluguel aberto | RN003 c |
+| `codigo_editavel` | Não `tem_historico` | RF003, N3 |
+| `pode_excluir` | Não `tem_historico` | RF004, RN003 a |
+| `pode_inativar` | `ativo`, `tem_historico` e não `tem_aluguel_ativo` | RF004, RN003 b, c — **interpretação pendente** para equipamento sem histórico |
+| `pode_reativar` | Não `ativo`, dados cadastrais válidos e não `tem_aluguel_ativo` | RF004, RN003 e, N4 |
 
-| Atributo | Regra |
-|----------|-------|
-| `disponivel` | `ativo` e nenhum aluguel com `data_devolucao_real` vazia |
-| `tem_historico` | Existe pelo menos um aluguel do equipamento |
-| `tem_aluguel_ativo` | Existe aluguel com `data_devolucao_real` vazia |
-| `codigo_editavel` | Não `tem_historico` |
-| `pode_excluir` | Não `tem_historico` |
-| `pode_inativar` | `ativo` e não `tem_aluguel_ativo` — **[verificar]** se equipamento sem histórico também pode ser inativado ou se, nesse caso, só a exclusão é oferecida (RF004 cita "inativação com histórico") |
-| `pode_reativar` | Não `ativo` — **[verificar]** demais condições de reativação inválida (I3) |
+"Dados cadastrais válidos" na reativação significa revalidar o registro com as regras atuais (RN002) antes de reativar. Pela interface não se cria esse estado inválido; o teste usa massa preparada e é complementar (I3).
 
-**Decisões pendentes:** normalização do código (remover espaços? diferenciar maiúsculas de minúsculas?). Se a unicidade tiver de ignorar maiúsculas, a restrição passa a ser sobre `Lower("codigo")`.
+**Interpretações pendentes:** inativação de equipamento sem histórico; normalização do código e sensibilidade a maiúsculas. Nenhuma das duas está decidida e nenhuma restrição foi proposta para elas.
 
 ## 3. Cliente
 
 | Campo | Tipo proposto | Regras | Situação |
 |-------|---------------|--------|----------|
-| `nome_completo` | `CharField(max_length=150)` | Obrigatório | Aprovado (RF005); tamanho e critério de "completo" **[verificar]** |
-| `cpf` | `CharField(max_length=11, unique=True)` | Exatamente 11 dígitos armazenados; entrada com ou sem máscara; dígitos verificadores; único; imutável após o primeiro aluguel | Aprovado (RF005, I5) |
-| `telefone` | `CharField(max_length=11, blank=True)` | Opcional; só dígitos; 10 ou 11 dígitos com DDD | Aprovado (RF005) |
-| `email` | `EmailField(blank=True)` | Opcional; formato validado | Aprovado (RF005) |
+| `nome_completo` | `CharField(max_length=150)` | Obrigatório | Aprovado (RF005, RN002); tamanho é proposta |
+| `cpf` | `CharField(max_length=11, unique=True)` | Entrada com ou sem pontuação; remove **apenas** pontos e hífen e recusa qualquer outro caractere; exatamente 11 dígitos; dígitos verificadores; único; exibido formatado; imutável após o primeiro aluguel | Aprovado (RF005, RN002, N3, I5) |
+| `telefone` | `CharField(max_length=11, blank=True)` | Opcional; brasileiro com DDD, 10 ou 11 dígitos; armazenado só com dígitos; exibido formatado | Aprovado (RF005, N5) |
+| `email` | `EmailField(blank=True)` | Opcional; formato validado quando informado | Aprovado (RF005, RN002) |
 
-Clientes **não são excluídos** nem inativados: não há campo `ativo` e não haverá view de exclusão (RF005).
+Clientes **não são excluídos** nem inativados (RF005, RN003 f, D7).
 
-**Restrições no banco:**
+**Restrições no banco:** `cliente_cpf_unico` (unicidade de `cpf`), `cliente_cpf_onze_digitos` (`cpf` corresponde a `^[0-9]{11}$`) e, opcionalmente, `cliente_telefone_digitos` (vazio ou com 10 a 11 dígitos).
 
-- `cliente_cpf_unico`: unicidade de `cpf`.
-- `cliente_cpf_onze_digitos`: `cpf` corresponde a `^[0-9]{11}$`.
-- `cliente_telefone_digitos` (opcional): `telefone` vazio ou com 10 a 11 dígitos.
-
-A validação dos dígitos verificadores fica no formulário/serviço, porque não é uma checagem simples de banco. Rejeitar CPFs com todos os dígitos iguais é prática comum — **[verificar]** se o Documento v1.1 exige.
+Dígitos verificadores ficam no formulário/serviço. **Propostas não aprovadas:** recusar CPF com todos os dígitos iguais; quais caracteres do telefone são removidos na normalização.
 
 **Atributos calculados:** `cpf_formatado` (`000.000.000-00`), `telefone_formatado` e `cpf_editavel` (nenhum aluguel associado).
 
@@ -84,84 +78,100 @@ A validação dos dígitos verificadores fica no formulário/serviço, porque n�
 |-------|---------------|--------|----------|
 | `equipamento` | `ForeignKey(Equipamento, on_delete=PROTECT, related_name="alugueis")` | Obrigatório | Aprovado (RF006) |
 | `cliente` | `ForeignKey(Cliente, on_delete=PROTECT, related_name="alugueis")` | Obrigatório | Aprovado (RF006) |
-| `data_retirada` | `DateField` | Hoje ou no futuro no registro, no calendário `America/Recife` | Aprovado (RN004, I1) |
-| `data_devolucao_prevista` | `DateField` | Não anterior à retirada | Derivado da fórmula de diárias (mínimo de 1) — **[verificar]** |
-| `data_devolucao_real` | `DateField(null=True, blank=True)` | Vazia enquanto ativo; preenchida uma única vez, entre a retirada e a data atual | Aprovado (RF007, I2) |
-| `valor_diaria_contratada` | `DecimalField(max_digits=10, decimal_places=2)` | Cópia da diária do equipamento no registro | Aprovado (RF003, RF006) |
-| `quantidade_diarias` | `PositiveIntegerField` | `(prevista − retirada) + 1`, calculada no registro | Aprovado (RN004) |
-| `valor_contratado` | `DecimalField(max_digits=12, decimal_places=2)` | `quantidade_diarias × valor_diaria_contratada`, congelado | Aprovado (RF006, CT11) |
+| `data_retirada` | `DateField` | Não anterior à data atual no registro (retirada futura permitida) | Aprovado (RF006, RN004 b, D2/D6, I1) |
+| `data_devolucao_prevista` | `DateField` | Igual ou posterior à retirada; mínimo de 1 diária | Aprovado (RF006, RN004 c) |
+| `data_devolucao_real` | `DateField(null=True, blank=True)` | Nula enquanto aberto; preenchida uma única vez, entre a retirada e a data atual | Aprovado (RF007, RN004 f, N2, I2) |
+| `valor_diaria_contratada` | `DecimalField(max_digits=10, decimal_places=2)` | Cópia da diária do equipamento no registro | Aprovado (RF006, D3) |
+| `quantidade_diarias` | `PositiveIntegerField` | `(prevista − retirada) + 1`, calculada no registro | Aprovado (RN004 d, D3) |
+| `valor_contratado` | `DecimalField(max_digits=12, decimal_places=2)` | `quantidade_diarias × valor_diaria_contratada`, congelado | Aprovado (RN004 e, CT11) |
 
 Não há campo de status, multa, cancelamento, pagamento ou funcionário responsável: nada disso está na especificação.
 
-**Restrições no banco:**
+**Restrições no banco (todas sobre colunas persistidas):**
 
-- `aluguel_um_ativo_por_equipamento`: `UniqueConstraint(fields=["equipamento"], condition=Q(data_devolucao_real__isnull=True))`. Garante, no próprio PostgreSQL, no máximo um aluguel ativo por equipamento.
+- `aluguel_um_aberto_por_equipamento`: `UniqueConstraint(fields=["equipamento"], condition=Q(data_devolucao_real__isnull=True))`. No máximo um aluguel aberto por equipamento, garantido pelo próprio PostgreSQL. Aluguéis com retirada futura também estão abertos, o que bloqueia o equipamento desde o registro (I1).
 - `aluguel_prevista_apos_retirada`: `data_devolucao_prevista >= data_retirada`.
-- `aluguel_devolucao_apos_retirada`: `data_devolucao_real` vazia ou `>= data_retirada`.
+- `aluguel_devolucao_apos_retirada`: `data_devolucao_real` nula ou `>= data_retirada`.
 - `aluguel_valores_positivos`: `valor_diaria_contratada > 0`, `quantidade_diarias >= 1` e `valor_contratado > 0`.
 
-"Retirada não anterior à data atual" e "devolução real não posterior à data atual" dependem do dia corrente e **não** podem ser restrições de banco. Ficam no serviço, que recebe `hoje` calculado em `America/Recife`.
+Regras que dependem do dia corrente — retirada não anterior à data atual e devolução real não posterior à data atual — **não** podem ser restrições de banco. Ficam no serviço, que recebe `hoje` calculado em `America/Recife`.
 
-## 5. Estados derivados
+## 5. Estados derivados (apresentação)
 
-**Situação do aluguel** (calculada com `hoje = timezone.localdate()` em `America/Recife`), exposta como `situacao` (rótulo exibido) e `situacao_codigo` (código para estilo):
+**Situação do aluguel**, calculada com `hoje = timezone.localdate()` em `America/Recife` e exposta como `situacao` (rótulo) e `situacao_codigo` (estilo). É só apresentação: o banco não a armazena nem a usa em restrições.
 
-| `situacao` | `situacao_codigo` | Condição |
-|----------|--------------------|----------|
-| Ativo | `ativo` | Sem devolução e `hoje <= data_devolucao_prevista` |
-| Atrasado | `atrasado` | Sem devolução e `hoje > data_devolucao_prevista` |
-| Encerrado | `encerrado` | Devolvido com `data_devolucao_real <= data_devolucao_prevista` |
-| Encerrado com atraso | `encerrado_com_atraso` | Devolvido com `data_devolucao_real > data_devolucao_prevista` |
+| `situacao` | `situacao_codigo` | Condição (RN004 g) |
+|------------|-------------------|--------------------|
+| Ativo | `ativo` | Aberto e devolução prevista não anterior à data atual |
+| Atrasado | `atrasado` | Aberto e devolução prevista anterior à data atual |
+| Encerrado | `encerrado` | Devolvido com data real não posterior à prevista |
+| Encerrado com atraso | `encerrado_com_atraso` | Devolvido com data real posterior à prevista |
 
-Aluguel com retirada futura (I1) aparece como **Ativo**, já que a especificação lista só essas quatro situações — **[verificar]** se o Documento v1.1 prevê rótulo próprio.
+Aluguel com retirada futura aparece como **Ativo** (v1.1, limitações: "um aluguel registrado, inclusive com retirada futura, fica ativo").
 
-**`pode_devolver`:** sem devolução e `hoje >= data_retirada`. Antes da retirada não existe data real válida, porque o intervalo "entre a retirada e a data atual" fica vazio.
+**`pode_devolver`:** aberto e `hoje` igual ou posterior à retirada (I1: "a devolução não pode ser registrada antes da data de retirada").
 
-## 6. Imutabilidade e preservação histórica
+## 6. Revisão de compatibilidade
+
+| Ponto verificado | Resultado |
+|------------------|-----------|
+| Aluguel aberto × data real de devolução | Mesmo conceito: aberto = `data_devolucao_real` nula (indicador persistido proposto) |
+| Situação de apresentação × restrição única parcial | A restrição usa a coluna persistida; a situação calculada não entra no banco |
+| Restrição única × bloqueio concorrente | Complementares: o bloqueio dá mensagem amigável; a restrição é a última barreira |
+| Preservação do histórico | `PROTECT` em `equipamento` e `cliente`; nenhuma rota de edição ou exclusão de aluguel |
+| Unicidade do CPF | Restrição única sobre os 11 dígitos normalizados |
+| Decimal para preços | `DecimalField` em diária e valores contratados |
+| Fuso `America/Recife` | `TIME_ZONE` e `timezone.localdate()`; nunca o dia UTC |
+| Diárias inclusivas | `(prevista − retirada) + 1`, com mínimo de 1 garantido por restrição |
+| Retirada futura | Permitida; o aluguel fica aberto e bloqueia o equipamento desde o registro |
+| Ausência de cancelamento | Nenhum campo, rota ou estado de cancelamento |
+
+## 7. Imutabilidade e preservação histórica
 
 | Regra | Proteção proposta |
 |-------|-------------------|
-| Código do equipamento imutável após o primeiro aluguel (RF003) | Campo desabilitado no formulário (o Django ignora valor enviado) e checagem no serviço dentro da transação |
-| CPF imutável após o primeiro aluguel (RF005) | Mesma abordagem do código |
+| Código imutável após o primeiro aluguel (RF003, N3) | Campo desabilitado no formulário (o Django ignora valor enviado) e checagem no serviço dentro da transação |
+| CPF imutável após o primeiro aluguel (RF005, N3) | Mesma abordagem do código |
 | Nova diária não afeta aluguéis existentes (RF003) | Valores copiados para o aluguel; o equipamento nunca é usado para recalcular |
-| Sem edição de aluguel ou devolução registrados (I2) | Não haverá view de edição; o serviço de devolução só grava quando `data_devolucao_real` está vazia |
-| Equipamento com histórico não é excluído (RN003) | `on_delete=PROTECT` no banco + checagem prévia no serviço para mensagem amigável |
-| Cliente nunca é excluído (RF005) | Nenhuma view de exclusão + `PROTECT` |
+| Sem edição de aluguel ou devolução (I2) | Nenhuma view de edição; a devolução só grava quando `data_devolucao_real` está nula |
+| Equipamento com histórico não é excluído (RN003 b) | `PROTECT` + checagem prévia no serviço para mensagem amigável |
+| Cliente nunca é excluído (RN003 f) | Nenhuma view de exclusão + `PROTECT` |
 
-O Django Admin, se habilitado, **não** deve registrar `Equipamento`, `Cliente` nem `Aluguel` com edição livre, porque isso contornaria as regras de serviço (ver [contrato técnico](contrato-tecnico-frontend-backend.md)).
+`Equipamento`, `Cliente` e `Aluguel` não devem ser registrados no Django Admin para edição livre, pois isso contornaria as regras de serviço.
 
-## 7. Concorrência (PostgreSQL)
+## 8. Concorrência (PostgreSQL)
 
 Todas as operações que alteram estado rodam em `transaction.atomic()` nos serviços.
 
 | Cenário | Risco | Proteção proposta |
 |---------|-------|-------------------|
-| Dois aluguéis simultâneos do mesmo equipamento | Dois aluguéis ativos | `select_for_update()` na linha do equipamento antes de validar; restrição única parcial como última barreira; `IntegrityError` vira a mensagem de indisponibilidade (CT12) |
-| Aluguel × inativação ou exclusão | Inativar ou excluir enquanto um aluguel é criado | As duas operações bloqueiam a mesma linha de `Equipamento` e revalidam as condições dentro da transação; `PROTECT` impede a exclusão com aluguel |
-| Duas devoluções do mesmo aluguel | Devolução dupla (CT14) | Atualização condicional: `filter(pk=..., data_devolucao_real__isnull=True).update(...)`; zero linhas afetadas significa "já encerrado" |
-| Edição de código ou CPF × primeiro aluguel | Alterar o identificador no mesmo instante do primeiro aluguel | O registro de aluguel bloqueia equipamento e cliente (sempre nessa ordem, para evitar deadlock); a edição bloqueia a mesma linha e revalida "sem histórico" |
-| Cadastros simultâneos com o mesmo código ou CPF | Duplicidade | Restrições únicas; `IntegrityError` vira erro de campo |
+| Dois aluguéis simultâneos do mesmo equipamento | Dois aluguéis abertos | `select_for_update()` na linha do equipamento antes de validar; restrição única parcial como última barreira; `IntegrityError` vira a mensagem de indisponibilidade (CT12) |
+| Parâmetro HTTP manipulado (RN001 b) | Alugar equipamento fora da lista de disponíveis | O serviço revalida disponibilidade a partir do banco, ignorando o que a tela ofereceu |
+| Aluguel × inativação ou exclusão | Inativar ou excluir durante um aluguel | As duas operações bloqueiam a mesma linha de `Equipamento` e revalidam dentro da transação; `PROTECT` impede exclusão com aluguel |
+| Duas devoluções do mesmo aluguel | Devolução dupla (CT14) | Atualização condicional `filter(pk=..., data_devolucao_real__isnull=True).update(...)`; zero linhas afetadas significa "já encerrado" |
+| Edição de código ou CPF × primeiro aluguel | Alterar o identificador no instante do primeiro aluguel | O registro de aluguel bloqueia equipamento e cliente (sempre nessa ordem, para evitar deadlock); a edição bloqueia a mesma linha e revalida "sem histórico" |
+| Cadastros simultâneos com mesmo código ou CPF | Duplicidade | Restrições únicas; `IntegrityError` vira erro de campo |
 
-O isolamento padrão do PostgreSQL (READ COMMITTED) é suficiente com bloqueio de linha e restrições. O SQLite ignora `select_for_update()`, portanto **os testes de concorrência precisam rodar em PostgreSQL** (decisão de ambiente em DEV-02).
+O isolamento padrão do PostgreSQL (READ COMMITTED) é suficiente com bloqueio de linha e restrições. O SQLite ignora `select_for_update()`, portanto **os testes de concorrência precisam rodar em PostgreSQL** (ambiente definido em DEV-02).
 
-## 8. Índices
+## 9. Índices
 
-- Os índices únicos de `codigo` e `cpf` e os índices automáticos das chaves estrangeiras atendem às consultas previstas.
-- A restrição única parcial cria o índice usado para verificar se existe aluguel ativo do equipamento.
+- Índices únicos de `codigo` e `cpf` e índices automáticos das chaves estrangeiras.
+- A restrição única parcial cria o índice usado para verificar se há aluguel aberto do equipamento.
 - Pesquisa por nome ou código com `icontains` não exige índice adicional no volume de um projeto acadêmico.
-- Ordenação proposta do histórico: `-data_retirada`, `-id`. Índice próprio só se houver necessidade medida.
+- Ordenação proposta do histórico: `-data_retirada`, `-id`.
 
-## 9. Configurações relacionadas
+## 10. Configurações relacionadas
 
 - `TIME_ZONE = "America/Recife"`, `USE_TZ = True`, `LANGUAGE_CODE = "pt-br"`.
-- "Data atual" sempre com `timezone.localdate()`; os serviços aceitam `hoje` como parâmetro para facilitar testes com datas relativas.
-- `USE_THOUSAND_SEPARATOR = True`, para que o template exiba `R$ 1.500,00` sem cálculo no frontend.
+- "Data atual" sempre com `timezone.localdate()`; os serviços aceitam `hoje` como parâmetro para testes com datas relativas.
+- `USE_THOUSAND_SEPARATOR = True`, para exibir `R$ 1.500,00` sem cálculo no template.
 
-## 10. Pontos em aberto
+## 11. Pontos em aberto
 
-1. Tamanhos máximos de `nome`, `codigo` e `nome_completo` — **[verificar]** no Documento v1.1.
-2. Normalização e sensibilidade a maiúsculas do código.
-3. Inativação de equipamento sem histórico (RF004) e condições de reativação inválida (I3).
-4. Rejeição de CPF com dígitos repetidos.
-5. Rótulo da situação para aluguel com retirada futura.
-6. Campos técnicos de auditoria (por exemplo, data de criação) — não incluídos, por não estarem na especificação.
+1. Confirmar `data_devolucao_real` nula como indicador persistido de aluguel aberto.
+2. Inativação de equipamento sem histórico (interpretação pendente).
+3. Normalização e sensibilidade a maiúsculas do código (proposta não aprovada).
+4. Recusa de CPF com dígitos repetidos e normalização do telefone (propostas não aprovadas).
+5. Tamanhos máximos de `nome`, `codigo` e `nome_completo` (não definidos no v1.1).
+6. Diagrama de dados oficial, a produzir em DEV-03.
