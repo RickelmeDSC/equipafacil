@@ -9,25 +9,18 @@ Só no PostgreSQL: o SQLite ignora select_for_update() e os testes usam um banco
 em memória que não é compartilhado entre threads.
 """
 
-import threading
-from collections.abc import Callable
 from decimal import Decimal
 from unittest import skipUnless
 
-from django.core.exceptions import ValidationError
-from django.db import connection, transaction
 from django.test import TransactionTestCase
 
 from alugueis.models import Aluguel
 from alugueis.services import registrar_aluguel
 from config import mensagens
+from config.tests.concorrencia import OK, POSTGRESQL, executar_corrida
 from config.tests.fabricas import criar_cliente, criar_equipamento, dias, hoje
 from equipamentos import services
 from equipamentos.models import Categoria, Equipamento
-
-POSTGRESQL = connection.vendor == "postgresql"
-ESPERA = 10  # segundos; só usado como limite de segurança
-OK = "ok"
 
 
 @skipUnless(POSTGRESQL, "concorrência real exige PostgreSQL")
@@ -65,60 +58,8 @@ class CorridasComPrimeiroAluguelTests(TransactionTestCase):
     def _inativar(self) -> None:
         services.inativar_equipamento(self.equipamento.pk)
 
-    # Execução ------------------------------------------------------------------
-
-    def _corrida(
-        self, primeira: Callable[[], None], segunda: Callable[[], None]
-    ) -> tuple[object, object]:
-        """Executa ``primeira`` segurando a transação e ``segunda`` em seguida.
-
-        Devolve o resultado de cada uma: ``OK`` ou a lista de mensagens de erro.
-        """
-        primeira_bloqueou = threading.Event()
-        liberar_primeira = threading.Event()
-        resultado: dict[str, object] = {}
-
-        def executar(nome: str, operacao: Callable[[], None]) -> None:
-            try:
-                operacao()
-                resultado[nome] = OK
-            except ValidationError as erro:
-                resultado[nome] = erro.messages
-            except Exception as erro:  # pragma: no cover - diagnóstico
-                resultado[nome] = repr(erro)
-
-        def thread_primeira() -> None:
-            try:
-                with transaction.atomic():
-                    executar("primeira", primeira)
-                    primeira_bloqueou.set()
-                    liberar_primeira.wait(ESPERA)
-            finally:
-                connection.close()
-
-        def thread_segunda() -> None:
-            try:
-                primeira_bloqueou.wait(ESPERA)
-                executar("segunda", segunda)
-            finally:
-                connection.close()
-
-        threads = [
-            threading.Thread(target=thread_primeira),
-            threading.Thread(target=thread_segunda),
-        ]
-        for thread in threads:
-            thread.start()
-        self.assertTrue(primeira_bloqueou.wait(ESPERA))
-        threads[1].join(1.0)
-        # A segunda fica parada no bloqueio da linha do equipamento até a primeira
-        # transação terminar; nada é decidido com dados antigos.
-        self.assertTrue(threads[1].is_alive(), "a segunda operação não esperou")
-        liberar_primeira.set()
-        for thread in threads:
-            thread.join(ESPERA)
-        self.assertFalse(any(thread.is_alive() for thread in threads))
-        return resultado["primeira"], resultado["segunda"]
+    def _corrida(self, primeira, segunda) -> tuple[object, object]:
+        return executar_corrida(self, primeira, segunda)
 
     def _equipamento(self) -> Equipamento:
         return Equipamento.objects.get(pk=self.equipamento.pk)

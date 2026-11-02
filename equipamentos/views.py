@@ -18,17 +18,10 @@ from django.views.decorators.http import (
 )
 
 from config import mensagens
+from config.formularios import aplicar_erros
 from equipamentos import services
 from equipamentos.forms import EquipamentoForm
 from equipamentos.models import Equipamento
-
-
-def _erros_no_formulario(form: EquipamentoForm, erro: ValidationError) -> None:
-    if hasattr(erro, "error_dict"):
-        for campo, lista in erro.message_dict.items():
-            form.add_error(campo if campo in form.fields else None, lista)
-    else:
-        form.add_error(None, erro.messages)
 
 
 @require_safe
@@ -59,7 +52,7 @@ def criar(request: HttpRequest) -> HttpResponse:
         try:
             services.cadastrar_equipamento(form.cleaned_data)
         except ValidationError as erro:
-            _erros_no_formulario(form, erro)
+            aplicar_erros(form, erro)
         else:
             return redirect("equipamentos:lista")
     return render(request, "equipamentos/formulario.html", {"form": form})
@@ -81,7 +74,7 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
         except Equipamento.DoesNotExist:
             raise Http404 from None
         except ValidationError as erro:
-            _erros_no_formulario(form, erro)
+            aplicar_erros(form, erro)
         else:
             return redirect("equipamentos:lista")
     return render(
