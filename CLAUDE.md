@@ -24,11 +24,11 @@ EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de 
 
 ## Estado atual
 
-Repositório apenas com documentação. **Django ainda não foi iniciado.** Não crie aplicação, models, views, forms, templates, migrations, dependências, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
+Fundação Django de DEV-02 **em preparação**: projeto `config`, apps `equipamentos`, `clientes` e `alugueis` **sem modelos**, autenticação nativa com `LoginRequiredMiddleware`, páginas provisórias de login e início e testes de configuração e autenticação (ambiente e comandos no README). **Não existem modelos nem migrations de domínio, telas definitivas, banco Neon, configuração no Render nem deploy.** Não crie models, migrations de domínio, views ou forms de domínio, telas definitivas, dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
 
 ## Stack definida
 
-- Python 3.13 (ambiente local disponível) + **Django** (framework definido; não sugerir troca). A versão do Django é definida em DEV-02, apenas entre séries com suporte oficial ao Python 3.13; não fixe versão por conta própria.
+- Python 3.13 + **Django 5.2 LTS** (framework definido; não sugerir troca). Versão exata fixada em `requirements.txt` (5.2.18, escolhida em DEV-02); mudanças de versão só com revisão.
 - Django Templates + Bootstrap no frontend (sem SPA).
 - PostgreSQL (Neon previsto); Render previsto para hospedagem.
 - Django Auth para autenticação (sem cadastro público, sem recuperação de senha por e-mail).
@@ -70,7 +70,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Testes
 
-- Nenhuma funcionalidade é considerada concluída sem testes automatizados passando (`python manage.py test` ou `pytest`, conforme definido em DEV-02).
+- Nenhuma funcionalidade é considerada concluída sem testes automatizados passando (`python manage.py test`, com o runner padrão do Django definido em DEV-02).
 - Relacione testes aos cenários `CTxx` e às coberturas complementares `FCxx`.
 - Datas em testes devem ser relativas à data atual em `America/Recife`.
 

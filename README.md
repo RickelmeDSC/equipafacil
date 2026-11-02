@@ -1,6 +1,6 @@
 # EquipaFácil — Sistema de Aluguel de Equipamentos
 
-> **Situação:** em planejamento. **O sistema ainda não foi implementado.** Este repositório contém apenas a estrutura documental inicial; nenhuma funcionalidade descrita abaixo está disponível ou em funcionamento.
+> **Situação:** fundação técnica do Django em preparação (DEV-02). **Nenhuma funcionalidade de negócio (RF001–RF008) foi implementada:** existem apenas o projeto, a autenticação de funcionários e duas páginas provisórias para testá-la. Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
 
 Sistema acadêmico de gestão de aluguel de equipamentos, desenvolvido com Python/Django e PostgreSQL.
 
@@ -43,13 +43,13 @@ Requisito técnico transversal: acesso restrito a funcionários autenticados (Dj
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Backend | Python 3.13, Django (versão definida em DEV-02) |
+| Backend | Python 3.13, Django 5.2 LTS (5.2.18, fixado em `requirements.txt`) |
 | Frontend | Django Templates, Bootstrap, HTML, CSS, JavaScript |
 | Banco de dados | PostgreSQL (hospedagem prevista no Neon) |
 | Hospedagem | Render (previsto) |
 | Gestão | Jira (Kanban), GitHub |
 
-Nada disso está configurado ainda. Veja [`docs/arquitetura-planejada.md`](docs/arquitetura-planejada.md).
+Até agora estão configurados apenas o Python, o Django e o ambiente local. PostgreSQL definitivo, Neon e Render ainda não. Veja [`docs/arquitetura-planejada.md`](docs/arquitetura-planejada.md).
 
 ## Equipes
 
@@ -67,10 +67,99 @@ Nada disso está configurado ainda. Veja [`docs/arquitetura-planejada.md`](docs/
 - [x] Revisão técnica do Documento de Requisitos v1.1 e aprovação das decisões I1–I5
 - [ ] Validação acadêmica final dos requisitos (Rafael Ferreira e Ivisson)
 - [ ] Revisão dos cenários de teste (equipe de Testes)
-- [ ] Configuração do projeto Django
+- [ ] Configuração do projeto Django (fundação de DEV-02 em preparação, aguardando revisão)
 - [ ] Implementação de RF001–RF008
 - [ ] Testes e demonstração
 - [ ] Deploy
+
+## Ambiente local de desenvolvimento
+
+> Fundação de DEV-02 (EQF-14), **em preparação**. Ainda não há modelos de domínio, telas definitivas nem deploy. As páginas de login e de início são **provisórias**, só para validar a autenticação.
+
+### Requisitos
+
+- Windows com PowerShell (comandos abaixo) e Git.
+- Python **3.13** (`py -3.13 --version`).
+- PostgreSQL 14 ou superior é o banco-alvo; opcional nesta etapa (veja [Banco de dados](#banco-de-dados)).
+
+### Ambiente virtual e dependências
+
+Na raiz do repositório:
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+O projeto usa só o Python do `.venv`, nunca o Python global. Se o PowerShell não permitir executar o `Activate.ps1`, troque `python` por `.\.venv\Scripts\python.exe` nos comandos, sem ativar o ambiente.
+
+`requirements.txt` fixa Django 5.2.18 (série LTS) e psycopg 3.3.6 (driver do PostgreSQL), com as dependências deles.
+
+### Configuração (`.env`)
+
+```powershell
+Copy-Item .env.example .env
+python -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo Git e **nunca** deve ser versionado; variáveis já definidas no ambiente têm prioridade sobre ele.
+
+| Variável | Uso |
+|----------|-----|
+| `DJANGO_SECRET_KEY` | Obrigatória; uma chave própria por ambiente |
+| `DJANGO_DEBUG` | `True` só no desenvolvimento local; padrão `False` |
+| `DJANGO_ALLOWED_HOSTS` | Hosts aceitos, separados por vírgula |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Origens HTTPS confiáveis, separadas por vírgula |
+| `DB_ENGINE` | `postgresql` (padrão, banco-alvo) ou `sqlite` (temporário) |
+| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_SSLMODE` | Conexão com o PostgreSQL |
+| `DJANGO_SECURE_SSL_REDIRECT`, `DJANGO_SECURE_HSTS_SECONDS`, `DJANGO_SECURE_PROXY_SSL_HEADER` | Segurança fora do desenvolvimento, a definir no deploy (DEV-08) |
+| `DJANGO_ENV_FILE` | Caminho de outro arquivo `.env`; vazio desativa a leitura |
+
+### Banco de dados
+
+- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, crie um banco e um usuário próprios no seu PostgreSQL e preencha `DB_ENGINE=postgresql` e as variáveis `DB_*` no `.env`. Neon e o banco de produção ainda não existem.
+- **SQLite (`DB_ENGINE=sqlite`) é um recurso temporário de desenvolvimento.** O projeto o recusa com `DJANGO_DEBUG=False`. Ele não substitui o PostgreSQL: as restrições do banco e os testes de concorrência previstos a partir de DEV-03 exigem PostgreSQL.
+
+### Verificações e testes
+
+```powershell
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+```
+
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS.
+
+Verificação de produção simulada, em um terminal separado (não conecta ao banco; os valores são fictícios):
+
+```powershell
+$env:DJANGO_ENV_FILE = ""
+$env:DJANGO_SECRET_KEY = (python -c "import secrets; print(secrets.token_urlsafe(50))")
+$env:DJANGO_DEBUG = "False"
+$env:DJANGO_ALLOWED_HOSTS = "equipafacil.exemplo.test"
+$env:DB_ENGINE = "postgresql"; $env:DB_NAME = "equipafacil"; $env:DB_USER = "equipafacil"
+python manage.py check --deploy
+```
+
+Nesta etapa, o único aviso esperado é `security.W004` (HSTS), que será configurado no deploy (DEV-08).
+
+### Execução local
+
+```powershell
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Acesse http://127.0.0.1:8000/, que redireciona para o login. O Django Admin (http://127.0.0.1:8000/admin/) é o único meio de criar contas de funcionários; não há cadastro público nem recuperação de senha por e-mail. Crie o superusuário só no seu ambiente local, com senha própria.
+
+### Limitações desta etapa
+
+- Sem modelos, migrations ou regras de domínio; nenhum RF001–RF008 implementado.
+- As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
+- Testes executados só com SQLite; nada foi testado em PostgreSQL ainda.
+- Sem Bootstrap, arquivos estáticos próprios, Neon, Render ou deploy.
 
 ## Prazos
 
