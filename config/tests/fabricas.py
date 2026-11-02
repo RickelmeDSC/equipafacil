@@ -76,3 +76,14 @@ def encerrar(aluguel: Aluguel, data: date | None = None) -> Aluguel:
     aluguel.data_devolucao_real = data or aluguel.data_retirada
     aluguel.save()
     return aluguel
+
+
+def criar_funcionario(username: str = "funcionario.teste"):
+    """Usuário comum (sem acesso ao Admin) com senha aleatória, só para testes."""
+    import secrets
+
+    from django.contrib.auth import get_user_model
+
+    return get_user_model().objects.create_user(
+        username=username, password=secrets.token_urlsafe(16)
+    )

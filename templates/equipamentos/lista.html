@@ -1,0 +1,48 @@
+{% comment %}
+PROVISÓRIO (DEV-04): página mínima para validar o backend de P02 (lista e pesquisa).
+Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
+Variáveis: object_list (cada item com .acoes), query, empty_message.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Equipamentos | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>Equipamentos</h1>
+    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    <form method="get" action="{% url 'equipamentos:lista' %}">
+      <label for="id_q">Pesquisar por código ou nome</label>
+      <input type="search" id="id_q" name="q" value="{{ query }}">
+      <button type="submit">Pesquisar</button>
+    </form>
+    <p><a href="{% url 'equipamentos:criar' %}">Novo equipamento</a></p>
+    <table>
+      <thead>
+        <tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Diária</th><th>Situação</th><th>Disponibilidade</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for equipamento in object_list %}
+        <tr>
+          <td>{{ equipamento.codigo }}</td>
+          <td>{{ equipamento.nome }}</td>
+          <td>{{ equipamento.get_categoria_display }}</td>
+          <td>R$ {{ equipamento.valor_diaria }}</td>
+          <td>{% if equipamento.ativo %}Ativo{% else %}Inativo{% endif %}</td>
+          <td>{% if equipamento.disponivel %}Disponível{% else %}Indisponível{% endif %}</td>
+          <td>
+            <a href="{% url 'equipamentos:editar' equipamento.pk %}">Editar</a>
+            <a href="{% url 'equipamentos:acoes' equipamento.pk %}">Ações</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">{{ empty_message }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'inicio' %}">Início</a></p>
+  </main>
+</body>
+</html>
