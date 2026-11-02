@@ -128,6 +128,9 @@ if obter_booleano("DJANGO_SECURE_PROXY_SSL_HEADER", padrao=False):
     # Só ative atrás de um proxy que sempre define X-Forwarded-Proto.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 X_FRAME_OPTIONS = "DENY"
+# Relatórios e páginas de erro também mascaram DATABASE_URL (config/seguranca.py).
+DEFAULT_EXCEPTION_REPORTER_FILTER = "config.seguranca.FiltroDeRelatorioDeErros"
+
 
 # Idioma e fuso: "data atual" sempre em America/Recife (timezone.localdate()).
 LANGUAGE_CODE = "pt-br"

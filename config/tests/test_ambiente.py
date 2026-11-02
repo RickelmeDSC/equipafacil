@@ -209,6 +209,14 @@ class DatabaseUrlTests(SimpleTestCase):
             "postgresql://usuario:segredo-nao-exibir@db.exemplo.test/",
             "postgresql://:segredo-nao-exibir@db.exemplo.test/equipafacil",
             "postgresql://usuario:segredo-nao-exibir@/equipafacil",
+            # Caracteres especiais sem codificação para URL.
+            "postgresql://usuario:segredo#nao-exibir@db.exemplo.test/equipafacil",
+            "postgresql://usuario:segredo/nao-exibir@db.exemplo.test/equipafacil",
+            # Porta inválida, fora da faixa ou zero; nome com segmento extra.
+            "postgresql://usuario:segredo-nao-exibir@db.exemplo.test:70000/banco",
+            "postgresql://usuario:segredo-nao-exibir@db.exemplo.test:0/banco",
+            "postgresql://usuario:segredo-nao-exibir@db.exemplo.test/banco/extra",
+            "postgis://usuario:segredo-nao-exibir@db.exemplo.test/equipafacil",
         )
         for url in invalidas:
             with self.subTest(url=url.split("@")[-1]):
@@ -217,6 +225,34 @@ class DatabaseUrlTests(SimpleTestCase):
                 self.assertIsNone(erro.exception.__cause__)
                 self.assertNotIn("segredo-nao-exibir", str(erro.exception))
                 self.assertIn("DATABASE_URL", str(erro.exception))
+
+    def test_enderecos_ipv4_e_ipv6(self):
+        casos = {
+            "postgresql://app@192.0.2.10:5433/banco": ("192.0.2.10", "5433"),
+            "postgresql://app@[2001:db8::10]:5432/banco": ("2001:db8::10", "5432"),
+            "postgresql://app@[::1]/banco": ("::1", "5432"),
+        }
+        for url, (host, porta) in casos.items():
+            with self.subTest(host=host):
+                banco = configurar_banco({"DATABASE_URL": url}, BASE_DIR, True)
+                self.assertEqual(banco["default"]["HOST"], host)
+                self.assertEqual(banco["default"]["PORT"], porta)
+
+    def test_caracteres_especiais_codificados_em_usuario_e_senha(self):
+        url = "postgresql://app%40org:a%2Bb%2Fc%23d%40e%3Af%25g@db.exemplo.test/banco"
+        banco = configurar_banco({"DATABASE_URL": url}, BASE_DIR, True)["default"]
+        self.assertEqual(banco["USER"], "app@org")
+        self.assertEqual(banco["PASSWORD"], "a+b/c#d@e:f%g")
+        # "+" literal na senha continua "+" (não vira espaço).
+        url = "postgresql://app:a+b@db.exemplo.test/banco"
+        banco = configurar_banco({"DATABASE_URL": url}, BASE_DIR, True)["default"]
+        self.assertEqual(banco["PASSWORD"], "a+b")
+
+    def test_esquema_em_maiusculas_e_sslmode_vazio(self):
+        url = "POSTGRES://app@db.exemplo.test/banco?sslmode="
+        banco = configurar_banco({"DATABASE_URL": url}, BASE_DIR, False)["default"]
+        self.assertEqual(banco["ENGINE"], "django.db.backends.postgresql")
+        self.assertEqual(banco["OPTIONS"], {"sslmode": "require"})
 
 
 class TlsEConexoesTests(SimpleTestCase):

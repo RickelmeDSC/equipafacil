@@ -130,6 +130,8 @@ def _postgresql_por_url(url: str) -> dict[str, object]:
         porta = partes.port
     except ValueError:
         raise ImproperlyConfigured("DATABASE_URL inválida.") from None
+    if porta == 0:
+        raise ImproperlyConfigured("DATABASE_URL inválida: porta 0.")
     if partes.scheme not in ("postgres", "postgresql"):
         raise ImproperlyConfigured(
             "DATABASE_URL deve começar com postgres:// ou postgresql://."
@@ -140,6 +142,10 @@ def _postgresql_por_url(url: str) -> dict[str, object]:
         raise ImproperlyConfigured(
             "DATABASE_URL precisa de usuário, host e nome do banco."
         )
+    if "/" in nome:
+        raise ImproperlyConfigured(
+            "DATABASE_URL inválida: o nome do banco não pode conter '/'."
+        )
     opcoes = dict(parse_qsl(partes.query))
     opcoes.setdefault("sslmode", "require")
     return {
@@ -148,7 +154,7 @@ def _postgresql_por_url(url: str) -> dict[str, object]:
         "USER": usuario,
         "PASSWORD": unquote(partes.password or ""),
         "HOST": partes.hostname,
-        "PORT": str(porta or 5432),
+        "PORT": str(5432 if porta is None else porta),
         "OPTIONS": opcoes,
     }
 
