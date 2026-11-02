@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
+from urllib.parse import parse_qsl, unquote, urlsplit
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -113,16 +114,80 @@ def obter_lista(nome: str, ambiente: Mapping[str, str] | None = None) -> list[st
     return [item.strip() for item in valor.split(",") if item.strip()]
 
 
+_SSLMODES_COM_TLS = {"require", "verify-ca", "verify-full"}
+_HOSTS_LOCAIS = {"", "localhost", "127.0.0.1", "::1"}
+
+
+def _postgresql_por_url(url: str) -> dict[str, object]:
+    """Converte ``DATABASE_URL`` (``postgres://`` ou ``postgresql://``).
+
+    Usuário e senha devem estar codificados para URL. Parâmetros da query string
+    (``sslmode``, ``channel_binding``) vão para ``OPTIONS``; sem ``sslmode``, vale
+    ``require``. Nenhuma mensagem de erro inclui a URL ou a senha.
+    """
+    try:
+        partes = urlsplit(url)
+        porta = partes.port
+    except ValueError:
+        raise ImproperlyConfigured("DATABASE_URL inválida.") from None
+    if partes.scheme not in ("postgres", "postgresql"):
+        raise ImproperlyConfigured(
+            "DATABASE_URL deve começar com postgres:// ou postgresql://."
+        )
+    nome = unquote(partes.path.lstrip("/"))
+    usuario = unquote(partes.username or "")
+    if not partes.hostname or not nome or not usuario:
+        raise ImproperlyConfigured(
+            "DATABASE_URL precisa de usuário, host e nome do banco."
+        )
+    opcoes = dict(parse_qsl(partes.query))
+    opcoes.setdefault("sslmode", "require")
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": nome,
+        "USER": usuario,
+        "PASSWORD": unquote(partes.password or ""),
+        "HOST": partes.hostname,
+        "PORT": str(porta or 5432),
+        "OPTIONS": opcoes,
+    }
+
+
+def _postgresql_por_variaveis(ambiente: Mapping[str, str]) -> dict[str, object]:
+    """Monta a conexão a partir das variáveis ``DB_*`` (PostgreSQL local)."""
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": obter_obrigatorio("DB_NAME", ambiente),
+        "USER": obter_obrigatorio("DB_USER", ambiente),
+        "PASSWORD": ambiente.get("DB_PASSWORD", ""),
+        "HOST": ambiente.get("DB_HOST", "localhost").strip() or "localhost",
+        "PORT": ambiente.get("DB_PORT", "5432").strip() or "5432",
+        "OPTIONS": {
+            "sslmode": ambiente.get("DB_SSLMODE", "prefer").strip() or "prefer",
+        },
+    }
+
+
 def configurar_banco(
     ambiente: Mapping[str, str], base_dir: Path, debug: bool
 ) -> dict[str, dict[str, object]]:
-    """Monta ``DATABASES`` a partir de ``DB_ENGINE`` e das variáveis ``DB_*``.
+    """Monta ``DATABASES``.
 
-    PostgreSQL é o banco-alvo do projeto e o padrão. SQLite é um recurso
-    temporário, permitido apenas no desenvolvimento local (``DEBUG`` ativo).
+    Precedência: ``DATABASE_URL`` (hospedagem, ex.: Neon), quando definida, vale
+    sobre as variáveis ``DB_*`` (PostgreSQL local), que então são ignoradas.
+    SQLite (``DB_ENGINE=sqlite``) é temporário e só vale com ``DEBUG`` ativo.
+    Com ``DEBUG`` desativado, o PostgreSQL exige TLS (``sslmode`` require,
+    verify-ca ou verify-full).
     """
+    url = ambiente.get("DATABASE_URL", "").strip()
     motor = ambiente.get("DB_ENGINE", "postgresql").strip().lower()
-    if motor == "sqlite":
+    if url:
+        if motor == "sqlite":
+            raise ImproperlyConfigured(
+                "Defina DATABASE_URL ou DB_ENGINE=sqlite, não os dois."
+            )
+        banco = _postgresql_por_url(url)
+    elif motor == "sqlite":
         if not debug:
             raise ImproperlyConfigured(
                 "DB_ENGINE=sqlite é apenas para desenvolvimento local e exige "
@@ -134,21 +199,36 @@ def configurar_banco(
                 "NAME": base_dir / "db.sqlite3",
             }
         }
-    if motor == "postgresql":
-        return {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": obter_obrigatorio("DB_NAME", ambiente),
-                "USER": obter_obrigatorio("DB_USER", ambiente),
-                "PASSWORD": ambiente.get("DB_PASSWORD", ""),
-                "HOST": ambiente.get("DB_HOST", "localhost").strip() or "localhost",
-                "PORT": ambiente.get("DB_PORT", "5432").strip() or "5432",
-                "OPTIONS": {
-                    "sslmode": ambiente.get("DB_SSLMODE", "prefer").strip() or "prefer",
-                },
-                # O banco de testes (test_<DB_NAME>) nasce em UTF8 a partir do
-                # template0, mesmo que o template1 do servidor use outra codificação.
-                "TEST": {"CHARSET": "UTF8", "TEMPLATE": "template0"},
-            }
-        }
-    raise ImproperlyConfigured("DB_ENGINE deve ser 'postgresql' ou 'sqlite'.")
+    elif motor == "postgresql":
+        banco = _postgresql_por_variaveis(ambiente)
+    else:
+        raise ImproperlyConfigured("DB_ENGINE deve ser 'postgresql' ou 'sqlite'.")
+
+    if not debug and banco["OPTIONS"].get("sslmode") not in _SSLMODES_COM_TLS:
+        raise ImproperlyConfigured(
+            "Com DJANGO_DEBUG=False, a conexão com o PostgreSQL exige TLS: use "
+            "sslmode=require, verify-ca ou verify-full."
+        )
+    # Conexão nova por requisição (padrão); DB_CONN_MAX_AGE permite reuso, com
+    # verificação antes do uso porque o Neon fecha conexões ociosas.
+    banco["CONN_MAX_AGE"] = obter_inteiro("DB_CONN_MAX_AGE", 0, ambiente)
+    banco["CONN_HEALTH_CHECKS"] = True
+    # O banco de testes (test_<NAME>) nasce em UTF8 a partir do template0, mesmo
+    # que o template1 do servidor use outra codificação.
+    banco["TEST"] = {"CHARSET": "UTF8", "TEMPLATE": "template0"}
+    return {"default": banco}
+
+
+def exigir_banco_local_para_testes(banco: Mapping[str, object]) -> None:
+    """Impede ``manage.py test`` de usar um PostgreSQL fora desta máquina.
+
+    A suíte cria tabelas no banco de testes; ela nunca deve apontar para um
+    banco hospedado (Neon) ou de produção.
+    """
+    if banco.get("ENGINE") != "django.db.backends.postgresql":
+        return
+    if str(banco.get("HOST") or "") not in _HOSTS_LOCAIS:
+        raise ImproperlyConfigured(
+            "manage.py test só roda contra PostgreSQL local (127.0.0.1, localhost "
+            "ou ::1). Remova DATABASE_URL ou ajuste DB_HOST antes de testar."
+        )

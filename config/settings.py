@@ -5,11 +5,13 @@ Tudo o que é sensível ou depende do ambiente vem de variáveis de ambiente
 """
 
 import os
+import sys
 from pathlib import Path
 
 from config.env import (
     carregar_arquivo_env,
     configurar_banco,
+    exigir_banco_local_para_testes,
     obter_booleano,
     obter_inteiro,
     obter_lista,
@@ -77,8 +79,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# PostgreSQL é o banco-alvo; SQLite só no desenvolvimento local (ver config/env.py).
+# PostgreSQL é o banco-alvo: DATABASE_URL (hospedagem) tem precedência sobre DB_*
+# (local); SQLite só no desenvolvimento. Regras em config/env.py.
 DATABASES = configurar_banco(os.environ, BASE_DIR, DEBUG)
+if sys.argv[1:2] == ["test"]:
+    exigir_banco_local_para_testes(DATABASES["default"])
 
 AUTH_PASSWORD_VALIDATORS = [
     {
