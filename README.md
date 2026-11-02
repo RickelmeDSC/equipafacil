@@ -1,6 +1,6 @@
 # EquipaFácil — Sistema de Aluguel de Equipamentos
 
-> **Situação:** fundação técnica do Django em preparação (DEV-02). **Nenhuma funcionalidade de negócio (RF001–RF008) foi implementada:** existem apenas o projeto, a autenticação de funcionários e duas páginas provisórias para testá-la. Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
+> **Situação:** fundação técnica do Django em preparação (DEV-02), modelos de domínio (DEV-03) e gestão de equipamentos (DEV-04, RF001–RF004) implementados localmente, com páginas **provisórias** e ainda sem revisão nem integração na `main`. RF005–RF008 não foram implementados. Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
 
 Sistema acadêmico de gestão de aluguel de equipamentos, desenvolvido com Python/Django e PostgreSQL.
 
@@ -74,7 +74,7 @@ Até agora estão configurados o Python, o Django e o ambiente local, com Postgr
 
 ## Ambiente local de desenvolvimento
 
-> Fundação de DEV-02 (EQF-14) **em preparação** e modelos de domínio do DEV-03 (EQF-15) implementados localmente, ainda sem views, formulários nem telas de domínio. As páginas de login e de início são **provisórias**, só para validar a autenticação.
+> Fundação de DEV-02 (EQF-14) **em preparação**, modelos de domínio do DEV-03 (EQF-15) e gestão de equipamentos do DEV-04 (EQF-16) implementados localmente. As páginas de login, de início e de equipamentos são **provisórias**, só para validar o backend.
 
 ### Requisitos
 
@@ -136,7 +136,7 @@ black --check .
 python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=3)`: os três testes de `config/tests/test_postgresql.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=15)`: os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py` e `equipamentos/tests/test_concorrencia.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
 
 `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
 
@@ -174,6 +174,8 @@ Acesse http://127.0.0.1:8000/, que redireciona para o login. O Django Admin (htt
 
 Os nomes `login`, `logout` e `inicio` ainda dependem do aceite do contrato DEV-01.
 
+`templates/equipamentos/lista.html`, `formulario.html` e `acoes.html` (DEV-04) também são provisórios, sem Bootstrap. Rotas, variáveis e o campo de confirmação da exclusão estão em [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md); a troca pelo frontend deve mantê-los, com `{% csrf_token %}` em todo POST.
+
 ### Hospedagem (preparação)
 
 Um único Web Service no Render serve backend e frontend, com Gunicorn, arquivos estáticos pelo WhiteNoise e banco no Neon por `DATABASE_URL`. Comandos, variáveis, health check (`/healthz/`), estratégia de migrations, backup e restrições do plano Free estão em [`docs/deploy-render-neon.md`](docs/deploy-render-neon.md). **Nada foi implantado.**
@@ -187,7 +189,8 @@ Advertências ainda abertas:
 
 ### Limitações desta etapa
 
-- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03, local; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)), mas sem views, formulários ou telas: nenhum RF001–RF008 está disponível para uso.
+- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03, local; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)).
+- Gestão de equipamentos (RF001–RF004, DEV-04, local; veja [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md)) com páginas provisórias. Clientes, aluguéis, devoluções e histórico (RF005–RF008) ainda não existem na interface.
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
 - Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
 - Sem Bootstrap nem arquivos estáticos próprios; Neon e Render preparados, mas sem serviço criado nem deploy.
