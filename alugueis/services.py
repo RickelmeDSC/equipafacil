@@ -40,7 +40,13 @@ def registrar_aluguel(
         )
 
     with transaction.atomic():
-        equipamento = Equipamento.objects.select_for_update().get(pk=equipamento_id)
+        try:
+            equipamento = Equipamento.objects.select_for_update().get(pk=equipamento_id)
+        except Equipamento.DoesNotExist:
+            # Inclui o equipamento excluído enquanto este registro esperava o bloqueio.
+            raise ValidationError(
+                {"equipamento": mensagens.EQUIPAMENTO_INDISPONIVEL}
+            ) from None
         cliente = Cliente.objects.select_for_update().get(pk=cliente_id)
         if not equipamento.disponivel:
             raise ValidationError({"equipamento": mensagens.EQUIPAMENTO_INDISPONIVEL})

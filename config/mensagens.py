@@ -3,7 +3,8 @@
 Os textos são as mensagens propostas na tabela do épico EQF-5 (Jira), transcritas
 literalmente. São referências de interface ainda não aprovadas como texto
 definitivo: se o EQF-5 mudar, ajuste aqui. Mensagens sem texto no EQF-5 ficam
-marcadas como internas (não são exibidas por nenhuma tela desta etapa).
+marcadas como internas, com texto provisório; só a confirmação de exclusão
+ausente chega a uma tela (P04 provisória, POST sem a confirmação).
 """
 
 CAMPO_OBRIGATORIO = "Preencha os campos obrigatórios."
@@ -29,8 +30,20 @@ DEVOLUCAO_ANTES_DA_RETIRADA = (
     "A data de devolução não pode ser anterior à data de retirada."
 )
 ALUGUEL_ENCERRADO = "Este aluguel já foi encerrado."
+EXCLUSAO_COM_HISTORICO = (
+    "Não é possível excluir: equipamento com histórico de locação. "
+    "Utilize a inativação."
+)
+ALUGUEL_ATIVO_IMPEDE = (
+    "Não é possível excluir ou inativar: equipamento com aluguel ativo."
+)
+REATIVACAO_BLOQUEADA = (
+    "Não é possível reativar: corrija os dados cadastrais ou encerre o aluguel ativo."
+)
+NENHUM_REGISTRO = "Nenhum registro encontrado."
 
-# Internas: sem texto no EQF-5; só aparecem em uso indevido do código.
+# Internas: sem texto no EQF-5; texto provisório até definição.
+CONFIRMACAO_DE_EXCLUSAO_AUSENTE = "Confirme a exclusão para continuar."
 ALUGUEL_INALTERAVEL = "Aluguel registrado não pode ser alterado."
 VALORES_DO_ALUGUEL_INCONSISTENTES = (
     "Diárias e valor contratado não correspondem às datas e à diária contratada."

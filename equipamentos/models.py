@@ -41,18 +41,32 @@ _ERROS_DIARIA = {
 
 
 class EquipamentoQuerySet(models.QuerySet):
-    def com_aluguel_aberto(self):
-        """Anota ``possui_aluguel_aberto`` numa única consulta."""
+    def com_situacao(self):
+        """Anota ``possui_historico`` e ``possui_aluguel_aberto`` na mesma consulta.
+
+        As propriedades ``tem_historico``, ``tem_aluguel_aberto`` e ``disponivel``
+        usam essas anotações quando presentes, evitando uma consulta por linha.
+        """
         from alugueis.models import Aluguel
 
-        abertos = Aluguel.objects.filter(
-            equipamento=OuterRef("pk"), data_devolucao_real__isnull=True
+        alugueis = Aluguel.objects.filter(equipamento=OuterRef("pk"))
+        return self.annotate(
+            possui_historico=Exists(alugueis),
+            possui_aluguel_aberto=Exists(
+                alugueis.filter(data_devolucao_real__isnull=True)
+            ),
         )
-        return self.annotate(possui_aluguel_aberto=Exists(abertos))
 
     def disponiveis(self):
-        """Equipamentos ativos e sem aluguel aberto (RN001 c)."""
-        return self.com_aluguel_aberto().filter(ativo=True, possui_aluguel_aberto=False)
+        """Equipamentos ativos e sem aluguel aberto, inclusive de retirada futura (RN001 c, I1)."""
+        return self.com_situacao().filter(ativo=True, possui_aluguel_aberto=False)
+
+    def pesquisar(self, termo: str | None):
+        """Pesquisa só por código ou nome (RF002), sem diferenciar maiúsculas."""
+        termo = (termo or "").strip()
+        if not termo:
+            return self
+        return self.filter(Q(codigo__icontains=termo) | Q(nome__icontains=termo))
 
 
 class Equipamento(ModeloValidado):
@@ -152,10 +166,16 @@ class Equipamento(ModeloValidado):
 
     @property
     def tem_historico(self) -> bool:
+        anotado = self.__dict__.get("possui_historico")
+        if anotado is not None:
+            return anotado
         return bool(self.pk) and self.alugueis.exists()
 
     @property
     def tem_aluguel_aberto(self) -> bool:
+        anotado = self.__dict__.get("possui_aluguel_aberto")
+        if anotado is not None:
+            return anotado
         return (
             bool(self.pk)
             and self.alugueis.filter(data_devolucao_real__isnull=True).exists()
