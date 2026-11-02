@@ -13,4 +13,5 @@ app_name = "alugueis"
 
 urlpatterns = [
     path("", views.historico, name="historico"),
+    path("novo/", views.criar, name="criar"),
 ]

@@ -15,6 +15,7 @@ situacao, situacao_codigo, pode_devolver), empty_message. Valores congelados; se
   <main>
     <h1>Histórico de aluguéis</h1>
     {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    <p><a href="{% url 'alugueis:criar' %}">Novo aluguel</a></p>
     <table>
       <thead>
         <tr><th>Cliente</th><th>Equipamento</th><th>Retirada</th><th>Prevista</th><th>Devolução</th><th>Diárias</th><th>Diária contratada</th><th>Valor contratado</th><th>Situação</th><th>Ações</th></tr>

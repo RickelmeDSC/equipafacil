@@ -14,6 +14,7 @@ O conteúdo e o layout definitivos da página inicial (P01) são do frontend, co
     <p>Sessão iniciada como {{ user.get_username }}.</p>
     <p><a href="{% url 'equipamentos:lista' %}">Equipamentos</a></p>
     <p><a href="{% url 'clientes:lista' %}">Clientes</a></p>
+    <p><a href="{% url 'alugueis:criar' %}">Novo aluguel</a></p>
     <p><a href="{% url 'alugueis:historico' %}">Histórico</a></p>
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}

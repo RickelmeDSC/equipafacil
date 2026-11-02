@@ -46,6 +46,13 @@ def formatar_cpf(cpf: str) -> str:
     return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
 
 
+def mascarar_cpf(cpf: str) -> str:
+    """Só os seis dígitos centrais, para distinguir homônimos sem expor o CPF inteiro."""
+    if not _ONZE_DIGITOS.fullmatch(cpf or ""):
+        return "***.***.***-**"
+    return f"***.{cpf[3:6]}.{cpf[6:9]}-**"
+
+
 def normalizar_telefone(valor: str) -> str:
     """Remove parênteses, espaços e hífen; outros caracteres (inclusive "+") ficam para ser recusados."""
     return valor.translate(_MASCARA_DO_TELEFONE) if isinstance(valor, str) else valor
