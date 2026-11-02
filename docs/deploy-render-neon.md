@@ -34,14 +34,15 @@ Navegador ──HTTPS──> Proxy do Render ──HTTP + X-Forwarded-Proto─�
 |----------|-------|------------|
 | `DJANGO_SECRET_KEY` | Chave aleatória com 50 caracteres ou mais | Gerada com `python -c "import secrets; print(secrets.token_urlsafe(50))"`; só no painel. Chave fraca impede a inicialização |
 | `DJANGO_DEBUG` | `False` | Também é o padrão quando ausente |
-| `DATABASE_URL` | String de conexão **direta** do Neon | Formato `postgresql://<usuario>:<senha>@<host>/<banco>?sslmode=require&channel_binding=require`. Senha codificada para URL. Só no painel |
+| `DATABASE_URL` | String de conexão **direta** do Neon | Formato `postgresql://<usuario>:<senha>@<host>/<banco>?sslmode=require&channel_binding=require`. Usuário e senha codificados para URL (`@` vira `%40`, `/` vira `%2F`, `#` vira `%23`). IPv6 entre colchetes. Só no painel |
 | `DJANGO_SECURE_PROXY_SSL_HEADER` | `True` | O Render termina o HTTPS no proxy; sem isso, o redirecionamento para HTTPS entra em laço |
 | `RENDER_EXTERNAL_HOSTNAME` | Definida pelo próprio Render | Entra em `ALLOWED_HOSTS` automaticamente |
 | `DJANGO_ALLOWED_HOSTS` | Vazio, ou o domínio próprio, se houver | Hosts além do `onrender.com` |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | Vazio | Só se houver formulário vindo de outra origem |
 | `DJANGO_SECURE_HSTS_SECONDS` | `0` no início | Ligar só depois de confirmar todo o site em HTTPS no ambiente real |
 | `DB_CONN_MAX_AGE` | `0` no início | Conexão nova por requisição. Para reuso, no máximo `300`: o Neon fecha conexões ociosas após 5 minutos |
-| `WEB_CONCURRENCY` | Não definir no início | Número de workers do Gunicorn; padrão 1 |
+| `WEB_CONCURRENCY` | Não definir no início | Número de workers do Gunicorn; ausente, vale 1 |
+| `FORWARDED_ALLOW_IPS` | Não definir | Não é necessária: o Django reconhece o HTTPS pelo `X-Forwarded-Proto` com `DJANGO_SECURE_PROXY_SSL_HEADER` (veja abaixo) |
 
 A versão do Python vem de `.python-version` (`3.13.15`). Não defina `PYTHON_VERSION` no painel: ela tem precedência sobre o arquivo. O padrão do Render para serviços novos é Python 3.14, por isso a fixação é necessária.
 
@@ -55,9 +56,23 @@ A versão do Python vem de `.python-version` (`3.13.15`). Não defina `PYTHON_VE
 | Start Command | `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT` |
 | Health Check Path | `/healthz/` |
 
-O `scripts/render-build.sh` instala `requirements.txt`, roda `pip check`, `manage.py check --deploy` e `collectstatic`. Ele **não** acessa o banco e **não** roda migrations. O `check --deploy` mostra o aviso `security.W004` enquanto o HSTS estiver desligado; aviso não interrompe o build.
+O `scripts/render-build.sh` instala `requirements.txt`, roda `pip check`, `manage.py check --deploy` e `collectstatic`. Ele **não** acessa o banco e **não** roda migrations. O script para no primeiro erro (`errexit`, `nounset`, `pipefail`) e não imprime variáveis de ambiente. Se `DJANGO_SECRET_KEY` ou `DATABASE_URL` faltarem no build, o `check --deploy` falha e o build para.
 
-**Gunicorn:** começa com 1 worker (padrão). Aumente com `WEB_CONCURRENCY` só depois de medir a memória usada pelo processo no plano contratado; cada worker é uma cópia do Django em memória. O Gunicorn não roda no Windows (exige o módulo `fcntl`); localmente, a aplicação WSGI foi validada com o servidor `wsgiref` da biblioteca padrão. **O Gunicorn em si só será exercitado no primeiro ambiente Linux.**
+**Avisos do `check --deploy`:** avisos não interrompem o build; só erros interrompem. Nesta etapa, o único aviso esperado é `security.W004` (HSTS desligado). Antes de cada implantação, confira o log do build: qualquer outro aviso bloqueia a publicação até ser analisado.
+
+**Gunicorn:** começa com 1 worker: sem `WEB_CONCURRENCY`, o Gunicorn 26 usa 1. Aumente só depois de medir a memória usada pelo processo no plano contratado; cada worker é uma cópia do Django em memória.
+
+**HTTPS atrás do proxy, sem laço:** o proxy do Render termina o HTTPS e repassa a requisição com `X-Forwarded-Proto: https`. Pelo código do Gunicorn 26.2.0, quando o IP do proxy não está em `FORWARDED_ALLOW_IPS`, ele ignora esse cabeçalho só para o próprio esquema (`wsgi.url_scheme` fica `http`), mas o **repassa** ao Django (`HTTP_X_FORWARDED_PROTO`); cabeçalhos descartados são só os com `_` no nome. Com `DJANGO_SECURE_PROXY_SSL_HEADER=True`, o Django reconhece o HTTPS e não redireciona de novo. Sem essa variável, toda página entraria em laço de redirecionamento. Essa análise é de código-fonte; a confirmação prática vem do script abaixo e do primeiro deploy.
+
+**Validação em Linux (pendente):** o Gunicorn não roda no Windows (depende de `fcntl` e `grp`). Em qualquer Linux com Python 3.13 (WSL com Ubuntu, container ou máquina Linux), rode na raiz do repositório:
+
+```bash
+bash scripts/validar-gunicorn-linux.sh
+```
+
+O script cria um ambiente virtual temporário com `requirements.txt`, roda `check --deploy` e `collectstatic` e sobe o Gunicorn com o mesmo comando do Render, em produção simulada: `DATABASE_URL` fictícia e local (nenhuma conexão sai da máquina) e o cliente fora de `FORWARDED_ALLOW_IPS`, como o proxy real. Em seguida, `scripts/validar_servidor.py` verifica health check, `Host` inválido, redirecionamento para HTTPS, proxy sem laço, cookie `Secure`, login obrigatório e estáticos comprimidos, e o script confere que subiu 1 worker sem erros. Ao terminar, encerra o Gunicorn e apaga o ambiente temporário. O verificador HTTP já foi exercitado contra a mesma aplicação servida pelo `wsgiref` no Windows; **o Gunicorn em si ainda não foi executado.**
+
+**Registro (logs):** avisos e erros do Django, inclusive falhas 500, CSRF recusado e `Host` inválido, vão para o console, que o Render coleta. Um `Host` inválido gera o aviso `Invalid HTTP_HOST header` com o traceback da exceção; é o comportamento esperado. As páginas e relatórios de erro mascaram chaves, senhas e também a `DATABASE_URL`.
 
 ## Arquivos estáticos
 
@@ -72,7 +87,7 @@ O `scripts/render-build.sh` instala `requirements.txt`, roda `pip check`, `manag
 
 - é público e responde antes da sessão e da autenticação, então nunca consulta o PostgreSQL nem acorda o Neon, mesmo com cookie de sessão;
 - não entra em cache, não expõe configuração e responde também por HTTP, sem redirecionar;
-- responde para qualquer `Host`, porque vem antes da validação de `ALLOWED_HOSTS`; as demais páginas continuam validando o host.
+- valida o `Host` como o resto do site: host fora de `ALLOWED_HOSTS` recebe 400. O host do Render (`RENDER_EXTERNAL_HOSTNAME`) já é aceito; com domínio próprio, inclua-o em `DJANGO_ALLOWED_HOSTS`, porque o Render passa a usá-lo como `Host` do health check.
 
 O Render considera saudável qualquer resposta `2xx` ou `3xx` em até 5 segundos e usa o subdomínio `onrender.com` como `Host`.
 

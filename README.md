@@ -182,7 +182,7 @@ Advertências ainda abertas:
 
 - `security.W004` (HSTS): defina `DJANGO_SECURE_HSTS_SECONDS` só depois de confirmar todo o site em HTTPS no ambiente real.
 - No Render, `DJANGO_SECURE_PROXY_SSL_HEADER=True` é obrigatório; sem isso, o redirecionamento para HTTPS entra em laço.
-- O Gunicorn não roda no Windows e só será exercitado no primeiro ambiente Linux.
+- O Gunicorn não roda no Windows e ainda não foi executado. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy.
 - Não há limite de tentativas de login nem política de segurança de conteúdo (CSP); a sessão dura o padrão do Django (duas semanas). São decisões pendentes, não configuradas.
 
 ### Limitações desta etapa
