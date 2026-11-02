@@ -89,7 +89,7 @@ DB_PORT=5432
 DB_SSLMODE=prefer
 ```
 
-Com `DB_PASSWORD` vazio, o Django não envia senha e o libpq usa o `pgpass.conf`. `DB_SSLMODE=prefer` serve para o servidor local; serviços gerenciados como o Neon exigem `require`.
+Com `DB_PASSWORD` vazio, o Django não envia senha e o libpq usa o `pgpass.conf`. Não defina `DATABASE_URL` na sessão: ela vale sobre as `DB_*`, e o `manage.py test` recusa banco que não esteja em `127.0.0.1`, `localhost` ou `::1`. `DB_SSLMODE=prefer` serve para o servidor local; serviços gerenciados como o Neon exigem `require`.
 
 ## Execução
 
@@ -130,6 +130,8 @@ Execução de 02/11/2026, no commit `7e78668` da branch `feat/backend-dev02-foun
 | SQLite, mesmo commit | 64 descobertos, 61 aprovados, 3 pulados (os de PostgreSQL) |
 
 Não houve diferença de comportamento entre SQLite e PostgreSQL nos 61 testes comuns.
+
+**Revalidação** depois da preparação para Render + Neon (commit `aea39a5`): 98 testes descobertos, 98 aprovados, nenhum pulado, nenhuma migration nova no banco de testes e banco de desenvolvimento inalterado.
 
 **Ainda não validado:** restrições de banco e concorrência (dependem dos modelos de DEV-03), `migrate` no banco de desenvolvimento e qualquer ambiente fora desta máquina (Neon, Render).
 

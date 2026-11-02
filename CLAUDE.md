@@ -24,7 +24,7 @@ EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de 
 
 ## Estado atual
 
-Fundação Django de DEV-02 **em preparação**: projeto `config`, apps `equipamentos`, `clientes` e `alugueis` **sem modelos**, autenticação nativa com `LoginRequiredMiddleware`, páginas provisórias de login e início e testes de configuração e autenticação (ambiente e comandos no README). **Não existem modelos nem migrations de domínio, telas definitivas, banco Neon, configuração no Render nem deploy.** Não crie models, migrations de domínio, views ou forms de domínio, telas definitivas, dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
+Fundação Django de DEV-02 **em preparação**: projeto `config`, apps `equipamentos`, `clientes` e `alugueis` **sem modelos**, autenticação nativa com `LoginRequiredMiddleware`, páginas provisórias de login e início, testes de configuração e autenticação e preparação para Render + Neon (Gunicorn, WhiteNoise, `DATABASE_URL`, `/healthz/`; ambiente e comandos no README e em `docs/deploy-render-neon.md`). **Não existem modelos nem migrations de domínio, telas definitivas, banco Neon criado, serviço no Render nem deploy.** Nunca rode testes ou migrations contra o Neon sem autorização explícita. Não crie models, migrations de domínio, views ou forms de domínio, telas definitivas, dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
 
 ## Stack definida
 

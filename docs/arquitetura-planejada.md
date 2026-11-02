@@ -1,6 +1,6 @@
 # Arquitetura planejada
 
-> **Estado: planejamento, com a fundação de DEV-02 em preparação.** Existem o projeto Django, os apps sem modelos e a autenticação nativa (veja o README). Há PostgreSQL local de desenvolvimento e testes, validado (`docs/postgresql-local.md`). Não há modelos de domínio, banco de produção (Neon), ambiente de hospedagem nem deploy.
+> **Estado: planejamento, com a fundação de DEV-02 em preparação.** Existem o projeto Django, os apps sem modelos e a autenticação nativa (veja o README). Há PostgreSQL local de desenvolvimento e testes, validado (`docs/postgresql-local.md`). O código está preparado para o Render e o Neon (`docs/deploy-render-neon.md`), mas não há modelos de domínio, banco de produção criado, serviço no Render nem deploy.
 
 Referências: especificação técnica v3, épico EQF-5 (Desenvolvimento do Sistema) no Jira, e Documento de Requisitos v1.1 (acadêmico, não publicado neste repositório). Detalhes de organização do projeto serão definidos em DEV-01 (EQF-13) e DEV-02 (EQF-14).
 
@@ -12,8 +12,8 @@ Referências: especificação técnica v3, épico EQF-5 (Desenvolvimento do Sist
 | Framework | Django 5.2 LTS | Aplicação monolítica com renderização no servidor. Versão 5.2.18 fixada em `requirements.txt` (DEV-02) |
 | Interface | Django Templates + Bootstrap | HTML, CSS e JavaScript leve; responsiva |
 | Autenticação | Django Auth | Apenas funcionários; contas criadas pelo administrador; sem cadastro público nem recuperação de senha por e-mail |
-| Banco de dados | PostgreSQL | Hospedagem planejada no **Neon** |
-| Hospedagem | **Render** | Planejada para DEV-08 |
+| Banco de dados | PostgreSQL | Local para desenvolvimento e testes; **Neon** na hospedagem, por `DATABASE_URL` com TLS |
+| Hospedagem | **Render** | Um Web Service com Gunicorn e WhiteNoise; preparado em DEV-02, implantação em DEV-08 |
 | Valores monetários | `Decimal` / `DecimalField` | Duas casas decimais; nunca `float` |
 | Fuso operacional | `America/Recife` | "Data atual" e datas de negócio sempre no fuso local, nunca o dia UTC |
 
