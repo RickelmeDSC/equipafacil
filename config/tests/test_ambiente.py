@@ -19,9 +19,11 @@ from config.env import (
     obter_inteiro,
     obter_lista,
     obter_obrigatorio,
+    validar_chave_secreta,
 )
 
 BASE_DIR = Path(settings.BASE_DIR)
+BOM = chr(0xFEFF)
 
 
 class LeituraDeVariaveisTests(SimpleTestCase):
@@ -55,6 +57,27 @@ class LeituraDeVariaveisTests(SimpleTestCase):
         self.assertEqual(obter_lista("X", {}), [])
 
 
+class ChaveSecretaTests(SimpleTestCase):
+    def test_desenvolvimento_aceita_chave_curta(self):
+        validar_chave_secreta("troque-por-uma-chave-gerada-localmente", debug=True)
+
+    def test_producao_recusa_chave_fraca_sem_expor_o_valor(self):
+        fracas = (
+            "troque-por-uma-chave-gerada-localmente",
+            "a" * 60,
+            "django-insecure-" + secrets.token_urlsafe(50),
+        )
+        for chave in fracas:
+            with self.subTest(tamanho=len(chave)):
+                with self.assertRaises(ImproperlyConfigured) as erro:
+                    validar_chave_secreta(chave, debug=False)
+                self.assertIn("DJANGO_SECRET_KEY", str(erro.exception))
+                self.assertNotIn(chave, str(erro.exception))
+
+    def test_producao_aceita_chave_gerada(self):
+        validar_chave_secreta(secrets.token_urlsafe(50), debug=False)
+
+
 class ArquivoEnvTests(SimpleTestCase):
     def _arquivo(self, conteudo: str) -> Path:
         pasta = tempfile.TemporaryDirectory()
@@ -79,6 +102,16 @@ class ArquivoEnvTests(SimpleTestCase):
             carregar_arquivo_env(caminho, {})
         self.assertIn("Linha 1", str(erro.exception))
         self.assertNotIn("VALOR_SECRETO_SEM_CHAVE", str(erro.exception))
+
+    def test_arquivo_com_bom_utf8_e_lido(self):
+        # Set-Content/Out-File do PowerShell 5.1 gravam UTF-8 com BOM.
+        caminho = self._arquivo(BOM + "# comentário\nA=1\n")
+        ambiente: dict[str, str] = {}
+        carregar_arquivo_env(caminho, ambiente)
+        self.assertEqual(ambiente, {"A": "1"})
+        caminho = self._arquivo(BOM + "B=2\n")
+        carregar_arquivo_env(caminho, ambiente)
+        self.assertEqual(ambiente, {"A": "1", "B": "2"})
 
     def test_arquivo_ausente_e_ignorado(self):
         ambiente: dict[str, str] = {}
@@ -180,6 +213,19 @@ class SettingsEmProcessoSeparadoTests(SimpleTestCase):
         )
         self.assertNotEqual(resultado.returncode, 0)
         self.assertIn("DB_ENGINE=sqlite", resultado.stderr)
+
+    def test_producao_simulada_recusa_a_chave_do_env_example(self):
+        resultado = self._executar(
+            {
+                "DJANGO_SECRET_KEY": "troque-por-uma-chave-gerada-localmente",
+                "DJANGO_DEBUG": "False",
+                "DB_NAME": "equipafacil",
+                "DB_USER": "equipafacil",
+            }
+        )
+        self.assertNotEqual(resultado.returncode, 0)
+        self.assertIn("DJANGO_SECRET_KEY", resultado.stderr)
+        self.assertNotIn("troque-por-uma-chave-gerada-localmente", resultado.stderr)
 
     def test_debug_desativado_por_padrao(self):
         resultado = self._executar(

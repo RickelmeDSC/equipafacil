@@ -27,14 +27,15 @@ def carregar_arquivo_env(
 ) -> None:
     """Carrega linhas ``CHAVE=valor`` de ``caminho`` sem sobrescrever o ambiente.
 
-    Aceita linhas em branco, comentários iniciados por ``#``, o prefixo
-    ``export`` e valores entre aspas simples ou duplas. Não aceita comentário
-    na mesma linha de um valor.
+    Aceita UTF-8 com ou sem BOM, linhas em branco, comentários iniciados por
+    ``#``, o prefixo ``export`` e valores entre aspas simples ou duplas. Não
+    aceita comentário na mesma linha de um valor.
     """
     destino = os.environ if ambiente is None else ambiente
     if not caminho.is_file():
         return
-    linhas = caminho.read_text(encoding="utf-8").splitlines()
+    # utf-8-sig descarta o BOM que editores e o PowerShell 5.1 gravam no início.
+    linhas = caminho.read_text(encoding="utf-8-sig").splitlines()
     for numero, linha in enumerate(linhas, start=1):
         linha = linha.strip()
         if not linha or linha.startswith("#"):
@@ -59,6 +60,23 @@ def obter_obrigatorio(nome: str, ambiente: Mapping[str, str] | None = None) -> s
     if not valor:
         raise ImproperlyConfigured(f"Defina a variável de ambiente {nome}.")
     return valor
+
+
+def validar_chave_secreta(chave: str, debug: bool) -> None:
+    """Recusa chave fraca fora do desenvolvimento, com o critério do Django.
+
+    Mesmo critério do aviso ``security.W009`` do ``check --deploy`` (menos de 50
+    caracteres, menos de 5 caracteres distintos ou prefixo ``django-insecure-``),
+    mas aplicado na inicialização, para que a chave de exemplo nunca rode com
+    ``DEBUG`` desativado.
+    """
+    if debug:
+        return
+    if len(chave) < 50 or len(set(chave)) < 5 or chave.startswith("django-insecure-"):
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY fraca para uso com DEBUG desativado: gere uma chave "
+            "aleatória com pelo menos 50 caracteres (veja o README)."
+        )
 
 
 def obter_booleano(

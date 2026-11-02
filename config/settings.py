@@ -14,6 +14,7 @@ from config.env import (
     obter_inteiro,
     obter_lista,
     obter_obrigatorio,
+    validar_chave_secreta,
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ if _arquivo_env:
 
 SECRET_KEY = obter_obrigatorio("DJANGO_SECRET_KEY")
 DEBUG = obter_booleano("DJANGO_DEBUG", padrao=False)
+validar_chave_secreta(SECRET_KEY, DEBUG)
 ALLOWED_HOSTS = obter_lista("DJANGO_ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = obter_lista("DJANGO_CSRF_TRUSTED_ORIGINS")
 
