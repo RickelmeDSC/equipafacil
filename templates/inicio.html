@@ -1,0 +1,21 @@
+{% comment %}
+PROVISÓRIO (DEV-02): página mínima para validar a autenticação.
+O conteúdo e o layout definitivos da página inicial (P01) são do frontend, conforme o contrato DEV-01.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Início | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>EquipaFácil</h1>
+    <p>Sessão iniciada como {{ user.get_username }}.</p>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit">Sair</button>
+    </form>
+  </main>
+</body>
+</html>

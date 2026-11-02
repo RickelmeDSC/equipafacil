@@ -1,0 +1,22 @@
+{% comment %}
+PROVISÓRIO (DEV-02): página mínima para validar a autenticação.
+O layout definitivo da tela de login (P10) é do frontend, conforme o contrato DEV-01.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>EquipaFácil</h1>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit">Entrar</button>
+    </form>
+  </main>
+</body>
+</html>

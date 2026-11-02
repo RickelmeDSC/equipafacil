@@ -11,6 +11,7 @@ from config.env import (
     carregar_arquivo_env,
     configurar_banco,
     obter_booleano,
+    obter_inteiro,
     obter_lista,
     obter_obrigatorio,
 )
@@ -46,6 +47,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Toda página exige login, exceto as marcadas com login_not_required
+    # (LoginView e o login do Admin já vêm marcados no Django 5.2).
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -86,6 +90,26 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# Autenticação nativa (D1, D15): contas criadas pelo Django Admin; sem cadastro
+# público e sem recuperação de senha por e-mail. Nomes de rota provisórios até o
+# aceite do contrato DEV-01.
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "inicio"
+LOGOUT_REDIRECT_URL = "login"
+
+# Segurança. Fora do desenvolvimento (DEBUG desativado), cookies só trafegam por
+# HTTPS e o HTTP é redirecionado. HSTS e cabeçalho de proxy são definidos no
+# deploy (DEV-08), por variável de ambiente.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = obter_booleano("DJANGO_SECURE_SSL_REDIRECT", padrao=not DEBUG)
+SECURE_HSTS_SECONDS = obter_inteiro("DJANGO_SECURE_HSTS_SECONDS", padrao=0)
+if obter_booleano("DJANGO_SECURE_PROXY_SSL_HEADER", padrao=False):
+    # Só ative atrás de um proxy que sempre define X-Forwarded-Proto.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+X_FRAME_OPTIONS = "DENY"
 
 # Idioma e fuso: "data atual" sempre em America/Recife (timezone.localdate()).
 LANGUAGE_CODE = "pt-br"
