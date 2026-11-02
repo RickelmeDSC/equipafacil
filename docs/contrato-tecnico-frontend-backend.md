@@ -2,7 +2,7 @@
 
 > **PROPOSTA — AGUARDANDO VALIDAÇÃO DE RICKELME E RAPHAEL.**
 >
-> Versão 0.3 — 01/11/2026. Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o contrato visual do épico EQF-5 (páginas P01–P10, fluxos, mensagens propostas e indicadores), conforme a auditoria do Jira de 01/11/2026.
+> Versão 0.4 — 01/11/2026. Consolida o Documento de Requisitos v1.1, as decisões I1–I5 e D10–D15 e o contrato visual do épico EQF-5 (páginas P01–P10, fluxos, mensagens propostas e indicadores). As decisões D10–D15 já constam na descrição do EQF-5, atualizada em 01/11/2026. Este documento é local (branch `docs/contrato-tecnico-dev01`) e **ainda não foi publicado no GitHub**.
 >
 > **Nada aqui está implementado**: não existe projeto Django, URL, view, formulário ou template no repositório. Raphael **não aprovou** nenhum nome de rota, campo, variável ou template deste documento.
 >
@@ -15,7 +15,6 @@ Documentos relacionados: [modelagem proposta](modelagem-proposta.md) e [plano ba
 | Marcação | Significado |
 |----------|-------------|
 | **Aprovado** | Documento de Requisitos v1.1, especificação técnica v3 ou decisões I1–I5 e D10–D15 |
-| **Jira (texto antigo)** | Texto do EQF-5 superado por decisão posterior; precisa ser alinhado no Jira |
 | **Mensagem proposta (EQF-5)** | Texto de interface que o Jira chama de "mensagem proposta": referência, não aprovação definitiva |
 | **Proposta técnica** | Sugestão de Rickelme, sem aprovação |
 | **Pendente de validação** | Depende do aceite de Rickelme e Raphael ou de decisão adicional |
@@ -65,10 +64,10 @@ A validação acadêmica da autenticação como requisito transversal, sem núme
 | P01 Início | `inicio` | `inicio.html` | Menu: Equipamentos, Clientes, Novo aluguel, Histórico; funcionário autenticado; botão Sair | — |
 | P02 Lista de equipamentos | `equipamentos:lista` | `equipamentos/lista.html` | Pesquisa por nome ou código; código, nome, categoria, diária, situação, disponibilidade; ações conforme permitido | — |
 | P03 Formulário de equipamento | `equipamentos:criar`, `equipamentos:editar` | `equipamentos/formulario.html` | Nome, código, categoria (5 fixas), descrição opcional, diária; código somente leitura após aluguel | D11 |
-| P04 Ações de equipamento | `equipamentos:acoes` (+ POST `excluir`, `inativar`, `reativar`) | `equipamentos/acoes.html` | Excluir, inativar, reativar; só ações permitidas; explicar bloqueios | **D10** (Jira: texto antigo) |
-| P05 Lista de clientes | `clientes:lista` | `clientes/lista.html` | Nome completo, CPF, telefone formatado, e-mail, Editar | **D14** (Jira: texto antigo) |
+| P04 Ações de equipamento | `equipamentos:acoes` (+ POST `excluir`, `inativar`, `reativar`) | `equipamentos/acoes.html` | Excluir, inativar, reativar; só ações permitidas; explicar bloqueios | **D10** (registrada no EQF-5) |
+| P05 Lista de clientes | `clientes:lista` | `clientes/lista.html` | Nome completo, CPF, telefone formatado, e-mail, Editar | **D14** (registrada no EQF-5) |
 | P06 Formulário de cliente | `clientes:criar`, `clientes:editar` | `clientes/formulario.html` | Nome completo e CPF obrigatórios; telefone e e-mail opcionais; CPF somente leitura após aluguel; sem exclusão | D12 |
-| P07 Novo aluguel | `alugueis:criar` | `alugueis/formulario.html` | Cliente, equipamento disponível, retirada a partir de hoje, devolução prevista, diárias, valor congelado, revalidação no backend | **D13** (Jira: texto antigo) |
+| P07 Novo aluguel | `alugueis:criar` | `alugueis/formulario.html` | Cliente, equipamento disponível, retirada a partir de hoje, devolução prevista, diárias, valor congelado, revalidação no backend | **D13** (registrada no EQF-5) |
 | P08 Histórico | `alugueis:historico` | `alugueis/historico.html` | Cliente, equipamento, retirada, prevista, real, quantidade de diárias, diária contratada, valor contratado, situação; devolução só em aluguel aberto; estado vazio sem dados fictícios | — |
 | P09 Devolução | `alugueis:devolver` | `alugueis/devolver.html` | Aluguel em leitura; data real sugerida com a data atual, entre retirada e hoje; atraso sem multa; sem segunda devolução | I1, I2 |
 
@@ -190,7 +189,7 @@ Valor inicial: `data_atual`. Sem devolução antes da retirada (I1) e sem ediç�
 
 ## 8. Mensagens
 
-As mensagens com origem **Mensagem proposta (EQF-5)** são referências de interface do Jira, não textos definitivamente aprovados. As marcadas como **Indefinida** não têm texto especificado no Jira e **não** devem ser inventadas como oficiais: precisam de definição antes da implementação.
+O EQF-5 traz **21 mensagens propostas**, todas transcritas literalmente abaixo e conferidas no Jira em 01/11/2026. Mensagens com origem **Mensagem proposta (EQF-5)** são referências de interface, não textos definitivamente aprovados. As marcadas como **Indefinida** não têm texto no Jira e **não** devem ser inventadas como oficiais: precisam de definição antes da implementação.
 
 | Situação | Texto | Origem | Página |
 |----------|-------|--------|--------|
@@ -200,20 +199,22 @@ As mensagens com origem **Mensagem proposta (EQF-5)** são referências de inter
 | Categoria inválida | Selecione uma categoria válida. | Mensagem proposta (EQF-5) | P03 |
 | Diária inválida | O valor da diária deve ser maior que R$ 0,00 e ter no máximo duas casas decimais. | Mensagem proposta (EQF-5) | P03 |
 | Código duplicado (inclusive sem diferenciar maiúsculas, D11) | Já existe um equipamento com este código. | Mensagem proposta (EQF-5) | P03 |
-| Código bloqueado após aluguel | — | Indefinida | P03 |
+| Código bloqueado após o primeiro aluguel | O código não pode ser alterado porque o equipamento já possui aluguel registrado. | Mensagem proposta (EQF-5) | P03 |
 | CPF inválido (caracteres, tamanho, dígitos verificadores, dígitos repetidos — D12) | CPF inválido. | Mensagem proposta (EQF-5) | P06 |
 | CPF duplicado | Já existe um cliente com este CPF. | Mensagem proposta (EQF-5) | P06 |
-| CPF bloqueado após aluguel | — | Indefinida | P06 |
+| CPF bloqueado após o primeiro aluguel | O CPF não pode ser alterado porque o cliente já possui aluguel registrado. | Mensagem proposta (EQF-5) | P06 |
 | Telefone inválido | Informe um telefone com DDD e 10 ou 11 dígitos. | Mensagem proposta (EQF-5) | P06 |
 | E-mail inválido | E-mail inválido. | Mensagem proposta (EQF-5) | P06 |
 | Equipamento indisponível | Este equipamento não está disponível para aluguel. | Mensagem proposta (EQF-5) | P07 (CT12) |
-| Datas do aluguel inválidas | — | Indefinida | P07 |
+| Retirada anterior à data atual | A data de retirada não pode ser anterior à data atual. | Mensagem proposta (EQF-5) | P07 |
+| Devolução prevista anterior à retirada | A devolução prevista não pode ser anterior à retirada. | Mensagem proposta (EQF-5) | P07 |
 | Aviso de ausência de cancelamento (exigido por D13) | — | Indefinida | P07 |
 | Nenhum equipamento disponível ou nenhum cliente cadastrado | — | Indefinida | P07 |
 | Exclusão bloqueada por histórico | Não é possível excluir: equipamento com histórico de locação. Utilize a inativação. | Mensagem proposta (EQF-5) | P04 |
 | Exclusão ou inativação bloqueada por aluguel aberto | Não é possível excluir ou inativar: equipamento com aluguel ativo. | Mensagem proposta (EQF-5) | P04 |
 | Reativação bloqueada | Não é possível reativar: corrija os dados cadastrais ou encerre o aluguel ativo. | Mensagem proposta (EQF-5) | P04 |
-| Data de devolução fora do intervalo | — | Indefinida | P09 |
+| Data real de devolução anterior à retirada | A data de devolução não pode ser anterior à data de retirada. | Mensagem proposta (EQF-5) | P09 |
+| Data real de devolução posterior à data atual | A data de devolução não pode ser posterior à data atual. | Mensagem proposta (EQF-5) | P09 |
 | Devolução já encerrada | Este aluguel já foi encerrado. | Mensagem proposta (EQF-5) | P09, P08 (CT14) |
 | Indicação de atraso | — | Indefinida | P09, P08 |
 | Sem resultados | Nenhum registro encontrado. | Mensagem proposta (EQF-5) | P02 (CT04), P05, P08 (CT16) |
@@ -295,6 +296,16 @@ Cada arquivo tem **um** responsável. Ninguém edita arquivo do outro.
 
 **Procedimento para pedir mudança em arquivo do outro:** descrever o pedido em comentário de PR ou mensagem (tela, rota, campo ou variável, exemplo e motivo); o responsável implementa na própria branch; se o contrato mudar, atualizar este documento numa branch `docs/*` com revisão dos dois; até lá, a tela não depende do pedido; editar arquivo do outro só com acordo explícito registrado no PR.
 
+**Responsável no Jira × responsável técnico:** o responsável no Jira é o dono da entrega da atividade (por exemplo, DEV-04, DEV-05 e DEV-07 estão com Raphael). Independentemente disso, os arquivos de backend de cada funcionalidade são implementados por Rickelme e os de frontend por Raphael, com integração conjunta e revisão cruzada. Detalhes no [plano, seção 2](plano-backend-dev01-dev03.md#2-responsáveis-no-jira-e-responsáveis-técnicos).
+
+**Fluxo de revisão por Pull Request (proposta técnica):**
+
+1. Cada um trabalha na própria branch: `feat/backend-eqf-NN-<descricao>` (Rickelme) ou `feat/frontend-eqf-NN-<descricao>` (Raphael).
+2. Commits pequenos e semânticos, só com arquivos da própria responsabilidade.
+3. Ao concluir, quem trabalhou avisa o outro e abre PR para `main` com o template do repositório.
+4. Revisão cruzada: Rickelme audita os PRs de frontend antes de qualquer merge (acordo com Raphael); Raphael revisa os PRs de backend que afetem rotas, contexto ou formulários usados nos templates.
+5. A `main` só recebe alterações por PR com aprovação; merge somente depois da revisão humana.
+
 ## 11. Regras aprovadas cobertas
 
 | Regra | Onde aparece |
@@ -317,15 +328,10 @@ Cada arquivo tem **um** responsável. Ninguém edita arquivo do outro.
 
 ## 12. Divergências
 
-### 12.1 Jira (texto antigo do EQF-5) a alinhar depois
+### 12.1 Jira e documentação acadêmica
 
-| Página | Texto antigo do EQF-5 | Decisão que prevalece |
-|--------|-----------------------|-----------------------|
-| P04 | Inativação prevista para equipamento com histórico | D10: todo equipamento ativo sem aluguel aberto pode ser inativado, com ou sem histórico |
-| P05 | Pesquisa de clientes | D14: sem pesquisa nesta versão; consulta pela listagem |
-| P07 | Valores exibidos após salvar | D13: resumo no próprio formulário, aviso de ausência de cancelamento e valores definitivos após salvar |
-
-Também recomendável informar a equipe de Requisitos: D10, D11 e D12 detalham pontos que o Documento v1.1 descreve de forma mais geral (inativação "com histórico", "código único" e validação do CPF).
+- **EQF-5:** alinhado em 01/11/2026. As páginas P03, P04, P05, P06, P07 e P10 e uma seção própria registram D10–D15; não restam textos antigos conflitantes nas páginas.
+- **Documento de Requisitos v1.1 (DOCX):** ainda aguarda a validação final da equipe de Requisitos. Essa equipe precisa avaliar se D10, D11 e D12 exigem atualização do documento, que descreve de forma mais geral a inativação ("com histórico"), o "código único" e a validação do CPF.
 
 ### 12.2 Guia de integração
 
@@ -338,25 +344,25 @@ Também recomendável informar a equipe de Requisitos: D10, D11 e D12 detalham p
 | Variável `object_list`, `object`, `form`, `query`, `empty_message` | Mantidas | — |
 | Bootstrap 5.3 local "dentro de `static/`" | `static/vendor/bootstrap/` | Separa biblioteca de terceiros do CSS próprio |
 
-## 13. Pontos para validação de Rickelme e Raphael
+## 13. Conferência do contrato com Raphael
 
-**Validação conjunta (Rickelme e Raphael):**
+Decisões que precisam do aceite de Raphael. Até lá, tudo continua **proposta**.
 
-1. Apps e namespaces (`equipamentos`, `clientes`, `alugueis`), página inicial em `config` e autenticação sem app própria.
-2. Caminhos, nomes, views e redirecionamentos da tabela final (seção 6).
-3. Os 14 templates, os blocos de `base.html` e os includes.
-4. Nomes técnicos propostos para os indicadores sem nome no Jira (`data_atual`, `data_minima`, `data_maxima`, `disponivel`, `situacao` e demais da seção 9.2).
-5. Forma da confirmação de exclusão dentro de P04 (modal ou bloco).
-6. Classes do Bootstrap aplicadas pelos widgets do backend.
-7. Local e responsável pelos arquivos do Bootstrap em `static/vendor/bootstrap/`.
-8. **Uso de JavaScript para o resumo de P07** e o formato de `diarias_equipamentos` (D13).
-9. Links de cada linha de P02 (Editar e Ações).
+| # | Decisão | Onde está |
+|---|---------|-----------|
+| 1 | Nomes das rotas (caminhos, nomes, namespaces e redirecionamentos) | Seção 6 |
+| 2 | Nomes dos templates, blocos de `base.html`, includes e links de cada linha de P02 | Seção 9.1 |
+| 3 | Variáveis de contexto, inclusive os nomes técnicos sem nome no Jira (`data_atual`, `data_minima`, `data_maxima`, `disponivel`, `situacao` e demais) | Seções 9.2 e 9.3 |
+| 4 | Organização do Bootstrap 5.3: arquivos locais em `static/vendor/bootstrap/`, versão exata, quem adiciona e classes aplicadas pelos widgets do backend | Seções 2, 7 e 10 |
+| 5 | Confirmação de exclusão na P04 (modal ou bloco, com o campo `confirmacao`) | Seção 6 (notas) |
+| 6 | Prévia informativa do aluguel na P07 em JavaScript, com `diarias_equipamentos` | Seção 7.3 |
+| 7 | Divisão técnica de arquivos | Seção 10 |
+| 8 | Fluxo de revisão por Pull Request | Seção 10 |
 
-**Decisão de Rickelme:**
+**Pendências de Rickelme, fora do aceite de Raphael:**
 
-10. Textos das mensagens marcadas como **Indefinida** na seção 8, inclusive as de sucesso.
-11. Alinhamento posterior do texto antigo do EQF-5 (P04, P05, P07) no Jira.
-12. Verificação, em DEV-02, do login nativo e do login do Admin com `LoginRequiredMiddleware`.
+- Textos das situações marcadas como **Indefinida** na seção 8 (sucesso, aviso de ausência de cancelamento, indicação de atraso, credenciais inválidas e avisos de P07).
+- Verificação, em DEV-02, do login nativo e do login do Admin com `LoginRequiredMiddleware`.
 
 ## 14. Aceite
 
