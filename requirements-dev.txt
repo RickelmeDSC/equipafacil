@@ -1,0 +1,12 @@
+# Ferramentas de desenvolvimento do EquipaFácil (não vão para produção).
+# Inclui as dependências de execução. Versões fixadas; atualize somente com revisão.
+-r requirements.txt
+
+ruff==0.17.3
+black==26.10.1
+click==8.5.0
+mypy_extensions==1.1.0
+packaging==26.3
+pathspec==1.1.1
+platformdirs==4.14.3
+pytokens==0.4.1

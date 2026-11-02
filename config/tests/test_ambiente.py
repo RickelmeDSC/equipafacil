@@ -32,7 +32,12 @@ class LeituraDeVariaveisTests(SimpleTestCase):
             obter_obrigatorio("DJANGO_SECRET_KEY", {"DJANGO_SECRET_KEY": "   "})
 
     def test_booleanos(self):
-        for valor, esperado in (("True", True), ("1", True), ("false", False), ("0", False)):
+        for valor, esperado in (
+            ("True", True),
+            ("1", True),
+            ("false", False),
+            ("0", False),
+        ):
             with self.subTest(valor=valor):
                 self.assertIs(obter_booleano("X", False, {"X": valor}), esperado)
         self.assertIs(obter_booleano("X", True, {}), True)
@@ -196,6 +201,8 @@ class SegredosNaoVersionadosTests(SimpleTestCase):
 
     def test_env_example_sem_chave_real(self):
         exemplo = (BASE_DIR / ".env.example").read_text(encoding="utf-8")
-        self.assertIn("DJANGO_SECRET_KEY=troque-por-uma-chave-gerada-localmente", exemplo)
+        self.assertIn(
+            "DJANGO_SECRET_KEY=troque-por-uma-chave-gerada-localmente", exemplo
+        )
         self.assertNotIn("django-insecure", exemplo)
         self.assertNotRegex(exemplo, r"postgres(ql)?://\S+:\S+@")

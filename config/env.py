@@ -72,9 +72,7 @@ def obter_booleano(
         return True
     if valor in _FALSOS:
         return False
-    raise ImproperlyConfigured(
-        f"A variável {nome} deve ser True ou False (ou 1/0)."
-    )
+    raise ImproperlyConfigured(f"A variável {nome} deve ser True ou False (ou 1/0).")
 
 
 def obter_inteiro(
@@ -128,8 +126,7 @@ def configurar_banco(
                 "HOST": ambiente.get("DB_HOST", "localhost").strip() or "localhost",
                 "PORT": ambiente.get("DB_PORT", "5432").strip() or "5432",
                 "OPTIONS": {
-                    "sslmode": ambiente.get("DB_SSLMODE", "prefer").strip()
-                    or "prefer",
+                    "sslmode": ambiente.get("DB_SSLMODE", "prefer").strip() or "prefer",
                 },
             }
         }

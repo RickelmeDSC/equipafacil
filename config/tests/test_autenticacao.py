@@ -60,12 +60,8 @@ class LoginTests(TestCase):
             reverse("login"),
             {"username": "funcionario.teste", "password": self.senha},
         )
-        self.assertRedirects(
-            resposta, reverse("inicio"), fetch_redirect_response=False
-        )
-        self.assertEqual(
-            self.client.session[SESSION_KEY], str(self.funcionario.pk)
-        )
+        self.assertRedirects(resposta, reverse("inicio"), fetch_redirect_response=False)
+        self.assertEqual(self.client.session[SESSION_KEY], str(self.funcionario.pk))
 
     def test_login_com_senha_errada_nao_autentica(self):
         resposta = self.client.post(
@@ -124,12 +120,8 @@ class LogoutTests(TestCase):
 
     def test_logout_por_post_com_csrf_encerra_a_sessao(self):
         token = self._token_csrf()
-        resposta = self.cliente.post(
-            reverse("logout"), {"csrfmiddlewaretoken": token}
-        )
-        self.assertRedirects(
-            resposta, reverse("login"), fetch_redirect_response=False
-        )
+        resposta = self.cliente.post(reverse("logout"), {"csrfmiddlewaretoken": token})
+        self.assertRedirects(resposta, reverse("login"), fetch_redirect_response=False)
         self.assertNotIn(SESSION_KEY, self.cliente.session)
         resposta = self.cliente.get(reverse("inicio"))
         self.assertEqual(resposta.status_code, 302)
