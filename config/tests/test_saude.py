@@ -61,6 +61,23 @@ class HealthCheckTests(TestCase):
         self.assertEqual(resposta.status_code, 301)
         self.assertTrue(resposta["Location"].startswith("https://"))
 
+    def test_host_fora_de_allowed_hosts_e_recusado_sem_consultar_o_banco(self):
+        with self.assertLogs("django.security.DisallowedHost", "ERROR"):
+            with self.assertNumQueries(0):
+                resposta = self.client.get(CAMINHO, HTTP_HOST="site-externo.example")
+        self.assertEqual(resposta.status_code, 400)
+        self.assertNotIn(b"ok", resposta.content)
+
+    @override_settings(
+        ALLOWED_HOSTS=["equipafacil.onrender.com"], SECURE_SSL_REDIRECT=True
+    )
+    def test_host_do_render_responde_por_http_sem_redirecionar(self):
+        # O health check do Render usa o subdomínio onrender.com como Host.
+        resposta = self.client.get(CAMINHO, HTTP_HOST="equipafacil.onrender.com")
+        self.assertEqual(resposta.status_code, 200)
+        resposta = self.client.get(CAMINHO, HTTP_HOST="site-externo.example")
+        self.assertEqual(resposta.status_code, 400)
+
     def test_outras_rotas_continuam_protegidas(self):
         resposta = self.client.get("/")
         self.assertEqual(resposta.status_code, 302)

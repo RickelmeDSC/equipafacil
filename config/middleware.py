@@ -14,6 +14,9 @@ class HealthCheckMiddleware:
     Fica antes do SessionMiddleware: a resposta sai sem ler sessão, sem
     autenticar e sem consultar o PostgreSQL (não acorda o Neon), mesmo que a
     requisição traga cookie de sessão. O corpo é só ``ok``, sem configuração.
+    O ``Host`` é validado contra ``ALLOWED_HOSTS`` como no resto do site: host
+    não permitido recebe 400. O caminho fica isento do redirecionamento HTTPS
+    (``SECURE_REDIRECT_EXEMPT``), sem risco de laço.
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
@@ -22,6 +25,8 @@ class HealthCheckMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         if request.path_info != CAMINHO_HEALTH_CHECK:
             return self.get_response(request)
+        # DisallowedHost vira resposta 400 no tratamento padrão do Django.
+        request.get_host()
         if request.method not in ("GET", "HEAD"):
             return HttpResponseNotAllowed(["GET", "HEAD"])
         resposta = HttpResponse("ok\n", content_type="text/plain; charset=utf-8")
