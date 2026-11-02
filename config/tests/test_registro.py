@@ -1,5 +1,7 @@
 """Registro de erros e mascaramento de dados sensíveis nos relatórios de erro."""
 
+import io
+import logging
 import sys
 
 from django.test import RequestFactory, SimpleTestCase, override_settings
@@ -12,6 +14,24 @@ from django.views.debug import (
 # usam SENHA, e não o valor literal, perto do raise.
 SENHA = "senha-ficticia-123"
 URL_COM_SENHA = f"postgresql://app:{SENHA}@db.exemplo.test/banco"
+
+
+class RegistroDeErrosTests(SimpleTestCase):
+    def test_erros_do_django_vao_para_o_console_mesmo_sem_debug(self):
+        # Sem isso, com DEBUG desativado o Django só envia erros por e-mail a
+        # ADMINS, que não existe, e as falhas 500 não apareceriam no Render.
+        manipuladores = logging.getLogger("django").handlers
+        console = [h for h in manipuladores if isinstance(h, logging.StreamHandler)]
+        self.assertEqual(len(console), 1)
+        self.assertEqual(console[0].filters, [])
+        saida = io.StringIO()
+        fluxo_original = console[0].setStream(saida)
+        try:
+            with override_settings(DEBUG=False):
+                logging.getLogger("django.request").error("falha de teste 500")
+        finally:
+            console[0].setStream(fluxo_original)
+        self.assertIn("falha de teste 500", saida.getvalue())
 
 
 class FiltroDeRelatorioTests(SimpleTestCase):

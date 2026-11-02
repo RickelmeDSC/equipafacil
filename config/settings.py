@@ -131,6 +131,18 @@ X_FRAME_OPTIONS = "DENY"
 # Relatórios e páginas de erro também mascaram DATABASE_URL (config/seguranca.py).
 DEFAULT_EXCEPTION_REPORTER_FILTER = "config.seguranca.FiltroDeRelatorioDeErros"
 
+# Registro: avisos e erros, inclusive falhas 500 e Host inválido, vão para o
+# console, que o Render coleta. O padrão do Django, com DEBUG desativado, só
+# enviaria os erros por e-mail a ADMINS, que não existe neste projeto.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
 
 # Idioma e fuso: "data atual" sempre em America/Recife (timezone.localdate()).
 LANGUAGE_CODE = "pt-br"
