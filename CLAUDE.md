@@ -24,11 +24,11 @@ EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de 
 
 ## Estado atual
 
-Repositório apenas com documentação. **Django ainda não foi iniciado.** Não crie aplicação, models, views, forms, templates, migrations, dependências, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
+Fundação Django de DEV-02 **em preparação**: projeto `config`, apps `equipamentos`, `clientes` e `alugueis` **sem modelos**, autenticação nativa com `LoginRequiredMiddleware`, páginas provisórias de login e início, testes de configuração e autenticação e preparação para Render + Neon (Gunicorn, WhiteNoise, `DATABASE_URL`, `/healthz/`; ambiente e comandos no README e em `docs/deploy-render-neon.md`). **Não existem modelos nem migrations de domínio, telas definitivas, banco Neon criado, serviço no Render nem deploy.** Nunca rode testes ou migrations contra o Neon sem autorização explícita. Não crie models, migrations de domínio, views ou forms de domínio, telas definitivas, dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
 
 ## Stack definida
 
-- Python 3.13 (ambiente local disponível) + **Django** (framework definido; não sugerir troca). A versão do Django é definida em DEV-02, apenas entre séries com suporte oficial ao Python 3.13; não fixe versão por conta própria.
+- Python 3.13 + **Django 5.2 LTS** (framework definido; não sugerir troca). Versão exata fixada em `requirements.txt` (5.2.18, escolhida em DEV-02); mudanças de versão só com revisão.
 - Django Templates + Bootstrap no frontend (sem SPA).
 - PostgreSQL (Neon previsto); Render previsto para hospedagem.
 - Django Auth para autenticação (sem cadastro público, sem recuperação de senha por e-mail).
@@ -63,14 +63,14 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Convenções de código Python
 
-- PEP 8, formatação com `black` e lint com `ruff` (quando o projeto for configurado).
+- PEP 8, formatação com `black` e lint com `ruff`, configurados em `pyproject.toml` (versões em `requirements-dev.txt`). Antes de cada commit: `ruff check .` e `black --check .`; formate só os arquivos alterados na atividade.
 - Nomes de domínio em português, coerentes com a especificação (`Equipamento`, `Cliente`, `Aluguel`); código Python em `snake_case`, classes em `PascalCase`.
 - Type hints em funções de serviço; regras de negócio em camada de serviço/model, não em views ou templates.
 - Mensagens ao usuário em português, conforme a tabela de mensagens do épico EQF-5.
 
 ## Testes
 
-- Nenhuma funcionalidade é considerada concluída sem testes automatizados passando (`python manage.py test` ou `pytest`, conforme definido em DEV-02).
+- Nenhuma funcionalidade é considerada concluída sem testes automatizados passando (`python manage.py test`, com o runner padrão do Django definido em DEV-02).
 - Relacione testes aos cenários `CTxx` e às coberturas complementares `FCxx`.
 - Datas em testes devem ser relativas à data atual em `America/Recife`.
 
@@ -78,14 +78,16 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 1. **Planejar antes de implementar**: confirmar a atividade do Jira, os RF/RN/CT envolvidos e o contrato frontend × backend; apresentar um plano curto antes de escrever código.
 2. **Uma branch por atividade**, criada a partir da `main` atualizada. Nunca commitar direto na `main`.
+   **Uma única pasta de trabalho** (a raiz do repositório), com uma branch ativa por vez, trocada com `git switch`. **Não use `git worktree`** neste repositório (decisão de Rickelme em 02/11/2026). Antes de trocar de branch, a árvore precisa estar limpa; não use `git reset --hard` nem descarte alterações para trocar.
 
    | Branch | Uso |
    |--------|-----|
-   | `main` | Versão integrada e revisada |
+   | `main` | Versão integrada e revisada, sempre estável |
    | `docs/<descricao>` | Documentação |
    | `feat/backend-eqf-NN-<descricao>` | Backend, banco e regras de negócio (ex.: `feat/backend-eqf-16-equipamentos`) |
    | `feat/frontend-eqf-NN-<descricao>` | Templates, estilos e interface |
    | `fix/eqf-NN-<descricao>` | Correções |
+   | `chore/<descricao>` | Manutenção (dependências, ferramentas, configuração) |
 
 3. **Testes automatizados** vinculados aos RF e CT, passando antes de declarar algo concluído (ver seção Testes).
 4. **Commits semânticos** em português: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.

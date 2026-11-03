@@ -1,0 +1,27 @@
+# Configuração das ferramentas de qualidade do backend (não é empacotamento).
+# Comandos no README: "ruff check ." e "black --check .".
+
+[tool.black]
+line-length = 88
+target-version = ["py313"]
+extend-exclude = '''
+/(
+    \.venv
+  | staticfiles
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+extend-exclude = [".venv", "staticfiles"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle; F: pyflakes; I: ordem de imports; B: bugbear;
+# UP: sintaxe moderna; DJ: boas práticas do Django.
+select = ["E", "W", "F", "I", "B", "UP", "DJ"]
+# O comprimento de linha fica com o Black (strings longas não são quebradas).
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "equipamentos", "clientes", "alugueis"]
