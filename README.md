@@ -74,7 +74,7 @@ Até agora estão configurados o Python, o Django e o ambiente local, com Postgr
 
 ## Ambiente local de desenvolvimento
 
-> Fundação de DEV-02 (EQF-14), **em preparação**. Ainda não há modelos de domínio, telas definitivas nem deploy. As páginas de login e de início são **provisórias**, só para validar a autenticação.
+> Fundação de DEV-02 (EQF-14) **em preparação** e modelos de domínio do DEV-03 (EQF-15) implementados localmente, ainda sem views, formulários nem telas de domínio. As páginas de login e de início são **provisórias**, só para validar a autenticação.
 
 ### Requisitos
 
@@ -187,7 +187,7 @@ Advertências ainda abertas:
 
 ### Limitações desta etapa
 
-- Sem modelos, migrations ou regras de domínio; nenhum RF001–RF008 implementado.
+- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03, local; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)), mas sem views, formulários ou telas: nenhum RF001–RF008 está disponível para uso.
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
 - Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
 - Sem Bootstrap nem arquivos estáticos próprios; Neon e Render preparados, mas sem serviço criado nem deploy.

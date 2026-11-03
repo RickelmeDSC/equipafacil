@@ -29,10 +29,16 @@ class InicializacaoTests(SimpleTestCase):
             with self.subTest(app=app):
                 self.assertFalse(apps.is_installed(app))
 
-    def test_sem_modelos_de_dominio(self):
-        for app in APPS_DE_DOMINIO:
+    def test_modelos_de_dominio_nos_seus_apps(self):
+        esperados = {
+            "equipamentos": ["Equipamento"],
+            "clientes": ["Cliente"],
+            "alugueis": ["Aluguel"],
+        }
+        for app, modelos in esperados.items():
             with self.subTest(app=app):
-                self.assertEqual(list(apps.get_app_config(app).get_models()), [])
+                nomes = [m.__name__ for m in apps.get_app_config(app).get_models()]
+                self.assertEqual(nomes, modelos)
 
 
 class MigrationsTests(TestCase):
@@ -41,12 +47,12 @@ class MigrationsTests(TestCase):
     def test_sem_migrations_pendentes(self):
         call_command("makemigrations", "--check", "--dry-run", stdout=StringIO())
 
-    def test_sem_migrations_de_dominio(self):
+    def test_migrations_iniciais_de_dominio(self):
         for app in APPS_DE_DOMINIO:
             with self.subTest(app=app):
                 pasta = settings.BASE_DIR / app / "migrations"
                 arquivos = sorted(p.name for p in pasta.glob("*.py"))
-                self.assertEqual(arquivos, ["__init__.py"])
+                self.assertEqual(arquivos, ["0001_initial.py", "__init__.py"])
 
 
 class IdiomaEFusoTests(SimpleTestCase):
