@@ -12,6 +12,7 @@ O conteúdo e o layout definitivos da página inicial (P01) são do frontend, co
   <main>
     <h1>EquipaFácil</h1>
     <p>Sessão iniciada como {{ user.get_username }}.</p>
+    <p><a href="{% url 'equipamentos:lista' %}">Equipamentos</a></p>
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}
       <button type="submit">Sair</button>

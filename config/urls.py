@@ -1,13 +1,14 @@
 """Rotas do projeto EquipaFácil.
 
 PROVISÓRIO (DEV-02): os nomes ``login``, ``logout`` e ``inicio`` seguem a proposta
-do contrato técnico DEV-01, ainda sem aceite. As rotas dos apps de domínio entram
-em DEV-04 a DEV-07, depois do aceite do contrato.
+do contrato técnico DEV-01, ainda sem aceite. As rotas dos apps de domínio
+seguem a mesma proposta: equipamentos entram no DEV-04; clientes e aluguéis, no
+DEV-05 a DEV-07.
 """
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 
 from config import views
 
@@ -17,4 +18,5 @@ urlpatterns = [
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", views.inicio, name="inicio"),
+    path("equipamentos/", include("equipamentos.urls")),
 ]

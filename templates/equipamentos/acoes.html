@@ -1,0 +1,53 @@
+{% comment %}
+PROVISÓRIO (DEV-04): página mínima para validar o backend de P04 (excluir, inativar, reativar).
+Layout, Bootstrap (ex.: modal de confirmação) e textos definitivos são do frontend.
+Variáveis: object, acoes (com motivos), tem_historico, tem_aluguel_ativo, pode_excluir,
+pode_inativar, pode_reativar. Os indicadores só orientam a tela: o backend revalida tudo.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ações do equipamento | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>{{ object.codigo }} — {{ object.nome }}</h1>
+    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    <p>Situação: {% if object.ativo %}Ativo{% else %}Inativo{% endif %}</p>
+
+    <section>
+      <h2>Excluir</h2>
+      {% if pode_excluir %}
+      <form method="post" action="{% url 'equipamentos:excluir' object.pk %}">
+        {% csrf_token %}
+        <label><input type="checkbox" name="confirmacao" value="sim" required> Confirmo a exclusão definitiva</label>
+        <button type="submit">Excluir</button>
+      </form>
+      {% else %}<p>{{ acoes.motivo_exclusao }}</p>{% endif %}
+    </section>
+
+    <section>
+      <h2>Inativar</h2>
+      {% if pode_inativar %}
+      <form method="post" action="{% url 'equipamentos:inativar' object.pk %}">
+        {% csrf_token %}
+        <button type="submit">Inativar</button>
+      </form>
+      {% elif acoes.motivo_inativacao %}<p>{{ acoes.motivo_inativacao }}</p>{% endif %}
+    </section>
+
+    <section>
+      <h2>Reativar</h2>
+      {% if pode_reativar %}
+      <form method="post" action="{% url 'equipamentos:reativar' object.pk %}">
+        {% csrf_token %}
+        <button type="submit">Reativar</button>
+      </form>
+      {% elif acoes.motivo_reativacao %}<p>{{ acoes.motivo_reativacao }}</p>{% endif %}
+    </section>
+
+    <p><a href="{% url 'equipamentos:lista' %}">Voltar</a></p>
+  </main>
+</body>
+</html>
