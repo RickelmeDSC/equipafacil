@@ -26,7 +26,7 @@ Sem campos de criação e atualização: não estão previstos na arquitetura ne
 
 Atributos calculados, nunca persistidos: `Equipamento.disponivel`, `tem_historico`, `tem_aluguel_aberto`, `codigo_editavel`; `Cliente.cpf_formatado`, `telefone_formatado`, `cpf_editavel`; `Aluguel.aberto`, `situacao()`, `situacao_codigo()` e `pode_devolver()`, calculados com a data atual em `America/Recife`. Consultas: `Equipamento.objects.disponiveis()` e `Aluguel.objects.abertos()` / `encerrados()`.
 
-`alugueis.services.registrar_aluguel` é a base transacional do registro (DEV-06 construirá formulário e view sobre ela): recebe só identificadores e datas, bloqueia equipamento e cliente nessa ordem, revalida a disponibilidade e recalcula diárias e valor a partir do banco (D13).
+`alugueis.services.registrar_aluguel` é a base transacional do registro (o DEV-06 construiu formulário, view, prévia e devolução sobre ela: [`alugueis-operacional.md`](alugueis-operacional.md)): recebe só identificadores e datas, bloqueia equipamento e cliente nessa ordem, revalida a disponibilidade e recalcula diárias e valor a partir do banco (D13).
 
 ## Onde cada invariante é garantido
 
@@ -45,7 +45,7 @@ Atributos calculados, nunca persistidos: `Equipamento.disponivel`, `tem_historic
 | Prevista ≥ retirada; devolução ≥ retirada | `aluguel_prevista_apos_retirada`, `aluguel_devolucao_apos_retirada` | Mensagens do EQF-5 | Também valida antes de bloquear |
 | Valores positivos e pelo menos 1 diária | `aluguel_valores_positivos` | — | Sempre calculados |
 | Diárias e valor coerentes com datas e diária | Não (aritmética de datas e decimais difere entre bancos) | Recusa valores inconsistentes no registro | Calcula a partir do banco |
-| Aluguel não é editado; devolução gravada uma única vez (I2) | — | Recusa qualquer alteração além da primeira devolução | Devolução com data atual: DEV-06 |
+| Aluguel não é editado; devolução gravada uma única vez (I2) | — | Recusa qualquer alteração além da primeira devolução | `registrar_devolucao` (DEV-06): bloqueia equipamento → aluguel e grava só se ainda aberto |
 | Histórico preservado | Chaves estrangeiras impedem apagar equipamento ou cliente referenciado | `PROTECT` | — |
 
 Operações em lote (`bulk_create`, `update`) ignoram o modelo: nelas valem só as restrições do banco, e os testes cobrem esse caminho. Validação de aplicação não elimina corridas; a proteção concorrente vem do bloqueio de linha e do índice único parcial.
@@ -57,7 +57,7 @@ Operações em lote (`bulk_create`, `update`) ignoram o modelo: nelas valem só 
 | Restrições `CHECK`, índice parcial e índice por expressão | Garantidos | Também garantidos (as restrições com expressão regular usam a função `REGEXP` que o Django registra) |
 | `select_for_update()` | Bloqueia a linha | Sem efeito |
 | `LOWER()` em letras acentuadas | Converte conforme a localidade do banco | Só converte letras ASCII |
-| Testes de concorrência | Executados (2 testes com threads; o DEV-04 acrescenta 6 e o DEV-05, 4) | Pulados |
+| Testes de concorrência | Executados (2 testes com threads; o DEV-04 acrescenta 6, o DEV-05, 4 e o DEV-06, 4) | Pulados |
 | Introspecção de índices e restrições | Executada (4 testes) | Pulada |
 
 ## Pendências
@@ -67,4 +67,4 @@ Operações em lote (`bulk_create`, `update`) ignoram o modelo: nelas valem só 
 3. Mensagens sem texto no EQF-5 usadas internamente: "Aluguel registrado não pode ser alterado." e a de valores inconsistentes; nenhuma tela as exibe nesta etapa.
 4. Diagrama de dados a anexar ao EQF-15.
 5. REQ-04 (EQF-10) e a validação acadêmica do Documento v1.1.
-6. Devolução (DEV-06). O serviço de edição de clientes foi implementado no DEV-05 ([`clientes-operacional.md`](clientes-operacional.md)). Os serviços de equipamentos e os indicadores `pode_excluir`, `pode_inativar` e `pode_reativar` foram implementados no DEV-04 ([`equipamentos-operacional.md`](equipamentos-operacional.md)).
+6. Devolução e histórico implementados no DEV-06 ([`alugueis-operacional.md`](alugueis-operacional.md)). O serviço de edição de clientes foi implementado no DEV-05 ([`clientes-operacional.md`](clientes-operacional.md)). Os serviços de equipamentos e os indicadores `pode_excluir`, `pode_inativar` e `pode_reativar` foram implementados no DEV-04 ([`equipamentos-operacional.md`](equipamentos-operacional.md)).

@@ -1,0 +1,45 @@
+{% comment %}
+PROVISÓRIO (DEV-06): página mínima para validar o backend de P07 (novo aluguel, D13).
+Layout, Bootstrap, textos e a prévia em JavaScript definitivos são do frontend, conforme o contrato DEV-01.
+Variáveis: form, resumo (só depois de "Calcular resumo"), data_atual, data_minima,
+diarias_equipamentos (via json_script), sem_equipamentos_disponiveis, sem_clientes.
+Botões (obrigatórios, campo "acao"): name="acao" value="previa" calcula o resumo no servidor,
+sem gravar; name="acao" value="registrar" grava. Sem "acao", com outro valor ou com mais de um,
+nada é gravado e o formulário volta com erro. O backend recalcula tudo ao registrar.
+Textos do aviso de cancelamento e da ausência de opções: indefinidos no EQF-5 (provisórios).
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Novo aluguel | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>Novo aluguel</h1>
+    <p>Data atual: {{ data_atual|date:"d/m/Y" }}</p>
+    <p><strong>Atenção:</strong> depois de registrado, o aluguel não pode ser cancelado nem editado.</p>
+    {% if sem_clientes %}<p>Nenhum cliente cadastrado.</p>{% endif %}
+    {% if sem_equipamentos_disponiveis %}<p>Nenhum equipamento disponível para aluguel.</p>{% endif %}
+    {% if not sem_clientes and not sem_equipamentos_disponiveis %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      {% if resumo %}
+      <section>
+        <h2>Resumo (informativo)</h2>
+        <p>Diárias: {{ resumo.quantidade_diarias }}</p>
+        <p>Diária atual: R$ {{ resumo.valor_diaria|floatformat:"2g" }}</p>
+        <p>Total previsto: R$ {{ resumo.valor_previsto|floatformat:"2g" }}</p>
+        <p>O valor definitivo é recalculado no registro e aparece no histórico.</p>
+      </section>
+      {% endif %}
+      <button type="submit" name="acao" value="previa">Calcular resumo</button>
+      {% if resumo %}<button type="submit" name="acao" value="registrar">Registrar aluguel</button>{% endif %}
+    </form>
+    {% endif %}
+    {{ diarias_equipamentos|json_script:"diarias-equipamentos" }}
+    <p><a href="{% url 'alugueis:historico' %}">Histórico</a> · <a href="{% url 'inicio' %}">Início</a></p>
+  </main>
+</body>
+</html>

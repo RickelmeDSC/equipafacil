@@ -1,0 +1,45 @@
+{% comment %}
+PROVISÓRIO (DEV-06): página mínima para validar o backend de P08 (histórico).
+Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
+Variáveis: object_list (cliente, equipamento, data_retirada, data_devolucao_prevista,
+data_devolucao_real, quantidade_diarias, valor_diaria_contratada, valor_contratado,
+situacao, situacao_codigo, pode_devolver), empty_message. Valores congelados; sem multa.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Histórico de aluguéis | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>Histórico de aluguéis</h1>
+    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    <p><a href="{% url 'alugueis:criar' %}">Novo aluguel</a></p>
+    <table>
+      <thead>
+        <tr><th>Cliente</th><th>Equipamento</th><th>Retirada</th><th>Prevista</th><th>Devolução</th><th>Diárias</th><th>Diária contratada</th><th>Valor contratado</th><th>Situação</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for aluguel in object_list %}
+        <tr>
+          <td>{{ aluguel.cliente.nome_completo }}</td>
+          <td>{{ aluguel.equipamento.codigo }} — {{ aluguel.equipamento.nome }}{% if not aluguel.equipamento.ativo %} (inativo){% endif %}</td>
+          <td>{{ aluguel.data_retirada|date:"d/m/Y" }}</td>
+          <td>{{ aluguel.data_devolucao_prevista|date:"d/m/Y" }}</td>
+          <td>{{ aluguel.data_devolucao_real|date:"d/m/Y"|default:"—" }}</td>
+          <td>{{ aluguel.quantidade_diarias }}</td>
+          <td>R$ {{ aluguel.valor_diaria_contratada|floatformat:"2g" }}</td>
+          <td>R$ {{ aluguel.valor_contratado|floatformat:"2g" }}</td>
+          <td data-situacao="{{ aluguel.situacao_codigo }}">{{ aluguel.situacao }}</td>
+          <td>{% if aluguel.pode_devolver %}<a href="{% url 'alugueis:devolver' aluguel.pk %}">Registrar devolução</a>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10">{{ empty_message }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'inicio' %}">Início</a></p>
+  </main>
+</body>
+</html>

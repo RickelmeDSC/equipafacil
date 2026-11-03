@@ -1,0 +1,40 @@
+{% comment %}
+PROVISÓRIO (DEV-06): página mínima para validar o backend de P09 (devolução).
+Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
+Variáveis: object (aluguel, em leitura), form, pode_devolver, data_atual, data_minima, data_maxima.
+Devolução registrada uma única vez; sem multa e sem edição posterior (I2).
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registrar devolução | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>Registrar devolução</h1>
+    <dl>
+      <dt>Cliente</dt><dd>{{ object.cliente.nome_completo }}</dd>
+      <dt>Equipamento</dt><dd>{{ object.equipamento.codigo }} — {{ object.equipamento.nome }}</dd>
+      <dt>Retirada</dt><dd>{{ object.data_retirada|date:"d/m/Y" }}</dd>
+      <dt>Devolução prevista</dt><dd>{{ object.data_devolucao_prevista|date:"d/m/Y" }}</dd>
+      <dt>Diárias</dt><dd>{{ object.quantidade_diarias }}</dd>
+      <dt>Valor contratado</dt><dd>R$ {{ object.valor_contratado|floatformat:"2g" }}</dd>
+      <dt>Situação</dt><dd>{{ object.situacao }}</dd>
+    </dl>
+    {% if pode_devolver %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Confirmar devolução</button>
+    </form>
+    {% elif not object.aberto %}
+    {{ form.non_field_errors }}
+    <p>Este aluguel já foi encerrado.</p>
+    {% else %}
+    <p>A devolução só pode ser registrada a partir da data de retirada.</p>
+    {% endif %}
+    <p><a href="{% url 'alugueis:historico' %}">Voltar ao histórico</a></p>
+  </main>
+</body>
+</html>

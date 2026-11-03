@@ -11,6 +11,7 @@ from django.db.models import Q
 from clientes.validadores import (
     formatar_cpf,
     formatar_telefone,
+    mascarar_cpf,
     normalizar_cpf,
     normalizar_telefone,
     validar_cpf,
@@ -122,6 +123,11 @@ class Cliente(ModeloValidado):
     @property
     def cpf_formatado(self) -> str:
         return formatar_cpf(self.cpf)
+
+    @property
+    def cpf_mascarado(self) -> str:
+        """Para seleções e listas que não precisam do CPF completo (P07)."""
+        return mascarar_cpf(self.cpf)
 
     @property
     def telefone_formatado(self) -> str:
