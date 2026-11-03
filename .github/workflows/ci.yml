@@ -1,0 +1,155 @@
+# CI do EquipaFácil: valida o Django em Pull Requests para a main e em pushes na main.
+#
+# Sem segredos do repositório, sem serviços externos (Neon, Render) e sem deploy.
+# As credenciais abaixo são fictícias e existem só no PostgreSQL temporário do
+# runner. A configuração segue config/settings.py e config/env.py: variáveis
+# DJANGO_* e DB_*; o .env não é lido (DJANGO_ENV_FILE vazio) e o
+# manage.py test só aceita PostgreSQL local (127.0.0.1).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DJANGO_ENV_FILE: ""
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  postgresql:
+    name: Qualidade e testes (PostgreSQL 18)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: equipafacil_ci
+          POSTGRES_PASSWORD: senha-ficticia-somente-ci
+          POSTGRES_DB: equipafacil_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U equipafacil_ci -d equipafacil_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DJANGO_DEBUG: "True"
+      DB_ENGINE: postgresql
+      DB_NAME: equipafacil_ci
+      DB_USER: equipafacil_ci
+      DB_PASSWORD: senha-ficticia-somente-ci
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      DB_SSLMODE: disable
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Python (versão do .python-version)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Chave secreta temporária
+        run: |
+          chave="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          echo "::add-mask::$chave"
+          echo "DJANGO_SECRET_KEY=$chave" >> "$GITHUB_ENV"
+
+      - name: Instalar dependências fixadas
+        run: python -m pip install --requirement requirements-dev.txt
+
+      - name: pip check
+        run: python -m pip check
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Black
+        run: black --check .
+
+      - name: Django check
+        run: python manage.py check
+
+      - name: Migrations pendentes
+        run: python manage.py makemigrations --check --dry-run
+
+      # O banco de testes (test_equipafacil_ci) é criado e apagado pelo Django
+      # dentro do serviço do runner; nenhum outro banco é usado.
+      - name: Testes (PostgreSQL)
+        run: python manage.py test --noinput
+
+  sqlite:
+    name: Testes (SQLite, desenvolvimento)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DJANGO_DEBUG: "True"
+      DB_ENGINE: sqlite
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Python (versão do .python-version)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Chave secreta temporária
+        run: |
+          chave="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          echo "::add-mask::$chave"
+          echo "DJANGO_SECRET_KEY=$chave" >> "$GITHUB_ENV"
+
+      - name: Instalar dependências fixadas
+        run: python -m pip install --requirement requirements.txt
+
+      # Os testes de concorrência e de introspecção do PostgreSQL aparecem como
+      # pulados (24 na validação 13A); o job do PostgreSQL os executa.
+      - name: Testes (SQLite)
+        run: python manage.py test --noinput
+
+  gunicorn:
+    name: Gunicorn em Linux (produção simulada)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Python (versão do .python-version)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      # O script cria um ambiente virtual temporário, roda check --deploy e
+      # collectstatic e sobe o Gunicorn com o comando do Render. A DATABASE_URL é
+      # fictícia e local (porta 1): nenhum banco é acessado.
+      - name: Validar o comando de início
+        env:
+          PYTHON: python
+        run: bash scripts/validar-gunicorn-linux.sh

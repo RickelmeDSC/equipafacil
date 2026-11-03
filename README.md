@@ -141,6 +141,14 @@ Os testes criam usuários e senhas temporários durante a execução. Rode-os co
 
 `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
 
+**Integração contínua:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em Pull Requests para a `main` e em pushes na `main`, em Ubuntu com o Python do `.python-version`. São três jobs:
+
+- **PostgreSQL 18** (serviço do runner, com credenciais fictícias): `pip check`, Ruff, Black, `check`, `makemigrations --check --dry-run` e a suíte completa.
+- **SQLite**: a suíte, com os testes exclusivos de PostgreSQL pulados.
+- **Gunicorn em Linux**: `scripts/validar-gunicorn-linux.sh`.
+
+Não usa segredos, não acessa Neon nem Render e não faz deploy. O workflow só é considerado validado depois da primeira execução verde no GitHub.
+
 Verificação de produção simulada, em um terminal separado (não conecta ao banco; os valores são fictícios):
 
 ```powershell
@@ -185,7 +193,7 @@ Advertências ainda abertas:
 
 - `security.W004` (HSTS): defina `DJANGO_SECURE_HSTS_SECONDS` só depois de confirmar todo o site em HTTPS no ambiente real.
 - No Render, `DJANGO_SECURE_PROXY_SSL_HEADER=True` é obrigatório; sem isso, o redirecionamento para HTTPS entra em laço.
-- O Gunicorn não roda no Windows e ainda não foi executado. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy.
+- O Gunicorn não roda no Windows. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy; o job `gunicorn` do CI executa esse script, mas a validação só vale depois de uma execução verde no GitHub.
 - Não há limite de tentativas de login nem política de segurança de conteúdo (CSP); a sessão dura o padrão do Django (duas semanas). São decisões pendentes, não configuradas.
 
 ### Limitações desta etapa

@@ -73,6 +73,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 - Nenhuma funcionalidade é considerada concluída sem testes automatizados passando (`python manage.py test`, com o runner padrão do Django definido em DEV-02).
 - Relacione testes aos cenários `CTxx` e às coberturas complementares `FCxx`.
 - Datas em testes devem ser relativas à data atual em `America/Recife`.
+- O CI (`.github/workflows/ci.yml`) repete as verificações em PRs para a `main`: PostgreSQL 18 e SQLite no runner, Ruff, Black, `check`, migrations e Gunicorn em Linux. Não substitui a execução local antes do commit e não usa segredos nem serviços externos.
 
 ## Fluxo de trabalho
 
