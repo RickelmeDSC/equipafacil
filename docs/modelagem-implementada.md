@@ -36,7 +36,7 @@ Atributos calculados, nunca persistidos: `Equipamento.disponivel`, `tem_historic
 | Código sem espaços nas extremidades e não vazio | `equipamento_codigo_normalizado` | Normaliza antes de validar | — |
 | Nome, categoria e diária válidos | `equipamento_nome_preenchido`, `equipamento_categoria_valida`, `equipamento_diaria_positiva` | Mensagens do EQF-5 | — |
 | Diária com no máximo duas casas | **Não**: `numeric(10,2)` do PostgreSQL arredonda em silêncio | Recusa 3 casas ou mais | — |
-| Código e CPF imutáveis após o primeiro aluguel | — | Recusa a alteração, inclusive só de maiúsculas no código | Código: o serviço de edição do DEV-04 bloqueia a linha do equipamento ([`equipamentos-operacional.md`](equipamentos-operacional.md)); CPF: DEV-05 |
+| Código e CPF imutáveis após o primeiro aluguel | — | Recusa a alteração, inclusive só de maiúsculas no código | Código: o serviço de edição do DEV-04 bloqueia a linha do equipamento ([`equipamentos-operacional.md`](equipamentos-operacional.md)); CPF: o serviço de edição do DEV-05 bloqueia a linha do cliente ([`clientes-operacional.md`](clientes-operacional.md)) |
 | CPF com 11 dígitos, único e sem dígitos repetidos | `cliente_cpf_unico`, `cliente_cpf_onze_digitos`, `cliente_cpf_nao_repetido` | Normaliza, valida dígitos verificadores e caracteres | — |
 | Telefone com 10 ou 11 dígitos | `cliente_telefone_digitos` | Normaliza a máscara e valida | — |
 | Um aluguel aberto por equipamento (RN001) | **Índice único parcial** `aluguel_um_aberto_por_equipamento` (`WHERE data_devolucao_real IS NULL`) | Recusa o segundo aberto | `select_for_update()` no equipamento; `IntegrityError` vira "Este equipamento não está disponível para aluguel." |
@@ -57,7 +57,7 @@ Operações em lote (`bulk_create`, `update`) ignoram o modelo: nelas valem só 
 | Restrições `CHECK`, índice parcial e índice por expressão | Garantidos | Também garantidos (as restrições com expressão regular usam a função `REGEXP` que o Django registra) |
 | `select_for_update()` | Bloqueia a linha | Sem efeito |
 | `LOWER()` em letras acentuadas | Converte conforme a localidade do banco | Só converte letras ASCII |
-| Testes de concorrência | Executados (2 testes com threads; o DEV-04 acrescenta 6) | Pulados |
+| Testes de concorrência | Executados (2 testes com threads; o DEV-04 acrescenta 6 e o DEV-05, 4) | Pulados |
 | Introspecção de índices e restrições | Executada (4 testes) | Pulada |
 
 ## Pendências
@@ -67,4 +67,4 @@ Operações em lote (`bulk_create`, `update`) ignoram o modelo: nelas valem só 
 3. Mensagens sem texto no EQF-5 usadas internamente: "Aluguel registrado não pode ser alterado." e a de valores inconsistentes; nenhuma tela as exibe nesta etapa.
 4. Diagrama de dados a anexar ao EQF-15.
 5. REQ-04 (EQF-10) e a validação acadêmica do Documento v1.1.
-6. Serviço de edição de clientes (DEV-05) e devolução (DEV-06). Os serviços de equipamentos e os indicadores `pode_excluir`, `pode_inativar` e `pode_reativar` foram implementados no DEV-04 ([`equipamentos-operacional.md`](equipamentos-operacional.md)).
+6. Devolução (DEV-06). O serviço de edição de clientes foi implementado no DEV-05 ([`clientes-operacional.md`](clientes-operacional.md)). Os serviços de equipamentos e os indicadores `pode_excluir`, `pode_inativar` e `pode_reativar` foram implementados no DEV-04 ([`equipamentos-operacional.md`](equipamentos-operacional.md)).

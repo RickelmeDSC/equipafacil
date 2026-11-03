@@ -1,0 +1,39 @@
+{% comment %}
+PROVISÓRIO (DEV-05): página mínima para validar o backend de P05 (lista de clientes).
+Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
+D14: sem pesquisa e sem página de detalhe; a consulta é pela própria lista.
+Variáveis: object_list (nome_completo, cpf_formatado, telefone_formatado, email), empty_message.
+{% endcomment %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes | EquipaFácil</title>
+</head>
+<body>
+  <main>
+    <h1>Clientes</h1>
+    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    <p><a href="{% url 'clientes:criar' %}">Novo cliente</a></p>
+    <table>
+      <thead>
+        <tr><th>Nome completo</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for cliente in object_list %}
+        <tr>
+          <td>{{ cliente.nome_completo }}</td>
+          <td>{{ cliente.cpf_formatado }}</td>
+          <td>{{ cliente.telefone_formatado }}</td>
+          <td>{{ cliente.email }}</td>
+          <td><a href="{% url 'clientes:editar' cliente.pk %}">Editar</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">{{ empty_message }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><a href="{% url 'inicio' %}">Início</a></p>
+  </main>
+</body>
+</html>

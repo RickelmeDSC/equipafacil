@@ -2,8 +2,8 @@
 
 PROVISÓRIO (DEV-02): os nomes ``login``, ``logout`` e ``inicio`` seguem a proposta
 do contrato técnico DEV-01, ainda sem aceite. As rotas dos apps de domínio
-seguem a mesma proposta: equipamentos entram no DEV-04; clientes e aluguéis, no
-DEV-05 a DEV-07.
+seguem a mesma proposta: equipamentos no DEV-04, clientes no DEV-05 e aluguéis
+no DEV-06 e DEV-07.
 """
 
 from django.contrib import admin
@@ -19,4 +19,5 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("", views.inicio, name="inicio"),
     path("equipamentos/", include("equipamentos.urls")),
+    path("clientes/", include("clientes.urls")),
 ]
