@@ -97,6 +97,8 @@ Planejamento, atividades e especificação técnica v3: [Quadro EQF no Jira](htt
 
 `NN` é o número da atividade no Jira. Crie a branch a partir da `main` atualizada e nunca faça commits diretamente na `main`.
 
+Antes de desenvolver frontend ou backend, leia o [guia de integração frontend ↔ backend](docs/guia-integracao-frontend-backend.md).
+
 ### Fluxo de qualidade
 
 1. **Planejamento antes da implementação:** confirme a atividade do Jira, os RF/RN/CT envolvidos e, se houver tela, o contrato frontend × backend.
