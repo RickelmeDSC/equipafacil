@@ -1,6 +1,6 @@
 # Aluguéis, devoluções e histórico — DEV-06 (EQF-18)
 
-> **Situação em 02/11/2026: implementação local, não publicada.** Branch `feat/backend-eqf-18-alugueis`, criada a partir de `feat/backend-eqf-17-clientes` (`fa1b32f`), sobre DEV-05, DEV-04, DEV-03 e DEV-02. **O PR depende da integração das bases anteriores** (ordem em [`publicacao-e-colaboracao.md`](publicacao-e-colaboracao.md)). Rotas, templates e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda sem aceite de Raphael. As páginas HTML são **provisórias**.
+> **Situação:** integrado à `main` em 02/11/2026 pelo PR #8 (merge commit `85b4d1a`, marco da `main` integrada), já com a confirmação explícita do registro (`f3ad6d8`). Desenvolvido na branch `feat/backend-eqf-18-alugueis`, sobre DEV-05, DEV-04, DEV-03 e DEV-02. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda em rascunho e sem aceite de Raphael. As páginas HTML são **provisórias**.
 
 Escopo: RF006 (registro), RF007 (devolução) e RF008 (histórico), com RN001–RN004, I1, I2 e D13. Fora do escopo: cancelamento, edição de aluguel ou de devolução, multa, pagamento, reserva, filtros e paginação do histórico.
 

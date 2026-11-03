@@ -1,6 +1,6 @@
 # Arquitetura planejada
 
-> **Estado: planejamento, com a fundação de DEV-02 em preparação.** Existem o projeto Django, a autenticação nativa e, no DEV-03 (local), os modelos `Equipamento`, `Cliente` e `Aluguel` com suas restrições (`docs/modelagem-implementada.md`). Há PostgreSQL local de desenvolvimento e testes, validado (`docs/postgresql-local.md`). O código está preparado para o Render e o Neon (`docs/deploy-render-neon.md`), mas não há modelos de domínio, banco de produção criado, serviço no Render nem deploy.
+> **Estado: backend integrado; frontend em planejamento.** Na `main` (marco de 02/11/2026: `85b4d1a`) existem o projeto Django, a autenticação nativa, os modelos `Equipamento`, `Cliente` e `Aluguel` com suas restrições (`docs/modelagem-implementada.md`) e os fluxos de RF001–RF008 com páginas provisórias. Há PostgreSQL local de desenvolvimento e testes, validado (`docs/postgresql-local.md`). O código está preparado para o Render e o Neon (`docs/deploy-render-neon.md`), mas não há banco de produção criado, serviço no Render nem deploy.
 
 Referências: especificação técnica v3, épico EQF-5 (Desenvolvimento do Sistema) no Jira, e Documento de Requisitos v1.1 (acadêmico, não publicado neste repositório). Detalhes de organização do projeto serão definidos em DEV-01 (EQF-13) e DEV-02 (EQF-14).
 
