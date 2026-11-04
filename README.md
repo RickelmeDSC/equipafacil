@@ -1,6 +1,6 @@
 # EquipaFácil — Sistema de Aluguel de Equipamentos
 
-> **Situação:** fundação técnica do Django em preparação (DEV-02), modelos de domínio (DEV-03), gestão de equipamentos (DEV-04, RF001–RF004), de clientes (DEV-05, RF005) e de aluguéis, devoluções e histórico (DEV-06, RF006–RF008) implementados localmente, com páginas **provisórias** e ainda sem revisão nem integração na `main`. O plano de publicação está em [`docs/publicacao-e-colaboracao.md`](docs/publicacao-e-colaboracao.md). Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
+> **Situação (marco de 02/11/2026, `main` em `85b4d1a`):** backend de RF001–RF008 implementado e integrado à `main` (DEV-02 a DEV-06, pelos PRs #1 e #3 a #8, com merge commit). Na validação da tarefa 13A, foram 360 testes aprovados no PostgreSQL e, no SQLite, 336 aprovados e 24 pulados. As páginas HTML são **provisórias**: o frontend definitivo (DEV-07) e a homologação visual estão pendentes, o contrato técnico (PR #2) ainda não foi aprovado e não há deploy (Neon e Render não foram criados). Publicação e colaboração com o frontend: [`docs/publicacao-e-colaboracao.md`](docs/publicacao-e-colaboracao.md). Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
 
 Sistema acadêmico de gestão de aluguel de equipamentos, desenvolvido com Python/Django e PostgreSQL.
 
@@ -67,14 +67,15 @@ Até agora estão configurados o Python, o Django e o ambiente local, com Postgr
 - [x] Revisão técnica do Documento de Requisitos v1.1 e aprovação das decisões I1–I5
 - [ ] Validação acadêmica final dos requisitos (Rafael Ferreira e Ivisson)
 - [ ] Revisão dos cenários de teste (equipe de Testes)
-- [ ] Configuração do projeto Django (fundação de DEV-02 em preparação, aguardando revisão)
-- [ ] Implementação de RF001–RF008
+- [x] Configuração do projeto Django (DEV-02, integrada à `main`)
+- [x] Implementação de RF001–RF008 no backend (DEV-02 a DEV-06), com páginas provisórias
+- [ ] Frontend definitivo e homologação visual (DEV-07)
 - [ ] Testes e demonstração
 - [ ] Deploy
 
 ## Ambiente local de desenvolvimento
 
-> Fundação de DEV-02 (EQF-14) **em preparação**, modelos de domínio do DEV-03 (EQF-15) e gestão de equipamentos (DEV-04, EQF-16), de clientes (DEV-05, EQF-17) e de aluguéis (DEV-06, EQF-18) implementados localmente. Todas as páginas HTML são **provisórias**, só para validar o backend; as definitivas são do frontend.
+> Backend de RF001–RF008 integrado à `main`: fundação (DEV-02, EQF-14), modelos de domínio (DEV-03, EQF-15) e gestão de equipamentos (DEV-04, EQF-16), de clientes (DEV-05, EQF-17) e de aluguéis (DEV-06, EQF-18). Todas as páginas HTML são **provisórias**, só para validar o backend; as definitivas são do frontend.
 
 ### Requisitos
 
@@ -136,9 +137,17 @@ black --check .
 python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=23)` (o Django conta os pulados dentro do total executado): os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py`, `alugueis/tests/test_concorrencia_devolucao.py`, `equipamentos/tests/test_concorrencia.py` e `clientes/tests/test_concorrencia.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=24)` (o Django conta os pulados dentro do total executado): os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py`, `alugueis/tests/test_concorrencia_devolucao.py`, `alugueis/tests/test_concorrencia_confirmacao.py`, `equipamentos/tests/test_concorrencia.py` e `clientes/tests/test_concorrencia.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Na validação da tarefa 13A (`main` em `85b4d1a`), foram 360 testes no total: todos aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
 
 `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
+
+**Integração contínua:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em Pull Requests para a `main` e em pushes na `main`, em Ubuntu com o Python do `.python-version`. São três jobs:
+
+- **PostgreSQL 18** (serviço do runner, com credenciais fictícias): `pip check`, Ruff, Black, `check`, `makemigrations --check --dry-run` e a suíte completa.
+- **SQLite**: a suíte, com os testes exclusivos de PostgreSQL pulados.
+- **Gunicorn em Linux**: `scripts/validar-gunicorn-linux.sh`.
+
+Não usa segredos, não acessa Neon nem Render e não faz deploy. O workflow só é considerado validado depois da primeira execução verde no GitHub.
 
 Verificação de produção simulada, em um terminal separado (não conecta ao banco; os valores são fictícios):
 
@@ -184,18 +193,19 @@ Advertências ainda abertas:
 
 - `security.W004` (HSTS): defina `DJANGO_SECURE_HSTS_SECONDS` só depois de confirmar todo o site em HTTPS no ambiente real.
 - No Render, `DJANGO_SECURE_PROXY_SSL_HEADER=True` é obrigatório; sem isso, o redirecionamento para HTTPS entra em laço.
-- O Gunicorn não roda no Windows e ainda não foi executado. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy.
+- O Gunicorn não roda no Windows. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy; o job `gunicorn` do CI executa esse script, mas a validação só vale depois de uma execução verde no GitHub.
 - Não há limite de tentativas de login nem política de segurança de conteúdo (CSP); a sessão dura o padrão do Django (duas semanas). São decisões pendentes, não configuradas.
 
 ### Limitações desta etapa
 
-- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03, local; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)).
-- Gestão de equipamentos (RF001–RF004, DEV-04, local; veja [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md)) com páginas provisórias.
-- Gestão de clientes (RF005, DEV-05, local; veja [`docs/clientes-operacional.md`](docs/clientes-operacional.md)), sem pesquisa, detalhe nem exclusão (D14, RN003), com páginas provisórias.
-- Aluguéis, devoluções e histórico (RF006–RF008, DEV-06, local; veja [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md)), com prévia calculada no servidor (D13), sem cancelamento nem edição de aluguel, com páginas provisórias.
+- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)).
+- Gestão de equipamentos (RF001–RF004, DEV-04; veja [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md)) com páginas provisórias.
+- Gestão de clientes (RF005, DEV-05; veja [`docs/clientes-operacional.md`](docs/clientes-operacional.md)), sem pesquisa, detalhe nem exclusão (D14, RN003), com páginas provisórias.
+- Aluguéis, devoluções e histórico (RF006–RF008, DEV-06; veja [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md)), com prévia calculada no servidor (D13), sem cancelamento nem edição de aluguel, com páginas provisórias.
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
 - Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
-- Sem Bootstrap nem arquivos estáticos próprios; Neon e Render preparados, mas sem serviço criado nem deploy.
+- Sem Bootstrap nem arquivos estáticos próprios: o frontend definitivo (DEV-07) e a homologação visual estão pendentes. O contrato técnico (PR #2) continua em rascunho, sem aprovação.
+- Neon e Render preparados, mas sem serviço criado nem deploy.
 
 ## Prazos
 

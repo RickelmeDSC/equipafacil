@@ -1,6 +1,6 @@
 # Gestão operacional de equipamentos — DEV-04 (EQF-16)
 
-> **Situação em 02/11/2026: implementação local, não publicada.** Branch `feat/backend-eqf-16-equipamentos`, criada a partir de `feat/backend-eqf-15-modelagem` (`ba0493a`), que por sua vez está sobre a fundação DEV-02. **O PR do DEV-04 depende da integração da base DEV-03 (e, antes dela, da DEV-02)**; abri-lo antes misturaria entregas. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2, ainda sem aceite de Raphael. As páginas HTML são **provisórias**.
+> **Situação:** integrado à `main` em 02/11/2026 pelo PR #6 (merge commit `0c24778`; marco da `main` integrada: `85b4d1a`). Desenvolvido na branch `feat/backend-eqf-16-equipamentos`, sobre DEV-03 e DEV-02. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda em rascunho e sem aceite de Raphael. As páginas HTML são **provisórias**.
 
 Escopo: RF001 (cadastro), RF002 (consulta e pesquisa), RF003 (edição), RF004 (exclusão e inativação), com RN002, RN003, D10, D11 e I3. Fora do escopo: clientes (DEV-05), registro de aluguel e devolução pela interface (DEV-06), layout definitivo e Bootstrap (frontend).
 
@@ -88,5 +88,5 @@ Cenários **automatizados** (não houve execução manual): CT01 cadastro válid
 
 1. Aceite do contrato (PR #2) por Raphael, principalmente rotas, variáveis e o campo de confirmação.
 2. Definição dos textos de sucesso e da confirmação de exclusão no EQF-5.
-3. Integração das bases DEV-02 e DEV-03 antes do PR do DEV-04.
-4. DEV-05 (clientes, inclusive a corrida da troca de CPF com o primeiro aluguel) e DEV-06 (registro de aluguel e devolução pela interface).
+3. Integração das bases DEV-02 e DEV-03: concluída (PRs #4 e #5).
+4. DEV-05 (clientes, inclusive a corrida da troca de CPF com o primeiro aluguel) e DEV-06 (registro de aluguel e devolução pela interface): implementados e integrados (PRs #7 e #8).

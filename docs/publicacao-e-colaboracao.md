@@ -1,6 +1,6 @@
 # Publicação do backend e colaboração com o frontend
 
-> **Situação em 02/11/2026: plano, nada publicado.** DEV-02 a DEV-06 existem só localmente. Este documento organiza a publicação controlada, que depende de autorização explícita de Rickelme e de aprovação de PR no GitHub. Nenhum passo aqui contorna o ruleset da `main`.
+> **Situação:** plano executado em 02/11/2026. As cinco branches do backend foram publicadas e integradas à `main` com merge commit, junto com o PR #1 e o guia (PR #3); a `main` chegou a `85b4d1a` (marco). O PR #2 (contrato) continua em rascunho. A seção "Ordem de publicação" fica como registro histórico do plano.
 
 **Raphael precisa receber a estrutura Django pelo GitHub para iniciar o frontend.** Enquanto o backend não for publicado, não há templates, rotas nem variáveis reais sobre os quais ele possa trabalhar.
 
@@ -39,9 +39,25 @@ Ainda não existem `base.html`, `includes/navbar.html`, `includes/messages.html`
 | `config/settings.py` (`TEMPLATES`, `STATICFILES_DIRS`, WhiteNoise) | Do backend; afeta onde o frontend coloca arquivos. Hoje: `templates/` e `static/` na raiz |
 | `*/forms.py` | Do backend. O contrato prevê classes do Bootstrap nos widgets, ainda não aplicadas; combinar quando o Bootstrap entrar |
 
+## Resultado da integração (02/11/2026)
+
+| PR | Ramo | Merge commit na `main` |
+|----|------|------------------------|
+| #1 | `docs/alinhamento-workspace` | `690ba37` |
+| #3 | `docs/guia-integracao-raphael` | `5cc3d3e` |
+| #4 | `feat/backend-dev02-foundation` (DEV-02) | `90f8e01` |
+| #5 | `feat/backend-eqf-15-modelagem` (DEV-03) | `c1012b6` |
+| #6 | `feat/backend-eqf-16-equipamentos` (DEV-04) | `0c24778` |
+| #7 | `feat/backend-eqf-17-clientes` (DEV-05) | `3cd5092` |
+| #8 | `feat/backend-eqf-18-alugueis` (DEV-06, com `f3ad6d8`) | `85b4d1a` |
+
+- Os commits do backend entraram com os mesmos identificadores. O ramo do guia foi reaplicado sobre o merge do PR #1 antes da integração (`388bbca` → `21b9b39`), com conteúdo idêntico.
+- Validação 13A na `main` em `85b4d1a`: 360 testes aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados; fluxo ponta a ponta com o cliente HTTP do Django (17 passos).
+- **Raphael agora cria sua branch de frontend a partir da `main`**, não mais de `feat/backend-eqf-18-alugueis`.
+
 ## Ordem de publicação
 
-### Situação dos ramos (02/11/2026)
+### Situação dos ramos antes da publicação (02/11/2026, histórico)
 
 | Ramo | Commit | Base | Situação |
 |------|--------|------|----------|
@@ -72,6 +88,8 @@ Regras do ruleset da `main`: PR obrigatório com 1 aprovação, sem exclusão e 
 Como os merges são merge commits, os commits de cada etapa entram na `main` com os mesmos identificadores: o PR seguinte mostra só os próprios commits, sem rebase. **Opção para revisar em paralelo:** abrir todos os PRs de uma vez, cada um com a base no ramo anterior (DEV-03 com base em DEV-02, e assim por diante), os posteriores em rascunho. Depois de cada merge, mudar a base do PR seguinte para `main` antes de aprovar.
 
 ### Acesso mais rápido e seguro para Raphael
+
+> Histórico. Depois da integração, vale a orientação da seção "Resultado da integração": branch de frontend a partir da `main`.
 
 **Recomendação:** quando autorizado, publicar os cinco ramos `feat/backend-*` (os nomes já seguem a tabela do `CLAUDE.md`), sem abrir PR de imediato. Raphael cria seus ramos `feat/frontend-eqf-NN-*` a partir de `feat/backend-eqf-18-alugueis`, que contém DEV-02 a DEV-06, e trabalha só em `templates/**` e `static/**`.
 
