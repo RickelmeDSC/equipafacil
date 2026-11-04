@@ -9,6 +9,7 @@ template e variáveis seguem o contrato proposto (PR #2), ainda sem aceite.
 usam a própria data atual ao gravar.
 """
 
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -84,6 +85,7 @@ def criar(request: HttpRequest) -> HttpResponse:
                     resumo = services.simular_aluguel(**dados)
                 else:
                     services.registrar_aluguel(**dados)
+                    messages.success(request, mensagens.ALUGUEL_REGISTRADO)
                     return redirect("alugueis:historico")
             except ValidationError as erro:
                 aplicar_erros(form, erro)
@@ -132,6 +134,7 @@ def devolver(request: HttpRequest, pk: int) -> HttpResponse:
             aplicar_erros(form, erro)
             aluguel.refresh_from_db()
         else:
+            messages.success(request, mensagens.DEVOLUCAO_REGISTRADA)
             return redirect("alugueis:historico")
     return render(
         request,

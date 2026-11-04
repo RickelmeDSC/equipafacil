@@ -54,6 +54,7 @@ def criar(request: HttpRequest) -> HttpResponse:
         except ValidationError as erro:
             aplicar_erros(form, erro)
         else:
+            messages.success(request, mensagens.EQUIPAMENTO_CADASTRADO)
             return redirect("equipamentos:lista")
     return render(request, "equipamentos/formulario.html", {"form": form})
 
@@ -76,6 +77,7 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
         except ValidationError as erro:
             aplicar_erros(form, erro)
         else:
+            messages.success(request, mensagens.EQUIPAMENTO_ATUALIZADO)
             return redirect("equipamentos:lista")
     return render(
         request,
@@ -104,7 +106,9 @@ def acoes(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-def _executar(request: HttpRequest, pk: int, operacao) -> HttpResponse:
+def _executar(
+    request: HttpRequest, pk: int, operacao, mensagem_de_sucesso: str
+) -> HttpResponse:
     """Executa a operação; recusa volta para P04 com a mensagem, sucesso vai para P02."""
     get_object_or_404(Equipamento, pk=pk)
     try:
@@ -115,6 +119,7 @@ def _executar(request: HttpRequest, pk: int, operacao) -> HttpResponse:
         for mensagem in erro.messages:
             messages.error(request, mensagem)
         return redirect("equipamentos:acoes", pk=pk)
+    messages.success(request, mensagem_de_sucesso)
     return redirect("equipamentos:lista")
 
 
@@ -125,14 +130,20 @@ def excluir(request: HttpRequest, pk: int) -> HttpResponse:
     if request.POST.get("confirmacao") != "sim":
         messages.error(request, mensagens.CONFIRMACAO_DE_EXCLUSAO_AUSENTE)
         return redirect("equipamentos:acoes", pk=pk)
-    return _executar(request, pk, services.excluir_equipamento)
+    return _executar(
+        request, pk, services.excluir_equipamento, mensagens.EQUIPAMENTO_EXCLUIDO
+    )
 
 
 @require_POST
 def inativar(request: HttpRequest, pk: int) -> HttpResponse:
-    return _executar(request, pk, services.inativar_equipamento)
+    return _executar(
+        request, pk, services.inativar_equipamento, mensagens.EQUIPAMENTO_INATIVADO
+    )
 
 
 @require_POST
 def reativar(request: HttpRequest, pk: int) -> HttpResponse:
-    return _executar(request, pk, services.reativar_equipamento)
+    return _executar(
+        request, pk, services.reativar_equipamento, mensagens.EQUIPAMENTO_REATIVADO
+    )
