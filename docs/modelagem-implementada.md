@@ -1,6 +1,6 @@
 # Modelagem implementada — DEV-03 (EQF-15)
 
-> **Situação em 02/11/2026: implementação local, não publicada.** Branch `feat/backend-eqf-15-modelagem`, criada a partir de `feat/backend-dev02-foundation` (`87d23fb`), porque a `main` ainda não tem a fundação Django. No Jira, o DEV-03 continua formalmente bloqueado pela REQ-04 (EQF-10); este trabalho não encerra nem altera essa dependência. O PR do DEV-03 só deve ser aberto depois da integração (ou do alinhamento) da base DEV-02, para não misturar entregas.
+> **Situação:** integrado à `main` em 02/11/2026 pelo PR #5 (merge commit `c1012b6`; marco da `main` integrada: `85b4d1a`). Desenvolvido na branch `feat/backend-eqf-15-modelagem`, sobre a fundação DEV-02. No Jira, o DEV-03 continua formalmente bloqueado pela REQ-04 (EQF-10); este trabalho não encerra nem altera essa dependência.
 
 Base: `docs/modelagem-proposta.md` (v0.4, proposta no PR #2), `docs/rastreabilidade.md`, RF001–RF008, RN001–RN004, I1–I5, D10–D15 e as mensagens propostas no EQF-5. Nada de interface foi implementado: não há views, formulários, URLs nem templates de domínio.
 

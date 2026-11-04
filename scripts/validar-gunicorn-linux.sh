@@ -62,7 +62,12 @@ done
 "$VENV_PY" scripts/validar_servidor.py "http://127.0.0.1:$PORT" "$RENDER_EXTERNAL_HOSTNAME"
 
 WORKERS="$(grep -c "Booting worker" "$TEMP/gunicorn.log" || true)"
-ERROS="$(grep -c "Traceback" "$TEMP/gunicorn.log" || true)"
-echo "Workers iniciados: $WORKERS (esperado: 1) | tracebacks: $ERROS"
+TRACEBACKS="$(grep -c "Traceback" "$TEMP/gunicorn.log" || true)"
+# A verificação "health check com Host inválido" provoca, de propósito, um
+# DisallowedHost, que o Django registra com traceback (avisos de Host inválido vão
+# para o console). Ele é esperado uma única vez; qualquer outro traceback é falha.
+HOST_INVALIDO="$(grep -c "^django.core.exceptions.DisallowedHost:" "$TEMP/gunicorn.log" || true)"
+ERROS=$((TRACEBACKS - HOST_INVALIDO))
+echo "Workers iniciados: $WORKERS (esperado: 1) | Host inválido registrado: $HOST_INVALIDO (esperado: 1) | outros tracebacks: $ERROS (esperado: 0)"
 cat "$TEMP/gunicorn.log"
-[[ "$WORKERS" == "1" && "$ERROS" == "0" ]]
+[[ "$WORKERS" == "1" && "$HOST_INVALIDO" == "1" && "$ERROS" == "0" ]]

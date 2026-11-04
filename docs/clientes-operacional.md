@@ -1,6 +1,6 @@
 # Gestão operacional de clientes — DEV-05 (EQF-17)
 
-> **Situação em 02/11/2026: implementação local, não publicada.** Branch `feat/backend-eqf-17-clientes`, criada a partir de `feat/backend-eqf-16-equipamentos` (`657627a`), que está sobre DEV-03 (`ba0493a`) e DEV-02 (`87d23fb`). **O PR de Clientes depende da integração das bases anteriores (DEV-02, DEV-03 e DEV-04)**; abri-lo antes misturaria entregas. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda sem aceite de Raphael. As páginas HTML são **provisórias**.
+> **Situação:** integrado à `main` em 02/11/2026 pelo PR #7 (merge commit `3cd5092`; marco da `main` integrada: `85b4d1a`). Desenvolvido na branch `feat/backend-eqf-17-clientes`, sobre DEV-04, DEV-03 e DEV-02. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda em rascunho e sem aceite de Raphael. As páginas HTML são **provisórias**.
 
 Escopo: RF005 (cadastrar, listar, consultar pela lista e editar), com RN002, RN003, I5, D12 e D14. Fora do escopo: exclusão de cliente (RN003), pesquisa e página de detalhe (D14), endereço, registro de aluguel e devolução (DEV-06).
 
@@ -106,4 +106,4 @@ O executor de corridas passou a ser comum (`config/tests/concorrencia.py`) e é 
 3. **Espaços nas extremidades do CPF:** recusados (leitura literal de D12). Se a equipe preferir aceitá-los, a mudança é só `strip=True` no formulário; registrar para a equipe de Requisitos.
 4. **Ordenação de P05:** por nome e, no empate, pela ordem de cadastro. A comparação de maiúsculas e acentos segue a collation do banco (PostgreSQL e SQLite diferem).
 5. Aceite do contrato (PR #2) por Raphael; validação acadêmica de D12, CT09 e CT10; QA-AUD-01.
-6. DEV-06: registro de aluguel pela interface (seleção de cliente, que pode usar `Cliente.__str__`) e devolução.
+6. DEV-06 (registro de aluguel pela interface e devolução): implementado e integrado (PR #8). A seleção de clientes usa nome e CPF mascarado, sem alterar `Cliente.__str__`.
