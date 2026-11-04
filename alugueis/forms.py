@@ -14,6 +14,7 @@ from django.utils.formats import number_format
 from alugueis.services import validar_datas_do_aluguel
 from clientes.models import Cliente
 from config import mensagens
+from config.formularios import FormularioBootstrap
 from equipamentos.models import Equipamento
 
 _FORMATO_ISO = "%Y-%m-%d"  # valor de <input type="date">
@@ -53,7 +54,7 @@ def equipamentos_para_escolha():
     return Equipamento.objects.disponiveis().order_by("nome", "codigo")
 
 
-class AluguelForm(forms.Form):
+class AluguelForm(FormularioBootstrap, forms.Form):
     cliente = EscolhaDeCliente(
         queryset=Cliente.objects.none(),
         label="Cliente",
@@ -97,7 +98,7 @@ class AluguelForm(forms.Form):
         return dados
 
 
-class DevolucaoForm(forms.Form):
+class DevolucaoForm(FormularioBootstrap, forms.Form):
     data_devolucao_real = _campo_de_data("Data de devolução")
 
     def __init__(self, *args, data_minima: date, data_maxima: date, **kwargs):

@@ -8,13 +8,14 @@ revalidam tudo dentro da transação.
 from django import forms
 
 from config import mensagens
+from config.formularios import FormularioBootstrap
 from equipamentos.models import Equipamento
 from equipamentos.services import CAMPOS_EDITAVEIS
 
 _OBRIGATORIO = {"required": mensagens.CAMPO_OBRIGATORIO}
 
 
-class EquipamentoForm(forms.ModelForm):
+class EquipamentoForm(FormularioBootstrap, forms.ModelForm):
     class Meta:
         model = Equipamento
         fields = list(CAMPOS_EDITAVEIS)

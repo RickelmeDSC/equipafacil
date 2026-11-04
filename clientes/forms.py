@@ -12,13 +12,14 @@ from django import forms
 from clientes.models import Cliente
 from clientes.services import CAMPOS_EDITAVEIS
 from config import mensagens
+from config.formularios import FormularioBootstrap
 
 # Limite de tamanho da entrada, antes da normalização (máscaras "000.000.000-00" e
 # "(81) 99999-8888"). A regra de formato continua sendo a do modelo (D12).
 _TAMANHO_MAXIMO_DA_ENTRADA = 20
 
 
-class ClienteForm(forms.ModelForm):
+class ClienteForm(FormularioBootstrap, forms.ModelForm):
     # strip=False: D12 remove só pontos e hífen; espaços são recusados pelo modelo.
     cpf = forms.CharField(
         label="CPF",

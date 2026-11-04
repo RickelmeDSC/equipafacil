@@ -9,6 +9,7 @@ CPF, telefone e e-mail são marcados como sensíveis: relatórios de erro do
 Django mascaram esses campos do POST.
 """
 
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -48,6 +49,7 @@ def criar(request: HttpRequest) -> HttpResponse:
         except ValidationError as erro:
             aplicar_erros(form, erro)
         else:
+            messages.success(request, mensagens.CLIENTE_CADASTRADO)
             return redirect("clientes:lista")
     return render(request, "clientes/formulario.html", {"form": form})
 
@@ -71,6 +73,7 @@ def editar(request: HttpRequest, pk: int) -> HttpResponse:
         except ValidationError as erro:
             aplicar_erros(form, erro)
         else:
+            messages.success(request, mensagens.CLIENTE_ATUALIZADO)
             return redirect("clientes:lista")
     return render(
         request,

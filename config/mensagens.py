@@ -44,6 +44,21 @@ REATIVACAO_BLOQUEADA = (
 )
 NENHUM_REGISTRO = "Nenhum registro encontrado."
 
+# Sucesso: o RF001 (Documento de Requisitos v1.2) e o CT01 exigem mensagem de
+# sucesso, mas o EQF-5 não define os textos. Estes são o padrão de implementação
+# adotado em 04/11/2026, sem aprovação formal da equipe: se o EQF-5 definir outra
+# redação, ela prevalece. Só são enviados depois da gravação confirmada (a prévia
+# do aluguel não envia mensagem); trocar aqui não exige mudar views nem templates.
+EQUIPAMENTO_CADASTRADO = "Equipamento cadastrado com sucesso."
+EQUIPAMENTO_ATUALIZADO = "Equipamento atualizado com sucesso."
+EQUIPAMENTO_EXCLUIDO = "Equipamento excluído com sucesso."
+EQUIPAMENTO_INATIVADO = "Equipamento inativado com sucesso."
+EQUIPAMENTO_REATIVADO = "Equipamento reativado com sucesso."
+CLIENTE_CADASTRADO = "Cliente cadastrado com sucesso."
+CLIENTE_ATUALIZADO = "Cliente atualizado com sucesso."
+ALUGUEL_REGISTRADO = "Aluguel registrado com sucesso."
+DEVOLUCAO_REGISTRADA = "Devolução registrada com sucesso."
+
 # Internas: sem texto no EQF-5; texto provisório até definição.
 CONFIRMACAO_DE_EXCLUSAO_AUSENTE = "Confirme a exclusão para continuar."
 CLIENTE_INEXISTENTE = "Selecione um cliente cadastrado."
