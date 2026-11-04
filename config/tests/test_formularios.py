@@ -155,7 +155,10 @@ class IntegracaoComAsViewsTests(TestCase):
     def test_login_usa_o_formulario_com_classes_e_continua_funcionando(self):
         resposta = self.client.get(reverse("login"))
         self.assertIsInstance(resposta.context["form"], FormularioDeLogin)
-        self.assertContains(resposta, 'class="form-control"', count=2)
+        for campo in ("username", "password"):
+            with self.subTest(campo=campo):
+                html = str(resposta.context["form"][campo])
+                self.assertIn('class="form-control"', html)
         usuario = criar_funcionario("funcionario.login")
         senha = secrets.token_urlsafe(16)  # temporária, só deste teste
         usuario.set_password(senha)
