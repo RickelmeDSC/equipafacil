@@ -153,6 +153,6 @@ CT11–CT16 foram **automatizados**, não executados manualmente. As expectativa
 ## Pendências
 
 1. Aceite do contrato (PR #2): variável nova `resumo`, campo `acao` (`previa`/`registrar`), prévia no servidor × JavaScript, CPF mascarado na seleção.
-2. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de opções, indicação de atraso, mensagens de sucesso, cliente inexistente, ação ausente ou inválida.
+2. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de opções, indicação de atraso, cliente inexistente, ação ausente ou inválida e os textos definitivos das mensagens de sucesso (hoje provisórios: registro e devolução enviam `messages.success`).
 3. QA-AUD-01 e validação acadêmica de CT11–CT16.
 4. DEV-07 (EQF-19): registrar no Jira que o RF008 foi implementado aqui, e definir o que resta para a atividade.

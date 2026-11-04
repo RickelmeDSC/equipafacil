@@ -78,7 +78,7 @@ Cenários **automatizados** (não houve execução manual): CT01 cadastro válid
 
 ## Divergências e pontos a combinar com o frontend
 
-1. **Mensagens de sucesso:** o EQF-5 não define texto ("Indefinida"); nenhuma mensagem de sucesso é enviada. O sucesso aparece pelo redirecionamento para P02.
+1. **Mensagens de sucesso:** exigidas pelo RF001 (Documento de Requisitos v1.2) e pelo CT01; cadastro, edição, exclusão, inativação e reativação enviam `messages.success` com texto **provisório** de `config/mensagens.py`, porque o EQF-5 ainda não define o texto ("Indefinida").
 2. **Confirmação de exclusão:** campo `confirmacao` com valor `sim` (escolha técnica provisória). Sem ele, a exclusão não acontece e P04 mostra "Confirme a exclusão para continuar." — texto interno provisório, sem equivalente no EQF-5. Na página provisória a confirmação é uma caixa de seleção; o frontend pode trocá-la por um modal, desde que envie o mesmo campo.
 3. **Nomes:** o contexto de P04 usa `tem_aluguel_ativo` (nome do contrato); no modelo, a propriedade equivalente é `tem_aluguel_aberto`. Na lista, cada item traz `acoes` com os mesmos indicadores, mas `pode_reativar` não revalida o cadastro ali (só P04 e o serviço revalidam).
 4. **Lista:** ordem por nome e código; sem paginação nem filtro por categoria ou situação (não previstos).
