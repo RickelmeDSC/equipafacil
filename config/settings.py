@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from django.contrib.messages import constants as message_constants
+
 from config.env import (
     carregar_arquivo_env,
     configurar_banco,
@@ -113,6 +115,10 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "inicio"
 LOGOUT_REDIRECT_URL = "login"
+
+# Mensagens do framework messages: o nível "error" vira a classe "danger" do
+# Bootstrap (contrato proposto, seção 5); os demais níveis já coincidem.
+MESSAGE_TAGS = {message_constants.ERROR: "danger"}
 
 # Segurança. Fora do desenvolvimento (DEBUG desativado), cookies só trafegam por
 # HTTPS e o HTTP é redirecionado. HSTS e cabeçalho de proxy são definidos no
