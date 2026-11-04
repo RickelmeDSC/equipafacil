@@ -44,7 +44,7 @@ Não existem, de propósito: pesquisa e detalhe de cliente (D14), exclusão de c
 ## 4. Mensagens, estados vazios e formatação
 
 - Os textos do EQF-5 chegam prontos em `form.errors`, `non_field_errors`, `messages` e `empty_message`: não os reescreva no template.
-- Toda operação bem-sucedida redireciona e envia uma mensagem `success` (RF001, CT01), exibida por `includes/messages.html` na página de destino. Os textos são provisórios até o EQF-5 defini-los.
+- Toda operação bem-sucedida redireciona e envia uma mensagem `success` (RF001, CT01), exibida por `includes/messages.html` na página de destino. Os textos vêm de `config/mensagens.py`: o EQF-5 não os define, e eles são o padrão de implementação adotado em 04/11/2026, sem aprovação formal da equipe. A prévia do aluguel (`acao=previa`) não envia mensagem.
 - Estados vazios: `empty_message` dentro de `{% empty %}` (P02, P05, P08), sem dados fictícios.
 - Formatação: datas com `|date:"d/m/Y"`; valores com `|floatformat:"2g"` (gera `1.500,00`). Nenhum `|safe` em dado digitado; links sempre com `{% url %}`.
 
@@ -65,7 +65,7 @@ A CI roda a suíte inteira em cada PR. A maior parte dos testes confere o **cont
 
 1. P07: prévia só pelo botão (servidor) ou também ao vivo (JS); o botão de registro aparece desde o início ou só depois da prévia (D13 exige o resumo antes do registro).
 2. P04: forma da confirmação de exclusão (modal).
-3. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de clientes ou de equipamentos, devolução antes da retirada, ação inválida em P07 e o texto definitivo das mensagens de sucesso (hoje provisórios).
+3. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de clientes ou de equipamentos, devolução antes da retirada e ação inválida em P07. As mensagens de sucesso usam o padrão de implementação de `config/mensagens.py`, sem aprovação formal; se o EQF-5 definir outra redação, ela prevalece.
 4. Cores dos selos de situação por `situacao_codigo` (`ativo`, `atrasado`, `encerrado`, `encerrado_com_atraso`).
 
 ## 7. Checklist do DEV-07

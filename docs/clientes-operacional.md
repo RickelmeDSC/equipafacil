@@ -10,7 +10,7 @@ Escopo: RF005 (cadastrar, listar, consultar pela lista e editar), com RN002, RN0
 |------|-----------------|
 | Regras aprovadas | RF005, RN002, RN003, I5 (CPF com 11 dígitos), D12 (CPF e telefone), D14 (sem pesquisa e sem detalhe) |
 | Proposta técnica (PR #2, sem aceite) | Rotas `clientes:lista`, `clientes:criar`, `clientes:editar`; templates `clientes/lista.html` e `clientes/formulario.html`; variáveis `object_list`, `empty_message`, `form`, `object`, `cpf_editavel`; colunas de P05; CPF e telefone formatados na edição |
-| Mensagens | Textos propostos no EQF-5 (`config/mensagens.py`); sucesso "Indefinida" |
+| Mensagens | Textos propostos no EQF-5 (`config/mensagens.py`); sucesso: padrão de implementação adotado, sem aprovação formal (o EQF-5 não define) |
 | Aguardam validação acadêmica | Documento v1.1 (inclusive se D12 exige atualização) e cenários CT09–CT10 (equipe de Testes) |
 
 ## Campos e regras
@@ -102,7 +102,7 @@ O executor de corridas passou a ser comum (`config/tests/concorrencia.py`) e é 
 ## Divergências e pendências
 
 1. **Contrato, seção 7:** classes do Bootstrap 5.3 nos widgets. Resolvido na preparação do DEV-07: todos os formulários aplicam `form-control`/`form-select` e `is-invalid` nos campos com erro (`config/formularios.py`; veja [`integracao-frontend-dev07.md`](integracao-frontend-dev07.md)).
-2. **Contrato, seção 5, item 2:** sucesso com mensagem do framework `messages`. Cadastro e edição enviam `messages.success` com texto **provisório** (`config/mensagens.py`), até o EQF-5 definir o texto ("Indefinida").
+2. **Contrato, seção 5, item 2:** sucesso com mensagem do framework `messages`. Cadastro e edição enviam `messages.success` depois da gravação, com os textos de `config/mensagens.py` ("Cliente cadastrado com sucesso." e "Cliente atualizado com sucesso."): padrão de implementação adotado em 04/11/2026, sem aprovação formal, porque o EQF-5 não define esses textos.
 3. **Espaços nas extremidades do CPF:** recusados (leitura literal de D12). Se a equipe preferir aceitá-los, a mudança é só `strip=True` no formulário; registrar para a equipe de Requisitos.
 4. **Ordenação de P05:** por nome e, no empate, pela ordem de cadastro. A comparação de maiúsculas e acentos segue a collation do banco (PostgreSQL e SQLite diferem).
 5. Aceite do contrato (PR #2) por Raphael; validação acadêmica de D12, CT09 e CT10; QA-AUD-01.

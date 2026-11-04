@@ -1,8 +1,9 @@
 """Mensagens de sucesso (RF001 e CT01; contrato proposto, seção 8).
 
 O Documento de Requisitos v1.2 exige "mensagem de sucesso" no cadastro de
-equipamento (RF001), e o CT01 a verifica. O EQF-5 ainda não define os textos
-("Indefinida"): os textos de ``config/mensagens.py`` são provisórios.
+equipamento (RF001), e o CT01 a verifica. O EQF-5 não define os textos: os de
+``config/mensagens.py`` são o padrão de implementação adotado, sem aprovação
+formal da equipe.
 """
 
 from datetime import timedelta
