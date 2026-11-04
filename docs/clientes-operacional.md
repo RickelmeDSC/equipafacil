@@ -101,7 +101,7 @@ O executor de corridas passou a ser comum (`config/tests/concorrencia.py`) e é 
 
 ## Divergências e pendências
 
-1. **Contrato, seção 7:** propõe classes do Bootstrap 5.3 aplicadas pelos widgets em `forms.py`. Nem `EquipamentoForm` (DEV-04) nem `ClienteForm` as aplicam, porque o Bootstrap ainda não foi integrado e esta tarefa não autoriza Bootstrap definitivo. Fica para a integração com o frontend.
+1. **Contrato, seção 7:** classes do Bootstrap 5.3 nos widgets. Resolvido na preparação do DEV-07: todos os formulários aplicam `form-control`/`form-select` e `is-invalid` nos campos com erro (`config/formularios.py`; veja [`integracao-frontend-dev07.md`](integracao-frontend-dev07.md)).
 2. **Contrato, seção 5, item 2:** sucesso com mensagem do framework `messages`, mas o EQF-5 não define o texto ("Indefinida"); nenhuma mensagem de sucesso é enviada, como no DEV-04.
 3. **Espaços nas extremidades do CPF:** recusados (leitura literal de D12). Se a equipe preferir aceitá-los, a mudança é só `strip=True` no formulário; registrar para a equipe de Requisitos.
 4. **Ordenação de P05:** por nome e, no empate, pela ordem de cadastro. A comparação de maiúsculas e acentos segue a collation do banco (PostgreSQL e SQLite diferem).
