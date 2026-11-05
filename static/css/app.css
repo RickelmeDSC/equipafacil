@@ -147,6 +147,33 @@
   --bs-body-font-size: 0.9375rem;
   --bs-link-color: var(--ef-primary);
   --bs-link-hover-color: var(--ef-primary-hover);
+  /* O <a> do Bootstrap lê a versão RGB destas cores; sem ela, o link puro
+   * (ex.: "Ir para o conteúdo") ficava no azul padrão #0d6efd. */
+  --bs-link-color-rgb: 37, 99, 235;
+  --bs-link-hover-color-rgb: 29, 78, 216;
+
+  /* Alertas e textos de ênfase (design system, componente Alert): fundo
+   * "-soft" e texto "-text" dos tokens, em vez da paleta padrão do Bootstrap
+   * (ciano, amarelo). "info" usa o azul principal, como no design system. */
+  --bs-primary-text-emphasis: var(--ef-primary);
+  --bs-primary-bg-subtle: var(--ef-primary-soft);
+  --bs-primary-border-subtle: var(--ef-primary-soft);
+  --bs-info-text-emphasis: var(--ef-primary);
+  --bs-info-bg-subtle: var(--ef-primary-soft);
+  --bs-info-border-subtle: var(--ef-primary-soft);
+  --bs-success-text-emphasis: var(--ef-success-text);
+  --bs-success-bg-subtle: var(--ef-success-soft);
+  --bs-success-border-subtle: var(--ef-success-soft);
+  --bs-warning-text-emphasis: var(--ef-warning-text);
+  --bs-warning-bg-subtle: var(--ef-warning-soft);
+  --bs-warning-border-subtle: var(--ef-warning-soft);
+  --bs-danger-text-emphasis: var(--ef-danger-text);
+  --bs-danger-bg-subtle: var(--ef-danger-soft);
+  --bs-danger-border-subtle: var(--ef-danger-soft);
+
+  /* Erro de campo (FormField): mensagem em danger-text, borda em danger. */
+  --bs-form-invalid-color: var(--ef-danger-text);
+  --bs-form-invalid-border-color: var(--ef-danger);
 }
 
 body {
@@ -171,6 +198,27 @@ body {
   --bs-btn-active-color: #fff;
 }
 
+/* Botão secundário (Voltar, Editar, Ações, Cancelar): texto principal sobre
+ * surface e borda border-strong, como no design system. O cinza padrão do
+ * Bootstrap (#6c757d) deixava o botão habilitado com cara de desabilitado; o
+ * desabilitado agora tem fundo surface-2, texto muted e a opacidade do
+ * Bootstrap. */
+.btn-outline-secondary {
+  --bs-btn-color: var(--ef-text);
+  --bs-btn-bg: var(--ef-surface);
+  --bs-btn-border-color: var(--ef-border-strong);
+  --bs-btn-hover-color: var(--ef-text);
+  --bs-btn-hover-bg: var(--ef-surface-2);
+  --bs-btn-hover-border-color: var(--ef-border-strong);
+  --bs-btn-focus-shadow-rgb: 37, 99, 235;
+  --bs-btn-active-color: var(--ef-text);
+  --bs-btn-active-bg: var(--ef-surface-2);
+  --bs-btn-active-border-color: var(--ef-border-strong);
+  --bs-btn-disabled-color: var(--ef-muted);
+  --bs-btn-disabled-bg: var(--ef-surface-2);
+  --bs-btn-disabled-border-color: var(--ef-border);
+}
+
 .btn,
 .form-control,
 .form-select {
@@ -181,9 +229,16 @@ body {
   min-height: 34px;
 }
 
+/* Campos em surface (branco), não no fundo da página que o Bootstrap herda de
+ * --bs-body-bg; assim o campo bloqueado (surface-2) se distingue do editável. */
 .form-control,
 .form-select {
   border-color: var(--ef-border-strong);
+  background-color: var(--ef-surface);
+}
+
+.form-control:focus {
+  background-color: var(--ef-surface);
 }
 
 .form-control:focus,
@@ -242,7 +297,8 @@ body {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(220, 230, 255, 0.55);
+  /* sidebar-text a 75%, como o nav-label do design system (~5,4:1). */
+  color: rgba(220, 230, 255, 0.75);
 }
 
 .eqf-item-do-menu {
@@ -416,6 +472,9 @@ body {
 /* ---------- Tabelas ---------- */
 
 .eqf-tabela {
+  /* Linhas em surface, como o card que as contém (o Bootstrap herdaria o
+   * fundo da página). */
+  --bs-table-bg: var(--ef-surface);
   margin-bottom: 0;
   font-size: 0.875rem;
 }
@@ -449,16 +508,33 @@ body {
   white-space: nowrap;
 }
 
+/* Valores com tabular-nums na fonte do texto; mono fica para código e CPF
+ * ("Números de balcão" do design system). */
 .eqf-numero {
   text-align: right;
   white-space: nowrap;
-  font-family: var(--ef-font-mono);
   font-variant-numeric: tabular-nums;
 }
 
 .eqf-acoes-da-linha {
   white-space: nowrap;
   text-align: right;
+}
+
+/* Desktop: o histórico tem dez colunas e precisa caber a partir de 1280px sem
+ * esconder Situação e Ações atrás da rolagem. Cabeçalhos, selo de situação e
+ * botão da linha podem quebrar em duas linhas. Abaixo de 992px nada muda: a
+ * tabela segue em uma linha, com rolagem interna (.table-responsive). */
+@media (min-width: 992px) {
+  .eqf-tabela > thead > tr > th {
+    white-space: normal;
+    vertical-align: bottom;
+  }
+
+  .eqf-tabela .eqf-situacao,
+  .eqf-tabela .eqf-acoes-da-linha .btn {
+    white-space: normal;
+  }
 }
 
 /* ---------- Badge (design system, seção 3) ----------
@@ -520,15 +596,14 @@ body {
   white-space: nowrap;
 }
 
+/* O ponto é desenhado no fundo de um espaço não separável: assim ele fica
+ * colado à primeira palavra quando o selo quebra em duas linhas. */
 .eqf-situacao::before {
-  content: "";
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: 0.4rem;
-  border-radius: 50%;
-  background-color: currentcolor;
-  vertical-align: 0.07em;
+  content: "\00a0";
+  padding-left: 0.5rem;
+  margin-right: 0.15rem;
+  background: radial-gradient(circle closest-side, currentcolor 92%, transparent)
+    no-repeat left center / 0.5rem 0.5rem;
 }
 
 .eqf-situacao[data-situacao="ativo"] {
@@ -603,6 +678,7 @@ body {
 .form-control:disabled,
 .form-select:disabled {
   background-color: var(--ef-surface-2);
+  color: var(--ef-muted);
   cursor: not-allowed;
 }
 
@@ -666,8 +742,9 @@ body {
   color: #fff;
 }
 
+/* Branco pleno: a 85% ficava em 4,2:1 sobre o azul principal. */
 .eqf-atalho-destaque .eqf-subtitulo {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--ef-on-primary);
 }
 
 .eqf-atalho-link {
@@ -686,11 +763,12 @@ body {
   top: var(--ef-space-6);
 }
 
+/* Fonte do texto com tabular-nums (o rótulo "Total previsto: R$ …" é um texto
+ * só, contrato de teste); 1.25rem para caber em uma linha no painel. */
 .eqf-resumo-total {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--ef-primary);
-  font-family: var(--ef-font-mono);
   font-variant-numeric: tabular-nums;
 }
 

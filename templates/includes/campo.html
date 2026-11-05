@@ -14,15 +14,23 @@ no fim do formulário, uma vez — ver includes/legenda_obrigatorio.html).
 Opcional: "(opcional)" em texto apagado.
 
 Os textos de erro são os do backend. "ajuda" é texto do frontend, opcional.
+
+Os erros ficam num único bloco com id "<auto_id>_error": é o id que o Django
+5.2 põe no aria-describedby do campo com erro, para o leitor de tela anunciar a
+mensagem junto com o campo.
 {% endcomment %}
 <div class="mb-3">
   <label class="form-label" for="{{ campo.id_for_label }}">
     {{ campo.label }}{% if campo.field.required %} <span class="eqf-obrigatorio" aria-hidden="true">*</span>{% else %} <span class="eqf-opcional">(opcional)</span>{% endif %}
   </label>
   {{ campo }}
-  {% for erro in campo.errors %}
-    <div class="invalid-feedback d-block">{{ erro }}</div>
-  {% endfor %}
+  {% if campo.errors %}
+    <div class="invalid-feedback d-block"{% if campo.auto_id %} id="{{ campo.auto_id }}_error"{% endif %}>
+      {% for erro in campo.errors %}
+        <div>{{ erro }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
   {% if campo.help_text %}
     <div class="form-text">{{ campo.help_text }}</div>
   {% endif %}
