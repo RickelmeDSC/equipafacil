@@ -1,0 +1,257 @@
+/* EquipaFácil — camada de estilo própria sobre o Bootstrap 5.3 (DEV-07).
+ *
+ * Só aparência: nenhuma regra aqui habilita ou bloqueia ação. O que pode ser
+ * feito vem sempre do backend (indicadores de contexto), e o servidor revalida.
+ *
+ * Nada aqui depende de JavaScript.
+ */
+
+:root {
+  --eqf-marca: #0f5257;
+  --eqf-marca-clara: #15757c;
+  --eqf-fundo: #f3f6f7;
+  --eqf-borda: #dce3e6;
+  --eqf-texto-suave: #5c636a;
+}
+
+body {
+  background-color: var(--eqf-fundo);
+}
+
+/* ---------- Navegação ----------
+ * Sempre expandida, sem botão de colapso: a navegação precisa funcionar sem
+ * JavaScript, e o Bootstrap só abre o menu colapsado com o bundle JS. Em telas
+ * estreitas os itens quebram em linha, por isso o flex-wrap.
+ */
+
+.eqf-navbar {
+  background-image: linear-gradient(100deg, var(--eqf-marca), var(--eqf-marca-clara));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.eqf-navbar .navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.eqf-navbar .nav-link {
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+.eqf-navbar .nav-link:hover,
+.eqf-navbar .nav-link:focus-visible {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.eqf-navbar .nav-link[aria-current="page"] {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.eqf-identificacao {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ---------- Cabeçalho de página ---------- */
+
+.eqf-titulo {
+  font-size: 1.5rem;
+  font-weight: 650;
+  margin: 0;
+  color: #16242b;
+}
+
+.eqf-subtitulo {
+  margin: 0.15rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--eqf-texto-suave);
+}
+
+/* ---------- Blocos de conteúdo ---------- */
+
+.eqf-painel {
+  background-color: #fff;
+  border: 1px solid var(--eqf-borda);
+  border-radius: 0.75rem;
+}
+
+.eqf-painel > .eqf-painel-cabecalho {
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid var(--eqf-borda);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.eqf-painel > .eqf-painel-corpo {
+  padding: 1.125rem;
+}
+
+@media (max-width: 575.98px) {
+  .eqf-painel > .eqf-painel-cabecalho,
+  .eqf-painel > .eqf-painel-corpo {
+    padding: 0.875rem;
+  }
+}
+
+/* ---------- Tabelas ---------- */
+
+.eqf-tabela {
+  margin-bottom: 0;
+}
+
+.eqf-tabela > thead > tr > th {
+  background-color: #fbfcfc;
+  border-bottom: 2px solid var(--eqf-borda);
+  color: var(--eqf-texto-suave);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.eqf-tabela > tbody > tr > td {
+  vertical-align: middle;
+}
+
+.eqf-codigo {
+  font-family: var(--bs-font-monospace);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.eqf-numero {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.eqf-acoes-da-linha {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ---------- Situação do aluguel (RN004) ----------
+ * O texto da situação é filho direto do <td> (contrato verificado por teste do
+ * backend: `>Ativo</td>`). O selo é feito só com CSS, por data-situacao, sem
+ * elemento extra em volta do texto.
+ */
+
+.eqf-situacao {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eqf-situacao::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background-color: currentcolor;
+  vertical-align: 0.07em;
+}
+
+.eqf-situacao[data-situacao="ativo"] {
+  color: #146c43;
+}
+
+.eqf-situacao[data-situacao="atrasado"] {
+  color: #b02a37;
+}
+
+.eqf-situacao[data-situacao="encerrado"] {
+  color: var(--eqf-texto-suave);
+}
+
+.eqf-situacao[data-situacao="encerrado_com_atraso"] {
+  color: #92600b;
+}
+
+/* ---------- Estado vazio (CT04, CT16) ---------- */
+
+.eqf-vazio {
+  padding: 2.25rem 1rem;
+  text-align: center;
+  color: var(--eqf-texto-suave);
+}
+
+/* ---------- Formulários ---------- */
+
+.eqf-formulario {
+  max-width: 44rem;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin-bottom: 0.3rem;
+}
+
+.eqf-campo-de-pesquisa {
+  min-width: 12rem;
+  max-width: 26rem;
+}
+
+.eqf-opcional {
+  font-weight: 400;
+  color: var(--eqf-texto-suave);
+}
+
+/* Campo somente leitura: o Django manda disabled quando o código ou o CPF já
+ * têm aluguel registrado. O estilo apenas reforça o que a tela explica. */
+.form-control:disabled,
+.form-select:disabled {
+  background-color: #eef1f3;
+  cursor: not-allowed;
+}
+
+/* ---------- Resumo do aluguel (P07, D13) ---------- */
+
+.eqf-resumo-total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--eqf-marca);
+}
+
+/* ---------- Confirmação de exclusão (P04) ----------
+ * <details> funciona sem JavaScript; por isso não é um modal do Bootstrap.
+ */
+
+.eqf-confirmacao > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.eqf-confirmacao > summary::-webkit-details-marker {
+  display: none;
+}
+
+.eqf-confirmacao[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- Login ---------- */
+
+.eqf-pagina-de-login {
+  background-image: linear-gradient(160deg, var(--eqf-marca), #09343a);
+}
+
+.eqf-cartao-de-login {
+  max-width: 24rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ---------- Rodapé ---------- */
+
+.eqf-rodape {
+  border-top: 1px solid var(--eqf-borda);
+  color: var(--eqf-texto-suave);
+  font-size: 0.8125rem;
+}

@@ -1,0 +1,16 @@
+{% comment %}
+Mensagens do framework messages (DEV-07).
+
+Os textos vêm do backend (config/mensagens.py) e não são reescritos aqui. O
+nível "error" chega como "danger" por MESSAGE_TAGS; os outros níveis já
+coincidem com as classes do Bootstrap.
+
+Sem botão de fechar: ele depende do JavaScript do Bootstrap.
+{% endcomment %}
+{% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} mb-2" role="alert">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}

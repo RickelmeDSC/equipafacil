@@ -1,0 +1,33 @@
+{% load static %}<!doctype html>
+{% comment %}
+Layout base (DEV-07). Bootstrap 5.3 e o CSS do projeto são arquivos locais de
+static/, sem CDN (guia de integração, seção 5.3).
+
+Blocos: title, content (contrato), navegacao, rodape e as classes de corpo e de
+main, usadas pela tela de login. Nenhuma página depende de JavaScript.
+{% endcomment %}
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}EquipaFácil{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="d-flex flex-column min-vh-100 {% block classe_do_corpo %}{% endblock %}">
+  <a class="visually-hidden-focusable d-inline-block p-2" href="#conteudo">Ir para o conteúdo</a>
+  {% block navegacao %}{% include "includes/navbar.html" %}{% endblock %}
+  <main id="conteudo" class="flex-grow-1 {% block classe_do_main %}py-4{% endblock %}">
+    <div class="container">
+      {% include "includes/messages.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  {% block rodape %}
+  <footer class="eqf-rodape py-3">
+    <div class="container">EquipaFácil — gestão de aluguel de equipamentos.</div>
+  </footer>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>
