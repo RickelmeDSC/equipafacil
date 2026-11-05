@@ -2,54 +2,56 @@
 {% comment %}
 P01 — Início. Contexto: user.
 
-Só navegação para as áreas existentes (RF001–RF008). Nenhum indicador, contagem
-ou painel: a tela não calcula nada, e o backend não envia dados agregados.
+Cartões de atalho (design system, componente QuickCard) para as quatro áreas
+existentes (RF001–RF008). "Novo aluguel" vem em destaque, como a tarefa mais
+comum no balcão. Sem contagem nem indicador: o contexto só traz "user", e o
+design system marca essas contagens como opcionais, removíveis sem impacto.
 {% endcomment %}
 
 {% block title %}Início | EquipaFácil{% endblock %}
 
 {% block content %}
 <div class="mb-4">
-  <h1 class="eqf-titulo">EquipaFácil</h1>
-  <p class="eqf-subtitulo">Sessão iniciada como <strong>{{ user.get_username }}</strong>.</p>
+  <h1 class="eqf-boas-vindas">Olá, {{ user.get_username }}</h1>
+  <p class="eqf-subtitulo">O que você precisa fazer agora?</p>
 </div>
 
-<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3">
   <div class="col">
-    <div class="eqf-painel h-100 position-relative">
+    <div class="eqf-painel eqf-atalho eqf-atalho-destaque">
       <div class="eqf-painel-corpo">
         <h2 class="h6 mb-2">
-          <a class="text-decoration-none stretched-link" href="{% url 'equipamentos:lista' %}">Equipamentos</a>
-        </h2>
-        <p class="eqf-subtitulo mb-0">Cadastrar, pesquisar, editar, inativar e excluir equipamentos.</p>
-      </div>
-    </div>
-  </div>
-  <div class="col">
-    <div class="eqf-painel h-100 position-relative">
-      <div class="eqf-painel-corpo">
-        <h2 class="h6 mb-2">
-          <a class="text-decoration-none stretched-link" href="{% url 'clientes:lista' %}">Clientes</a>
-        </h2>
-        <p class="eqf-subtitulo mb-0">Cadastrar e editar os clientes da locadora.</p>
-      </div>
-    </div>
-  </div>
-  <div class="col">
-    <div class="eqf-painel h-100 position-relative">
-      <div class="eqf-painel-corpo">
-        <h2 class="h6 mb-2">
-          <a class="text-decoration-none stretched-link" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
+          <a class="eqf-atalho-link stretched-link" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
         </h2>
         <p class="eqf-subtitulo mb-0">Registrar um aluguel para um cliente e um equipamento disponível.</p>
       </div>
     </div>
   </div>
   <div class="col">
-    <div class="eqf-painel h-100 position-relative">
+    <div class="eqf-painel eqf-atalho">
       <div class="eqf-painel-corpo">
         <h2 class="h6 mb-2">
-          <a class="text-decoration-none stretched-link" href="{% url 'alugueis:historico' %}">Histórico</a>
+          <a class="eqf-atalho-link stretched-link" href="{% url 'equipamentos:lista' %}">Equipamentos</a>
+        </h2>
+        <p class="eqf-subtitulo mb-0">Cadastrar, pesquisar, editar, inativar e excluir equipamentos.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="eqf-painel eqf-atalho">
+      <div class="eqf-painel-corpo">
+        <h2 class="h6 mb-2">
+          <a class="eqf-atalho-link stretched-link" href="{% url 'clientes:lista' %}">Clientes</a>
+        </h2>
+        <p class="eqf-subtitulo mb-0">Cadastrar e editar os clientes da locadora.</p>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="eqf-painel eqf-atalho">
+      <div class="eqf-painel-corpo">
+        <h2 class="h6 mb-2">
+          <a class="eqf-atalho-link stretched-link" href="{% url 'alugueis:historico' %}">Histórico</a>
         </h2>
         <p class="eqf-subtitulo mb-0">Consultar os aluguéis registrados e registrar devoluções.</p>
       </div>

@@ -8,8 +8,9 @@ momento do aluguel e não mudam, nem na devolução em atraso. Sem multa.
 
 Dois detalhes de marcação que o backend verifica por teste e não devem mudar sem
 combinar: o texto da situação é filho direto do <td> (o selo colorido é só CSS,
-por data-situacao) e a célula do equipamento é "código — nome", com "(inativo)"
-no mesmo texto.
+por data-situacao — por isso não é um <span class="badge"> como no resto da
+tela) e a célula do equipamento é "código — nome", com "(inativo)" no mesmo
+texto.
 
 A tela não acessa nada fora do que a view carregou: o histórico é uma consulta
 única, e um teste garante que ela não cresce por linha.
@@ -18,7 +19,7 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
 {% block title %}Histórico de aluguéis | EquipaFácil{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+<div class="eqf-cabecalho-da-pagina">
   <div>
     <h1 class="eqf-titulo">Histórico de aluguéis</h1>
     <p class="eqf-subtitulo">Todos os aluguéis registrados, do mais recente para o mais antigo.</p>
@@ -27,6 +28,7 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
 </div>
 
 <div class="eqf-painel">
+  {% if object_list %}
   <div class="table-responsive">
     <table class="table eqf-tabela align-middle">
       <thead>
@@ -61,15 +63,16 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
               {% endif %}
             </td>
           </tr>
-        {% empty %}
-          <tr>
-            <td colspan="10">
-              <p class="eqf-vazio mb-0">{{ empty_message }}</p>
-            </td>
-          </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {% else %}
+    <div class="eqf-vazio">
+      <p class="eqf-vazio-titulo">{{ empty_message }}</p>
+      <p class="eqf-vazio-texto">Registre o primeiro aluguel para ver o histórico aqui.</p>
+      <a class="btn btn-primary" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
