@@ -1,45 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
 {% comment %}
-PROVISÓRIO (DEV-06): página mínima para validar o backend de P07 (novo aluguel, D13).
-Layout, Bootstrap, textos e a prévia em JavaScript definitivos são do frontend, conforme o contrato DEV-01.
-Variáveis: form, resumo (só depois de "Calcular resumo"), data_atual, data_minima,
-diarias_equipamentos (via json_script), sem_equipamentos_disponiveis, sem_clientes.
-Botões (obrigatórios, campo "acao"): name="acao" value="previa" calcula o resumo no servidor,
-sem gravar; name="acao" value="registrar" grava. Sem "acao", com outro valor ou com mais de um,
-nada é gravado e o formulário volta com erro. O backend recalcula tudo ao registrar.
-Textos do aviso de cancelamento e da ausência de opções: indefinidos no EQF-5 (provisórios).
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Novo aluguel | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>Novo aluguel</h1>
-    <p>Data atual: {{ data_atual|date:"d/m/Y" }}</p>
-    <p><strong>Atenção:</strong> depois de registrado, o aluguel não pode ser cancelado nem editado.</p>
-    {% if sem_clientes %}<p>Nenhum cliente cadastrado.</p>{% endif %}
-    {% if sem_equipamentos_disponiveis %}<p>Nenhum equipamento disponível para aluguel.</p>{% endif %}
-    {% if not sem_clientes and not sem_equipamentos_disponiveis %}
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      {% if resumo %}
-      <section>
-        <h2>Resumo (informativo)</h2>
-        <p>Diárias: {{ resumo.quantidade_diarias }}</p>
-        <p>Diária atual: R$ {{ resumo.valor_diaria|floatformat:"2g" }}</p>
-        <p>Total previsto: R$ {{ resumo.valor_previsto|floatformat:"2g" }}</p>
-        <p>O valor definitivo é recalculado no registro e aparece no histórico.</p>
-      </section>
+P07 — Novo aluguel (RF006, RN001, I1, D13).
+Contexto: form, resumo (só depois da prévia), data_atual, data_minima,
+diarias_equipamentos, sem_equipamentos_disponiveis, sem_clientes.
+
+Contrato dos botões (não mude sem combinar com o backend):
+- "acao=previa" calcula o resumo no servidor e não grava;
+- "acao=registrar" grava, e só aparece depois de uma prévia válida (D13 exige o
+  resumo antes da gravação);
+- a prévia vem ANTES no HTML, porque o Enter dentro de um campo dispara o
+  primeiro botão de envio do formulário;
+- sem "acao", com outro valor ou com mais de um, nada é gravado.
+
+Diárias, diária e total são sempre do backend. A estimativa em JavaScript é
+informativa, aparece só com script ativo e nunca substitui a prévia do servidor.
+{% endcomment %}
+
+{% block title %}Novo aluguel | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="eqf-titulo">Novo aluguel</h1>
+  <p class="eqf-subtitulo">Data atual: {{ data_atual|date:"d/m/Y" }}</p>
+</div>
+
+<div class="alert alert-warning eqf-formulario" role="alert">
+  <strong>Atenção:</strong> depois de registrado, o aluguel não pode ser cancelado nem editado.
+</div>
+
+{% if sem_clientes or sem_equipamentos_disponiveis %}
+  <div class="eqf-painel eqf-formulario">
+    <div class="eqf-painel-corpo">
+      {% if sem_clientes %}
+        <p>Nenhum cliente cadastrado.</p>
+        <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Cadastrar cliente</a>
       {% endif %}
-      <button type="submit" name="acao" value="previa">Calcular resumo</button>
-      {% if resumo %}<button type="submit" name="acao" value="registrar">Registrar aluguel</button>{% endif %}
-    </form>
-    {% endif %}
-    {{ diarias_equipamentos|json_script:"diarias-equipamentos" }}
-    <p><a href="{% url 'alugueis:historico' %}">Histórico</a> · <a href="{% url 'inicio' %}">Início</a></p>
-  </main>
-</body>
-</html>
+      {% if sem_equipamentos_disponiveis %}
+        <p{% if sem_clientes %} class="mt-4"{% endif %}>Nenhum equipamento disponível para aluguel.</p>
+        <a class="btn btn-outline-secondary" href="{% url 'equipamentos:lista' %}">Ver equipamentos</a>
+      {% endif %}
+    </div>
+  </div>
+{% else %}
+  <form class="eqf-painel eqf-formulario" method="post" novalidate>
+    <div class="eqf-painel-corpo">
+      {% csrf_token %}
+      {% include "includes/form_errors.html" %}
+
+      {% include "includes/campo.html" with campo=form.cliente %}
+      {% include "includes/campo.html" with campo=form.equipamento %}
+      <div class="row">
+        <div class="col-md-6">
+          {% include "includes/campo.html" with campo=form.data_retirada ajuda="Hoje ou uma data futura." %}
+        </div>
+        <div class="col-md-6">
+          {% include "includes/campo.html" with campo=form.data_devolucao_prevista %}
+        </div>
+      </div>
+
+      <p class="form-text" id="previa-ao-vivo" hidden></p>
+
+      {% if resumo %}
+        <div class="eqf-painel bg-light-subtle mt-3">
+          <div class="eqf-painel-corpo">
+            <h2 class="h6 mb-3">Resumo do aluguel</h2>
+            <dl class="row mb-2">
+              <dt class="col-7 col-sm-5 fw-normal">Quantidade de diárias</dt>
+              <dd class="col-5 col-sm-7 mb-1">{{ resumo.quantidade_diarias }}</dd>
+              <dt class="col-7 col-sm-5 fw-normal">Diária do equipamento</dt>
+              <dd class="col-5 col-sm-7 mb-0">R$ {{ resumo.valor_diaria|floatformat:"2g" }}</dd>
+            </dl>
+            <p class="eqf-resumo-total mb-1">Total previsto: R$ {{ resumo.valor_previsto|floatformat:"2g" }}</p>
+            <p class="eqf-subtitulo mb-0">
+              O valor definitivo é recalculado no registro e aparece no histórico.
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn {% if resumo %}btn-outline-secondary{% else %}btn-primary{% endif %}" type="submit" name="acao" value="previa">Calcular resumo</button>
+        {% if resumo %}
+          <button class="btn btn-primary" type="submit" name="acao" value="registrar">Registrar aluguel</button>
+        {% endif %}
+        <a class="btn btn-link" href="{% url 'alugueis:historico' %}">Cancelar</a>
+      </div>
+    </div>
+  </form>
+{% endif %}
+
+{{ diarias_equipamentos|json_script:"diarias-equipamentos" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/previa-aluguel.js' %}" defer></script>
+{% endblock %}

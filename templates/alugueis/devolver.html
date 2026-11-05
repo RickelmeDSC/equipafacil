@@ -1,40 +1,86 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-06): página mínima para validar o backend de P09 (devolução).
-Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
-Variáveis: object (aluguel, em leitura), form, pode_devolver, data_atual, data_minima, data_maxima.
-Devolução registrada uma única vez; sem multa e sem edição posterior (I2).
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Registrar devolução | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>Registrar devolução</h1>
-    <dl>
-      <dt>Cliente</dt><dd>{{ object.cliente.nome_completo }}</dd>
-      <dt>Equipamento</dt><dd>{{ object.equipamento.codigo }} — {{ object.equipamento.nome }}</dd>
-      <dt>Retirada</dt><dd>{{ object.data_retirada|date:"d/m/Y" }}</dd>
-      <dt>Devolução prevista</dt><dd>{{ object.data_devolucao_prevista|date:"d/m/Y" }}</dd>
-      <dt>Diárias</dt><dd>{{ object.quantidade_diarias }}</dd>
-      <dt>Valor contratado</dt><dd>R$ {{ object.valor_contratado|floatformat:"2g" }}</dd>
-      <dt>Situação</dt><dd>{{ object.situacao }}</dd>
+P09 — Registrar devolução (RF007, RN004, I1, I2).
+Contexto: object (aluguel, em leitura), form, pode_devolver, data_atual,
+data_minima, data_maxima.
+
+A devolução é registrada uma única vez e não pode ser corrigida depois (I2). O
+atraso aparece na situação e não gera multa: o valor contratado não muda.
+
+Os atributos min e max do campo de data vêm do backend e só orientam a tela; o
+serviço valida as datas de novo.
+{% endcomment %}
+
+{% block title %}Registrar devolução | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="eqf-titulo">Registrar devolução</h1>
+  <p class="eqf-subtitulo">Data atual: {{ data_atual|date:"d/m/Y" }}</p>
+</div>
+
+<div class="eqf-painel eqf-formulario mb-3">
+  <div class="eqf-painel-cabecalho">Aluguel</div>
+  <div class="eqf-painel-corpo">
+    <dl class="row mb-0">
+      <dt class="col-sm-5 fw-normal">Cliente</dt>
+      <dd class="col-sm-7 fw-semibold">{{ object.cliente.nome_completo }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Equipamento</dt>
+      <dd class="col-sm-7 fw-semibold">{{ object.equipamento.codigo }} — {{ object.equipamento.nome }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Retirada</dt>
+      <dd class="col-sm-7">{{ object.data_retirada|date:"d/m/Y" }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Devolução prevista</dt>
+      <dd class="col-sm-7">{{ object.data_devolucao_prevista|date:"d/m/Y" }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Quantidade de diárias</dt>
+      <dd class="col-sm-7">{{ object.quantidade_diarias }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Valor contratado</dt>
+      <dd class="col-sm-7">R$ {{ object.valor_contratado|floatformat:"2g" }}</dd>
+
+      <dt class="col-sm-5 fw-normal">Situação</dt>
+      <dd class="col-sm-7 eqf-situacao mb-0" data-situacao="{{ object.situacao_codigo }}">{{ object.situacao }}</dd>
     </dl>
-    {% if pode_devolver %}
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Confirmar devolução</button>
-    </form>
-    {% elif not object.aberto %}
-    {{ form.non_field_errors }}
-    <p>Este aluguel já foi encerrado.</p>
+  </div>
+</div>
+
+{% if pode_devolver %}
+  <div class="eqf-painel eqf-formulario">
+    <div class="eqf-painel-cabecalho">Devolução</div>
+    <div class="eqf-painel-corpo">
+      <p class="eqf-subtitulo">
+        A devolução é registrada uma única vez e não pode ser corrigida depois. Não há multa por atraso.
+      </p>
+
+      {% include "includes/form_errors.html" %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            {% include "includes/campo.html" with campo=form.data_devolucao_real %}
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <button class="btn btn-primary" type="submit">Confirmar devolução</button>
+          <a class="btn btn-outline-secondary" href="{% url 'alugueis:historico' %}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <div class="eqf-formulario">
+    {% if not object.aberto %}
+      <div class="alert alert-warning" role="alert">Este aluguel já foi encerrado.</div>
     {% else %}
-    <p>A devolução só pode ser registrada a partir da data de retirada.</p>
+      <div class="alert alert-warning" role="alert">
+        A devolução só pode ser registrada a partir da data de retirada.
+      </div>
     {% endif %}
-    <p><a href="{% url 'alugueis:historico' %}">Voltar ao histórico</a></p>
-  </main>
-</body>
-</html>
+    <a class="btn btn-outline-secondary" href="{% url 'alugueis:historico' %}">Voltar ao histórico</a>
+  </div>
+{% endif %}
+{% endblock %}
