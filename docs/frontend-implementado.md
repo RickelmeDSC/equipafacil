@@ -2,7 +2,7 @@
 
 > **Situação:** implementado na branch `feat/frontend-eqf-19-interface`, a partir da `main` em `5995c8d`. **Aguarda revisão cruzada (Rickelme) e homologação visual (equipe de Testes).** Substitui os 10 templates provisórios do backend. Nenhum arquivo `.py` foi alterado e nenhum teste do backend foi ajustado: a suíte passa como estava.
 >
-> O contrato técnico (PR #2) continua **proposta**; esta implementação consome as rotas, variáveis e campos que já estão na `main` e segue [`integracao-frontend-dev07.md`](integracao-frontend-dev07.md).
+> O contrato técnico (PR #2) continua **proposta**; esta implementação consome as rotas, variáveis e campos que já estão na `main` e segue [`integracao-frontend-dev07.md`](integracao-frontend-dev07.md). Em 05/11/2026, o visual foi redesenhado conforme [`equipafacil-design-system.md`](../equipafacil-design-system.md) (tokens, tipografia e componentes); ver a seção "Adoção do design system" abaixo.
 
 Escopo: P01–P10, com RF001–RF008 e as decisões D10–D15, I1–I5. Fora do escopo: views, forms, services, urls, models, migrations, dependências Python, banco e deploy.
 
@@ -22,6 +22,44 @@ Escopo: P01–P10, com RF001–RF008 e as decisões D10–D15, I1–I5. Fora do 
 | `static/vendor/bootstrap/bootstrap.min.css` | Bootstrap 5.3.8 local, sem CDN (ver o `README.md` da pasta) |
 | `static/css/app.css` | Camada de estilo do projeto sobre o Bootstrap |
 | `static/js/previa-aluguel.js` | Estimativa informativa de P07 |
+
+## Adoção do design system (05/11/2026)
+
+`equipafacil-design-system.md` (31 páginas, convertido de um protótipo estático
+separado) foi adotado como a referência visual, a pedido de Raphael. Ele
+próprio se declara "proposta visual para validação com Rickelme e Raphael" e
+separa claramente regra de negócio aprovada (não tocada) de proposta visual
+(o que mudou aqui). Aplicado: tokens de cor, tipografia (IBM Plex, local),
+espaçamento, raios e sombras; os componentes Button, FormField, Badge, Table,
+Alert, EmptyState, ActionPanel, AppShell (barra lateral), QuickCard e
+RentalSummary.
+
+**Tema escuro:** não implementado — o próprio arquivo marca o claro como
+principal e o escuro como "opcional (proposta)".
+
+**Ícones (Bootstrap Icons):** não implementados nesta etapa. São recomendação
+do design system, não componente obrigatório; ficam como pendência, e exigiriam
+auto-hospedar mais um pacote de fonte de ícone.
+
+### Onde a implementação diverge da proposta, e por quê
+
+| Proposta do design system | O que foi implementado | Por quê |
+|---|---|---|
+| Badge de disponibilidade em três estados (Disponível / Alugado / Indisponível-inativo) | Dois estados (Disponível / Indisponível) | `equipamentos/tests/test_cenarios_ct.py` (CT03) espera o texto "Indisponível" também para um equipamento **ativo** com aluguel em aberto — não "Alugado". O contrato só expõe `disponivel` (booleano), não um terceiro estado |
+| Badge de situação do aluguel como `<span class="badge">` na tabela | Cor e ponto só por CSS no próprio `<td>` (`data-situacao`) | O backend testa a situação como **texto filho direto do `<td>`** (`>Ativo</td>`); um `<span>` dentro quebraria esse contrato |
+| P04 como modal a partir da listagem | Página própria (rota `equipamentos:acoes` já existente) | Mudar para modal exigiria alterar o fluxo de rotas, que é backend |
+| Confirmação de exclusão digitando o código | Bloco `<details>` com confirmação simples | O próprio design system já endossa essa troca "neste repositório" (linha 242); a página precisa funcionar sem JavaScript |
+| Barra lateral com gaveta (`offcanvas`) no celular | Barra lateral reflui para uma linha horizontal no topo, sem gaveta | Gaveta depende do bundle JavaScript do Bootstrap; a regra deste projeto é a página funcionar sem JavaScript, e isso tem precedência sobre a proposta |
+| Bootstrap Icons, fontes via Google Fonts (CDN) | Bootstrap, fontes IBM Plex: arquivos locais; ícones adiados | O guia de integração proíbe CDN e dependência externa sem acordo (seção 5.4); o próprio design system já avisa, na nota do topo, que o Bootstrap deve ficar local aqui |
+| Tema escuro | Não implementado | Marcado como opcional/proposta no próprio arquivo |
+
+### Fontes locais
+
+IBM Plex Sans (400/500/600/700) e IBM Plex Mono (400/500), baixadas do Google
+Fonts e versionadas em `static/fonts/` — mesmo princípio do Bootstrap: arquivo
+local, sem CDN. Só o subset **latin** (cobre os acentos do português:
+ã, õ, ç, á, é, í, ó, ú…), para manter o pacote pequeno (~140 KB). Procedência,
+versões e SHA-256 em `static/fonts/README.md`.
 
 ## Decisões de interface tomadas aqui
 
@@ -77,7 +115,8 @@ Os textos provisórios que já estavam nos templates do backend e continuam igua
 |-------------|-----------|
 | `python manage.py test` (SQLite) | 377 testes, OK, 24 pulados — igual à baseline da `main` antes da mudança |
 | `ruff check .` e `black --check .` | Sem alteração a relatar (nenhum `.py` foi tocado) |
-| `collectstatic` com `CompressedManifestStaticFilesStorage` | 131 arquivos, 393 pós-processados, sem erro — é o que o job Gunicorn da CI faz |
+| `collectstatic` com `CompressedManifestStaticFilesStorage` | 138 arquivos, 402 pós-processados, sem erro (inclui as 6 fontes) — é o que o job Gunicorn da CI faz |
+| Render das 10 telas (21 variantes) contra um banco local com dados fictícios | Todas HTTP 200; zero tag HTML desbalanceada; os 3 arquivos estáticos (Bootstrap, `app.css`, `previa-aluguel.js`) resolvem |
 
 Não verificado nesta etapa: PostgreSQL local (os 24 testes pulados), navegação manual no navegador, responsividade medida em dispositivo real e leitor de tela.
 
