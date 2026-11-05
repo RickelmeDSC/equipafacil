@@ -1,38 +1,46 @@
 {% comment %}
-Navegação principal (DEV-07). Sempre expandida, sem botão de colapso: o menu
-colapsado do Bootstrap depende do bundle JavaScript, e as páginas precisam
-funcionar sem JavaScript. Em telas estreitas os itens quebram em linha.
+Barra lateral (AppShell, DEV-07). Fixa no desktop; no celular reflui para uma
+barra horizontal no topo — sem gaveta e sem botão de alternância, porque isso
+dependeria do bundle JavaScript do Bootstrap, e as páginas precisam funcionar
+sem JavaScript.
 
-Sair é POST com csrf_token (a LogoutView aceita só POST). O item atual é marcado
-por request.resolver_match, sem repetir regra do backend.
+Agrupamento conforme o design system: Início isolado; Cadastros (Equipamentos,
+Clientes); Aluguéis (Novo aluguel, Histórico). Sempre expandido, sem menu
+colapsável.
+
+Sair é POST com csrf_token (a LogoutView aceita só POST). O item atual é
+marcado por request.resolver_match, sem repetir regra do backend.
 {% endcomment %}
-<nav class="navbar eqf-navbar py-2" data-bs-theme="dark" aria-label="Navegação principal">
-  <div class="container flex-wrap gap-2">
-    <a class="navbar-brand" href="{% url 'inicio' %}">EquipaFácil</a>
-    {% if user.is_authenticated %}
-      {% with area=request.resolver_match.app_name tela=request.resolver_match.url_name %}
-      <ul class="navbar-nav flex-row flex-wrap gap-1 me-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'equipamentos:lista' %}"{% if area == "equipamentos" %} aria-current="page"{% endif %}>Equipamentos</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'clientes:lista' %}"{% if area == "clientes" %} aria-current="page"{% endif %}>Clientes</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'alugueis:criar' %}"{% if area == "alugueis" and tela == "criar" %} aria-current="page"{% endif %}>Novo aluguel</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'alugueis:historico' %}"{% if area == "alugueis" and tela != "criar" %} aria-current="page"{% endif %}>Histórico</a>
-        </li>
-      </ul>
-      {% endwith %}
-      <div class="d-flex align-items-center gap-2">
-        <span class="eqf-identificacao">{{ user.get_username }}</span>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
-        </form>
-      </div>
-    {% endif %}
+{% if user.is_authenticated %}
+<nav class="eqf-barra-lateral" aria-label="Navegação principal">
+  <a class="eqf-marca" href="{% url 'inicio' %}">EquipaFácil</a>
+
+  {% with area=request.resolver_match.app_name tela=request.resolver_match.url_name %}
+  <div class="eqf-menu">
+    <div class="eqf-grupo-do-menu">
+      <a class="eqf-item-do-menu" href="{% url 'inicio' %}"{% if not area %} aria-current="page"{% endif %}>Início</a>
+    </div>
+
+    <div class="eqf-grupo-do-menu">
+      <div class="eqf-titulo-do-grupo">Cadastros</div>
+      <a class="eqf-item-do-menu" href="{% url 'equipamentos:lista' %}"{% if area == "equipamentos" %} aria-current="page"{% endif %}>Equipamentos</a>
+      <a class="eqf-item-do-menu" href="{% url 'clientes:lista' %}"{% if area == "clientes" %} aria-current="page"{% endif %}>Clientes</a>
+    </div>
+
+    <div class="eqf-grupo-do-menu">
+      <div class="eqf-titulo-do-grupo">Aluguéis</div>
+      <a class="eqf-item-do-menu" href="{% url 'alugueis:criar' %}"{% if area == "alugueis" and tela == "criar" %} aria-current="page"{% endif %}>Novo aluguel</a>
+      <a class="eqf-item-do-menu" href="{% url 'alugueis:historico' %}"{% if area == "alugueis" and tela != "criar" %} aria-current="page"{% endif %}>Histórico</a>
+    </div>
+  </div>
+  {% endwith %}
+
+  <div class="eqf-rodape-da-barra">
+    <span class="eqf-identificacao">{{ user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
+    </form>
   </div>
 </nav>
+{% endif %}

@@ -1,5 +1,5 @@
 {% comment %}
-Um campo de formulário (DEV-07). Uso:
+Um campo de formulário (DEV-07; design system, componente FormField). Uso:
 
   {% include "includes/campo.html" with campo=form.codigo %}
   {% include "includes/campo.html" with campo=form.valor_diaria ajuda="..." %}
@@ -9,11 +9,15 @@ já vêm do backend (config/formularios.py), e os atributos min, max, disabled e
 required vêm do Django. Nada é redeclarado aqui, para a tela não divergir do
 formulário do servidor.
 
+Obrigatório: asterisco ao lado do rótulo (a legenda "* Campo obrigatório" fica
+no fim do formulário, uma vez — ver includes/legenda_obrigatorio.html).
+Opcional: "(opcional)" em texto apagado.
+
 Os textos de erro são os do backend. "ajuda" é texto do frontend, opcional.
 {% endcomment %}
 <div class="mb-3">
   <label class="form-label" for="{{ campo.id_for_label }}">
-    {{ campo.label }}{% if not campo.field.required %} <span class="eqf-opcional">(opcional)</span>{% endif %}
+    {{ campo.label }}{% if campo.field.required %} <span class="eqf-obrigatorio" aria-hidden="true">*</span>{% else %} <span class="eqf-opcional">(opcional)</span>{% endif %}
   </label>
   {{ campo }}
   {% for erro in campo.errors %}
