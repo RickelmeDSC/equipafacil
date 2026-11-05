@@ -1,24 +1,55 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-05): página mínima para validar o backend de P06 (cadastro e edição de cliente).
-Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
-Variáveis: form; na edição, também object e cpf_editavel. Sem exclusão de cliente.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if object %}Editar{% else %}Novo{% endif %} cliente | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>{% if object %}Editar cliente{% else %}Novo cliente{% endif %}</h1>
-    {% if object and not cpf_editavel %}<p>O CPF não pode ser alterado porque o cliente já possui aluguel registrado.</p>{% endif %}
-    <form method="post">
+P06 — Cadastro e edição de cliente (RF005, RN002, I5, D12).
+Contexto: form; na edição, também object e cpf_editavel.
+
+O CPF é digitado com ou sem pontos e hífen: o backend normaliza, guarda 11
+dígitos, valida os dígitos verificadores e devolve a exibição formatada. A tela
+não faz máscara em JavaScript nem valida CPF — a regra é do servidor.
+
+Com cpf_editavel falso, o campo chega disabled e a tela só explica o motivo.
+Não existe exclusão de cliente (RN003).
+{% endcomment %}
+
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} cliente | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="eqf-titulo">{% if object %}Editar cliente{% else %}Novo cliente{% endif %}</h1>
+  {% if object %}
+    <p class="eqf-subtitulo">{{ object.nome_completo }}</p>
+  {% endif %}
+</div>
+
+<div class="eqf-painel eqf-formulario">
+  <div class="eqf-painel-corpo">
+    {% if object and not cpf_editavel %}
+      <div class="alert alert-info" role="alert">
+        O CPF não pode ser alterado porque o cliente já possui aluguel registrado.
+      </div>
+    {% endif %}
+
+    {% include "includes/form_errors.html" %}
+
+    <form method="post" novalidate>
       {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Salvar</button>
+      {% include "includes/campo.html" with campo=form.nome_completo %}
+      <div class="row">
+        <div class="col-md-6">
+          {% include "includes/campo.html" with campo=form.cpf ajuda="Com ou sem pontos e hífen." %}
+        </div>
+        <div class="col-md-6">
+          {% include "includes/campo.html" with campo=form.telefone ajuda="Com DDD, 10 ou 11 dígitos. Exemplo: (81) 99999-8888." %}
+        </div>
+      </div>
+      {% include "includes/campo.html" with campo=form.email %}
+      {% include "includes/legenda_obrigatorio.html" %}
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn btn-outline-secondary" href="{% url 'clientes:lista' %}">Cancelar</a>
+      </div>
     </form>
-    <p><a href="{% url 'clientes:lista' %}">Voltar</a></p>
-  </main>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

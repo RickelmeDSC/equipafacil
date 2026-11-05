@@ -1,53 +1,126 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-04): página mínima para validar o backend de P04 (excluir, inativar, reativar).
-Layout, Bootstrap (ex.: modal de confirmação) e textos definitivos são do frontend.
-Variáveis: object, acoes (com motivos), tem_historico, tem_aluguel_ativo, pode_excluir,
-pode_inativar, pode_reativar. Os indicadores só orientam a tela: o backend revalida tudo.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ações do equipamento | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>{{ object.codigo }} — {{ object.nome }}</h1>
-    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    <p>Situação: {% if object.ativo %}Ativo{% else %}Inativo{% endif %}</p>
+P04 — Ações do equipamento (RF004, RN003, D10, I3; design system, componente
+ActionPanel).
+Contexto: object, acoes (motivo_exclusao, motivo_inativacao, motivo_reativacao),
+tem_historico, tem_aluguel_ativo, pode_excluir, pode_inativar, pode_reativar.
 
-    <section>
-      <h2>Excluir</h2>
-      {% if pode_excluir %}
-      <form method="post" action="{% url 'equipamentos:excluir' object.pk %}">
-        {% csrf_token %}
-        <label><input type="checkbox" name="confirmacao" value="sim" required> Confirmo a exclusão definitiva</label>
-        <button type="submit">Excluir</button>
-      </form>
-      {% else %}<p>{{ acoes.motivo_exclusao }}</p>{% endif %}
-    </section>
+As três ações aparecem sempre; a que não se aplica fica com o botão
+desabilitado e o motivo ao lado — nunca só o botão cinza. O backend só envia
+motivo quando a ação está de fato bloqueada por uma regra; quando ela não se
+aplica porque já foi feita (equipamento já inativo ou já ativo), o motivo vem
+vazio e o texto ao lado ("Já está inativo."/"Já está ativo.") é só do
+frontend, como o próprio design system antecipa para esses dois casos.
 
-    <section>
-      <h2>Inativar</h2>
-      {% if pode_inativar %}
+Os indicadores só decidem o que a tela mostra; não autorizam nada. Cada POST é
+revalidado pelo serviço dentro da transação, e um POST montado à mão para uma
+ação bloqueada é recusado.
+
+A confirmação de exclusão é um bloco <details> com o campo confirmacao=sim, e
+não um modal: a página precisa funcionar sem JavaScript (o próprio design
+system já endossa essa troca para este repositório).
+{% endcomment %}
+
+{% block title %}Ações do equipamento | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="eqf-cabecalho-da-pagina">
+  <div>
+    <h1 class="eqf-titulo">{{ object.codigo }} — {{ object.nome }}</h1>
+    <p class="eqf-subtitulo">{{ object.get_categoria_display }}</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'equipamentos:editar' object.pk %}">Editar</a>
+    <a class="btn btn-outline-secondary" href="{% url 'equipamentos:lista' %}">Voltar para a lista</a>
+  </div>
+</div>
+
+<div class="eqf-painel eqf-formulario mb-3">
+  <div class="eqf-painel-corpo d-flex flex-wrap gap-4">
+    <div>
+      <div class="eqf-subtitulo">Situação</div>
+      {% if object.ativo %}
+        <span class="eqf-badge eqf-badge-outline">Ativo</span>
+      {% else %}
+        <span class="eqf-badge eqf-badge-neutral">Inativo</span>
+      {% endif %}
+    </div>
+    <div>
+      <div class="eqf-subtitulo">Histórico de locação</div>
+      <strong>{% if tem_historico %}Possui{% else %}Não possui{% endif %}</strong>
+    </div>
+    <div>
+      <div class="eqf-subtitulo">Aluguel ativo</div>
+      <strong>{% if tem_aluguel_ativo %}Possui{% else %}Não possui{% endif %}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="eqf-painel eqf-formulario mb-3">
+  <div class="eqf-painel-cabecalho">Inativar</div>
+  <div class="eqf-painel-corpo">
+    <p class="eqf-subtitulo">
+      O equipamento inativo deixa de ficar disponível para novos aluguéis e continua no histórico.
+    </p>
+    {% if pode_inativar %}
       <form method="post" action="{% url 'equipamentos:inativar' object.pk %}">
         {% csrf_token %}
-        <button type="submit">Inativar</button>
+        <button class="btn btn-outline-secondary" type="submit">Inativar equipamento</button>
       </form>
-      {% elif acoes.motivo_inativacao %}<p>{{ acoes.motivo_inativacao }}</p>{% endif %}
-    </section>
+    {% else %}
+      <div class="eqf-acao-bloqueada">
+        <button class="btn btn-outline-secondary" type="button" disabled>Inativar equipamento</button>
+        <p class="eqf-motivo-do-bloqueio">{{ acoes.motivo_inativacao|default:"Já está inativo." }}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
 
-    <section>
-      <h2>Reativar</h2>
-      {% if pode_reativar %}
+<div class="eqf-painel eqf-formulario mb-3">
+  <div class="eqf-painel-cabecalho">Reativar</div>
+  <div class="eqf-painel-corpo">
+    <p class="eqf-subtitulo">
+      O equipamento reativado volta a ficar disponível para aluguel. O histórico não é alterado.
+    </p>
+    {% if pode_reativar %}
       <form method="post" action="{% url 'equipamentos:reativar' object.pk %}">
         {% csrf_token %}
-        <button type="submit">Reativar</button>
+        <button class="btn btn-outline-secondary" type="submit">Reativar equipamento</button>
       </form>
-      {% elif acoes.motivo_reativacao %}<p>{{ acoes.motivo_reativacao }}</p>{% endif %}
-    </section>
+    {% else %}
+      <div class="eqf-acao-bloqueada">
+        <button class="btn btn-outline-secondary" type="button" disabled>Reativar equipamento</button>
+        <p class="eqf-motivo-do-bloqueio">{{ acoes.motivo_reativacao|default:"Já está ativo." }}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
 
-    <p><a href="{% url 'equipamentos:lista' %}">Voltar</a></p>
-  </main>
-</body>
-</html>
+<div class="eqf-painel eqf-formulario">
+  <div class="eqf-painel-cabecalho text-danger-emphasis">Excluir</div>
+  <div class="eqf-painel-corpo">
+    <p class="eqf-subtitulo">
+      A exclusão apaga o equipamento do sistema e só é possível enquanto ele não tiver histórico de locação.
+    </p>
+    {% if pode_excluir %}
+      <details class="eqf-confirmacao">
+        <summary class="btn btn-outline-danger">Excluir equipamento</summary>
+        <div class="alert alert-danger mb-0" role="alert">
+          <p class="fw-semibold mb-1">Confirmar a exclusão de {{ object.codigo }} — {{ object.nome }}?</p>
+          <p class="mb-3">Esta ação é definitiva e não pode ser desfeita.</p>
+          <form method="post" action="{% url 'equipamentos:excluir' object.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="confirmacao" value="sim">
+            <button class="btn btn-danger" type="submit">Confirmar exclusão</button>
+          </form>
+        </div>
+      </details>
+    {% else %}
+      <div class="eqf-acao-bloqueada">
+        <button class="btn btn-outline-danger" type="button" disabled>Excluir equipamento</button>
+        <p class="eqf-motivo-do-bloqueio">{{ acoes.motivo_exclusao }}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

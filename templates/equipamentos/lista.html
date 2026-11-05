@@ -1,48 +1,101 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-04): página mínima para validar o backend de P02 (lista e pesquisa).
-Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
-Variáveis: object_list (cada item com .acoes), query, empty_message.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Equipamentos | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>Equipamentos</h1>
-    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    <form method="get" action="{% url 'equipamentos:lista' %}">
-      <label for="id_q">Pesquisar por código ou nome</label>
-      <input type="search" id="id_q" name="q" value="{{ query }}">
-      <button type="submit">Pesquisar</button>
-    </form>
-    <p><a href="{% url 'equipamentos:criar' %}">Novo equipamento</a></p>
-    <table>
+P02 — Lista e pesquisa de equipamentos (RF002, CT03, CT04).
+Contexto: object_list (codigo, nome, get_categoria_display, valor_diaria, ativo,
+disponivel, acoes), query, empty_message.
+
+Situação (ativo/inativo) e disponibilidade vêm calculadas do backend: a
+disponibilidade é derivada (ativo e sem aluguel aberto, inclusive de retirada
+futura) e não existe campo manual. A pesquisa é só por código ou nome.
+
+Disponibilidade com dois estados (Disponível/Indisponível), não três: o teste
+do backend (CT03) espera "Indisponível" também para um equipamento ativo com
+aluguel em aberto, não um terceiro texto "Alugado".
+
+A tela não acessa nada além do que a view já carregou: a lista é uma única
+consulta, e um teste do backend garante que ela não cresce por linha.
+{% endcomment %}
+
+{% block title %}Equipamentos | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="eqf-cabecalho-da-pagina">
+  <div>
+    <h1 class="eqf-titulo">Equipamentos</h1>
+    <p class="eqf-subtitulo">Equipamentos ativos e inativos da locadora.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'equipamentos:criar' %}">Novo equipamento</a>
+</div>
+
+<form class="eqf-painel mb-3" method="get" action="{% url 'equipamentos:lista' %}">
+  <div class="eqf-painel-corpo">
+    <label class="form-label" for="id_q">Pesquisar por código ou nome</label>
+    <div class="d-flex flex-wrap gap-2">
+      <input class="form-control eqf-campo-de-pesquisa" type="search" id="id_q" name="q" value="{{ query }}">
+      <button class="btn btn-outline-secondary" type="submit">Pesquisar</button>
+      {% if query %}
+        <a class="btn btn-link" href="{% url 'equipamentos:lista' %}">Limpar</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<div class="eqf-painel">
+  {% if object_list %}
+  <div class="table-responsive">
+    <table class="table eqf-tabela align-middle">
       <thead>
-        <tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Diária</th><th>Situação</th><th>Disponibilidade</th><th>Ações</th></tr>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Nome</th>
+          <th scope="col">Categoria</th>
+          <th scope="col" class="eqf-numero">Diária</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Disponibilidade</th>
+          <th scope="col" class="eqf-acoes-da-linha">Ações</th>
+        </tr>
       </thead>
       <tbody>
         {% for equipamento in object_list %}
-        <tr>
-          <td>{{ equipamento.codigo }}</td>
-          <td>{{ equipamento.nome }}</td>
-          <td>{{ equipamento.get_categoria_display }}</td>
-          <td>R$ {{ equipamento.valor_diaria }}</td>
-          <td>{% if equipamento.ativo %}Ativo{% else %}Inativo{% endif %}</td>
-          <td>{% if equipamento.disponivel %}Disponível{% else %}Indisponível{% endif %}</td>
-          <td>
-            <a href="{% url 'equipamentos:editar' equipamento.pk %}">Editar</a>
-            <a href="{% url 'equipamentos:acoes' equipamento.pk %}">Ações</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7">{{ empty_message }}</td></tr>
+          <tr class="{% if not equipamento.ativo %}eqf-linha-inativa{% endif %}">
+            <td class="eqf-codigo">{{ equipamento.codigo }}</td>
+            <td>{{ equipamento.nome }}</td>
+            <td>{{ equipamento.get_categoria_display }}</td>
+            <td class="eqf-numero">R$ {{ equipamento.valor_diaria|floatformat:"2g" }}</td>
+            <td>
+              {% if equipamento.ativo %}
+                <span class="eqf-badge eqf-badge-outline">Ativo</span>
+              {% else %}
+                <span class="eqf-badge eqf-badge-neutral">Inativo</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if equipamento.disponivel %}
+                <span class="eqf-badge eqf-badge-success">Disponível</span>
+              {% else %}
+                <span class="eqf-badge eqf-badge-warning">Indisponível</span>
+              {% endif %}
+            </td>
+            <td class="eqf-acoes-da-linha">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'equipamentos:editar' equipamento.pk %}">Editar</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'equipamentos:acoes' equipamento.pk %}">Ações</a>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-    <p><a href="{% url 'inicio' %}">Início</a></p>
-  </main>
-</body>
-</html>
+  </div>
+  {% else %}
+    <div class="eqf-vazio">
+      <p class="eqf-vazio-titulo">{{ empty_message }}</p>
+      {% if query %}
+        <p class="eqf-vazio-texto">Pesquise pelo nome ou pelo código do equipamento.</p>
+        <a class="btn btn-outline-secondary" href="{% url 'equipamentos:lista' %}">Limpar pesquisa</a>
+      {% else %}
+        <p class="eqf-vazio-texto">Cadastre o primeiro equipamento para começar a registrar aluguéis.</p>
+        <a class="btn btn-primary" href="{% url 'equipamentos:criar' %}">Novo equipamento</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

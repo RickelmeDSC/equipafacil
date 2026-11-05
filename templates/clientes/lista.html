@@ -1,39 +1,60 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-05): página mínima para validar o backend de P05 (lista de clientes).
-Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
-D14: sem pesquisa e sem página de detalhe; a consulta é pela própria lista.
-Variáveis: object_list (nome_completo, cpf_formatado, telefone_formatado, email), empty_message.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Clientes | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>Clientes</h1>
-    {% if messages %}<ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}
-    <p><a href="{% url 'clientes:criar' %}">Novo cliente</a></p>
-    <table>
+P05 — Lista de clientes (RF005, D14).
+Contexto: object_list (nome_completo, cpf_formatado, telefone_formatado, email),
+empty_message.
+
+D14: sem pesquisa e sem página de detalhe nesta versão — a consulta é pela
+própria listagem. Também não há exclusão de cliente (RN003).
+
+CPF e telefone chegam formatados do backend; a tela não formata nem normaliza.
+{% endcomment %}
+
+{% block title %}Clientes | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="eqf-cabecalho-da-pagina">
+  <div>
+    <h1 class="eqf-titulo">Clientes</h1>
+    <p class="eqf-subtitulo">Clientes cadastrados, em ordem alfabética.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Novo cliente</a>
+</div>
+
+<div class="eqf-painel">
+  {% if object_list %}
+  <div class="table-responsive">
+    <table class="table eqf-tabela align-middle">
       <thead>
-        <tr><th>Nome completo</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr>
+        <tr>
+          <th scope="col">Nome completo</th>
+          <th scope="col">CPF</th>
+          <th scope="col">Telefone</th>
+          <th scope="col">E-mail</th>
+          <th scope="col" class="eqf-acoes-da-linha">Ações</th>
+        </tr>
       </thead>
       <tbody>
         {% for cliente in object_list %}
-        <tr>
-          <td>{{ cliente.nome_completo }}</td>
-          <td>{{ cliente.cpf_formatado }}</td>
-          <td>{{ cliente.telefone_formatado }}</td>
-          <td>{{ cliente.email }}</td>
-          <td><a href="{% url 'clientes:editar' cliente.pk %}">Editar</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">{{ empty_message }}</td></tr>
+          <tr>
+            <td>{{ cliente.nome_completo }}</td>
+            <td class="eqf-codigo">{{ cliente.cpf_formatado }}</td>
+            <td>{{ cliente.telefone_formatado|default:"—" }}</td>
+            <td>{{ cliente.email|default:"—" }}</td>
+            <td class="eqf-acoes-da-linha">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'clientes:editar' cliente.pk %}">Editar</a>
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-    <p><a href="{% url 'inicio' %}">Início</a></p>
-  </main>
-</body>
-</html>
+  </div>
+  {% else %}
+    <div class="eqf-vazio">
+      <p class="eqf-vazio-titulo">{{ empty_message }}</p>
+      <p class="eqf-vazio-texto">Cadastre o primeiro cliente para começar a registrar aluguéis.</p>
+      <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Novo cliente</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

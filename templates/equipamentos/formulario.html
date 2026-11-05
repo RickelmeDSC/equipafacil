@@ -1,24 +1,63 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-04): página mínima para validar o backend de P03 (cadastro e edição).
-Layout, Bootstrap e textos definitivos são do frontend, conforme o contrato DEV-01.
-Variáveis: form; na edição, também object e codigo_editavel.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if object %}Editar{% else %}Novo{% endif %} equipamento | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>{% if object %}Editar equipamento{% else %}Novo equipamento{% endif %}</h1>
-    {% if object and not codigo_editavel %}<p>O código não pode ser alterado porque o equipamento já possui aluguel registrado.</p>{% endif %}
-    <form method="post">
+P03 — Cadastro e edição de equipamento (RF001, RF003, RN002, D11).
+Contexto: form; na edição, também object e codigo_editavel.
+
+O equipamento nasce ativo: não há campo de situação aqui (ativar e inativar
+ficam em P04). Com codigo_editavel falso, o campo chega disabled do backend e a
+tela só explica o motivo — o serviço recusa a troca de novo.
+
+As categorias são as cinco fixas do backend; a tela não as repete.
+{% endcomment %}
+
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} equipamento | EquipaFácil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="eqf-titulo">{% if object %}Editar equipamento{% else %}Novo equipamento{% endif %}</h1>
+  {% if object %}
+    <p class="eqf-subtitulo">{{ object.codigo }} — {{ object.nome }}</p>
+  {% else %}
+    <p class="eqf-subtitulo">O equipamento é cadastrado ativo e fica disponível para aluguel.</p>
+  {% endif %}
+</div>
+
+<div class="eqf-painel eqf-formulario">
+  <div class="eqf-painel-corpo">
+    {% if object and not codigo_editavel %}
+      <div class="alert alert-info" role="alert">
+        O código não pode ser alterado porque o equipamento já possui aluguel registrado.
+      </div>
+    {% endif %}
+
+    {% include "includes/form_errors.html" %}
+
+    <form method="post" novalidate>
       {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Salvar</button>
+      <div class="row">
+        <div class="col-md-5">
+          {% include "includes/campo.html" with campo=form.codigo %}
+        </div>
+        <div class="col-md-7">
+          {% include "includes/campo.html" with campo=form.nome %}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-7">
+          {% include "includes/campo.html" with campo=form.categoria %}
+        </div>
+        <div class="col-md-5">
+          {% include "includes/campo.html" with campo=form.valor_diaria ajuda="Use vírgula para os centavos. Exemplo: 35,50." %}
+        </div>
+      </div>
+      {% include "includes/campo.html" with campo=form.descricao %}
+      {% include "includes/legenda_obrigatorio.html" %}
+
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a class="btn btn-outline-secondary" href="{% url 'equipamentos:lista' %}">Cancelar</a>
+      </div>
     </form>
-    <p><a href="{% url 'equipamentos:lista' %}">Voltar</a></p>
-  </main>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

@@ -1,22 +1,44 @@
+{% extends "base.html" %}
 {% comment %}
-PROVISÓRIO (DEV-02): página mínima para validar a autenticação.
-O layout definitivo da tela de login (P10) é do frontend, conforme o contrato DEV-01.
-{% endcomment %}<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Entrar | EquipaFácil</title>
-</head>
-<body>
-  <main>
-    <h1>EquipaFácil</h1>
-    <form method="post" action="{% url 'login' %}">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit">Entrar</button>
-    </form>
-  </main>
-</body>
-</html>
+P10 — Login (D1, D15). Contexto: form (usuário e senha) e next.
+
+Sem cadastro público e sem recuperação de senha por e-mail: as contas são
+criadas pelo administrador no Django Admin (D15). Não há credencial de exemplo
+nesta página.
+
+Sem barra lateral: sobrescreve o bloco "corpo" inteiro de base.html.
+{% endcomment %}
+
+{% block title %}Entrar | EquipaFácil{% endblock %}
+{% block classe_do_corpo %}eqf-pagina-de-login min-vh-100 d-flex align-items-center py-5{% endblock %}
+
+{% block corpo %}
+<div class="container">
+  <div class="eqf-cartao-de-login">
+    <div class="text-center text-white mb-4">
+      <h1 class="h3 fw-bold mb-1">EquipaFácil</h1>
+      <p class="mb-0 opacity-75">Gestão de aluguel de equipamentos</p>
+    </div>
+
+    <div class="eqf-painel">
+      <div class="eqf-painel-corpo">
+        <h2 class="h5 mb-3">Acesso do funcionário</h2>
+
+        {% include "includes/form_errors.html" %}
+
+        <form method="post" action="{% url 'login' %}">
+          {% csrf_token %}
+          {% include "includes/campo.html" with campo=form.username %}
+          {% include "includes/campo.html" with campo=form.password %}
+          <input type="hidden" name="next" value="{{ next }}">
+          <button class="btn btn-primary w-100" type="submit">Entrar</button>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center text-white-50 small mt-3 mb-0">
+      As contas são criadas pelo administrador do sistema.
+    </p>
+  </div>
+</div>
+{% endblock %}

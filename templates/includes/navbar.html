@@ -1,0 +1,46 @@
+{% comment %}
+Barra lateral (AppShell, DEV-07). Fixa no desktop; no celular reflui para uma
+barra horizontal no topo — sem gaveta e sem botão de alternância, porque isso
+dependeria do bundle JavaScript do Bootstrap, e as páginas precisam funcionar
+sem JavaScript.
+
+Agrupamento conforme o design system: Início isolado; Cadastros (Equipamentos,
+Clientes); Aluguéis (Novo aluguel, Histórico). Sempre expandido, sem menu
+colapsável.
+
+Sair é POST com csrf_token (a LogoutView aceita só POST). O item atual é
+marcado por request.resolver_match, sem repetir regra do backend.
+{% endcomment %}
+{% if user.is_authenticated %}
+<nav class="eqf-barra-lateral" aria-label="Navegação principal">
+  <a class="eqf-marca" href="{% url 'inicio' %}">EquipaFácil</a>
+
+  {% with area=request.resolver_match.app_name tela=request.resolver_match.url_name %}
+  <div class="eqf-menu">
+    <div class="eqf-grupo-do-menu">
+      <a class="eqf-item-do-menu" href="{% url 'inicio' %}"{% if not area %} aria-current="page"{% endif %}>Início</a>
+    </div>
+
+    <div class="eqf-grupo-do-menu">
+      <div class="eqf-titulo-do-grupo">Cadastros</div>
+      <a class="eqf-item-do-menu" href="{% url 'equipamentos:lista' %}"{% if area == "equipamentos" %} aria-current="page"{% endif %}>Equipamentos</a>
+      <a class="eqf-item-do-menu" href="{% url 'clientes:lista' %}"{% if area == "clientes" %} aria-current="page"{% endif %}>Clientes</a>
+    </div>
+
+    <div class="eqf-grupo-do-menu">
+      <div class="eqf-titulo-do-grupo">Aluguéis</div>
+      <a class="eqf-item-do-menu" href="{% url 'alugueis:criar' %}"{% if area == "alugueis" and tela == "criar" %} aria-current="page"{% endif %}>Novo aluguel</a>
+      <a class="eqf-item-do-menu" href="{% url 'alugueis:historico' %}"{% if area == "alugueis" and tela != "criar" %} aria-current="page"{% endif %}>Histórico</a>
+    </div>
+  </div>
+  {% endwith %}
+
+  <div class="eqf-rodape-da-barra">
+    <span class="eqf-identificacao">{{ user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-light" type="submit">Sair</button>
+    </form>
+  </div>
+</nav>
+{% endif %}

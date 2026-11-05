@@ -1,0 +1,42 @@
+{% load static %}<!doctype html>
+{% comment %}
+Layout base (DEV-07, design system equipafacil-design-system.md seção 3,
+"AppShell"). Bootstrap 5.3 e as fontes IBM Plex são arquivos locais de
+static/, sem CDN (guia de integração, seção 5.3).
+
+Blocos: title, content (contrato), scripts e classe_do_corpo. O bloco "corpo"
+é a estrutura inteira da página (barra lateral + conteúdo); a tela de login
+substitui esse bloco por um layout centralizado, sem barra lateral.
+
+Nenhuma página depende de JavaScript: a barra lateral não tem alternância por
+JS — no celular ela reflui para uma barra horizontal no topo.
+{% endcomment %}
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}EquipaFácil{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="{% block classe_do_corpo %}{% endblock %}">
+  {% block corpo %}
+  <a class="visually-hidden-focusable d-inline-block p-2" href="#conteudo">Ir para o conteúdo</a>
+  <div class="eqf-shell">
+    {% include "includes/navbar.html" %}
+    <div class="eqf-conteudo">
+      <main id="conteudo" class="eqf-area-principal">
+        <div class="container">
+          {% include "includes/messages.html" %}
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+      <footer class="eqf-rodape py-3">
+        <div class="container">EquipaFácil — gestão de aluguel de equipamentos.</div>
+      </footer>
+    </div>
+  </div>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

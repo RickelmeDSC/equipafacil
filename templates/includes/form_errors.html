@@ -1,0 +1,14 @@
+{% comment %}
+Erros gerais do formulário (DEV-07): os que não pertencem a um campo, inclusive
+os devolvidos pelos serviços do backend (config/formularios.aplicar_erros).
+
+Os erros por campo saem em includes/campo.html, em invalid-feedback. Os textos
+são os do backend e não são reescritos aqui.
+{% endcomment %}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">
+    {% for erro in form.non_field_errors %}
+      <p class="mb-0">{{ erro }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
