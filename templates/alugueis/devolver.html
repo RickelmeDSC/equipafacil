@@ -57,11 +57,16 @@ serviço valida as datas de novo.
 
       {% include "includes/form_errors.html" %}
 
-      <form method="post" novalidate>
+      <form method="post" novalidate data-envio-unico>
         {% csrf_token %}
         <div class="row">
           <div class="col-md-6">
-            {% include "includes/campo.html" with campo=form.data_devolucao_real %}
+            {% comment %}Intervalo em dia/mês/ano ao lado do campo: o campo nativo segue o idioma do navegador (em inglês, mês/dia/ano).{% endcomment %}
+            {% with retirada=data_minima|date:"d/m/Y" hoje=data_maxima|date:"d/m/Y" %}
+              {% with ajuda_da_data="Entre "|add:retirada|add:" (retirada) e "|add:hoje|add:" (hoje)." %}
+                {% include "includes/campo.html" with campo=form.data_devolucao_real ajuda=ajuda_da_data %}
+              {% endwith %}
+            {% endwith %}
           </div>
         </div>
         <div class="d-flex flex-wrap gap-2 mt-3">

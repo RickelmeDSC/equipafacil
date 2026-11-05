@@ -37,6 +37,8 @@ JS — no celular ela reflui para uma barra horizontal no topo.
     </div>
   </div>
   {% endblock %}
+  {# Só age em formulários com data-envio-unico (static/js/envio-unico.js). #}
+  <script src="{% static 'js/envio-unico.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

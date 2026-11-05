@@ -537,6 +537,38 @@ body {
   }
 }
 
+/* Coluna Ações presa à direita da tabela a partir de 576px. Quando a tabela
+ * não cabe (histórico abaixo de ~1250px, ou nomes longos), o restante rola por
+ * baixo dela e o botão da linha ("Registrar devolução", "Editar", "Ações")
+ * continua visível. Quando a tabela cabe, nada muda. Os fundos são os da
+ * própria célula (surface e surface-2), opacos para o conteúdo não aparecer
+ * por baixo. No celular a coluna segue o fluxo normal, para não ocupar a tela.
+ */
+@media (min-width: 576px) {
+  .eqf-tabela > thead > tr > th.eqf-acoes-da-linha,
+  .eqf-tabela > tbody > tr > td.eqf-acoes-da-linha {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+  }
+
+  /* A linha divisória só aparece quando há colunas escondidas à direita
+   * (consulta de estado de rolagem; navegadores sem suporte só não mostram a
+   * linha, e a coluna continua presa). */
+  .table-responsive {
+    container-type: scroll-state;
+  }
+
+  @container scroll-state(scrollable: right) {
+    .eqf-tabela > thead > tr > th.eqf-acoes-da-linha,
+    .eqf-tabela > tbody > tr > td.eqf-acoes-da-linha {
+      box-shadow:
+        inset 1px 0 0 var(--ef-border),
+        -6px 0 8px -6px rgba(15, 23, 42, 0.18);
+    }
+  }
+}
+
 /* ---------- Badge (design system, seção 3) ----------
  * Pílulas de estado; cor sempre acompanhada de texto, nunca só a cor.
  * Classes próprias (não as de nível do Bootstrap), porque a paleta do
@@ -682,6 +714,14 @@ body {
   cursor: not-allowed;
 }
 
+/* Envio em andamento (envio-unico.js): os botões de envio ficam com a
+ * aparência de desabilitados até a próxima página chegar. Não usam o atributo
+ * disabled, que tiraria o name/value do botão clicado (ex.: acao=registrar). */
+form[data-enviando] [type="submit"] {
+  opacity: var(--bs-btn-disabled-opacity, 0.65);
+  cursor: progress;
+}
+
 /* Código, CPF e identificadores em mono (design system, "Números de balcão"). */
 #id_codigo,
 #id_cpf {
@@ -769,6 +809,21 @@ body {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--ef-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Estimativa ao vivo (previa-aluguel.js): informativa, mas legível no
+ * projetor — texto em text sobre primary-soft, com filete primary. O [hidden]
+ * do Bootstrap (display: none !important) continua escondendo a região. */
+.eqf-estimativa {
+  margin: 0 0 var(--ef-space-2);
+  padding: var(--ef-space-1) var(--ef-space-3);
+  line-height: 1.4;
+  border-left: 3px solid var(--ef-primary);
+  border-radius: var(--ef-radius-sm);
+  background-color: var(--ef-primary-soft);
+  color: var(--ef-text);
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
 }
 
