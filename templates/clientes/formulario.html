@@ -31,12 +31,17 @@ Não existe exclusão de cliente (RN003).
 
     {% include "includes/form_errors.html" %}
 
-    <form method="post" novalidate>
+    <form method="post" novalidate data-envio-unico>
       {% csrf_token %}
       {% include "includes/campo.html" with campo=form.nome_completo %}
       <div class="row">
         <div class="col-md-6">
-          {% include "includes/campo.html" with campo=form.cpf ajuda="Com ou sem pontos e hífen." %}
+          {% comment %}A ajuda de digitação só faz sentido com o CPF editável; bloqueado, o aviso acima explica o motivo.{% endcomment %}
+          {% if object and not cpf_editavel %}
+            {% include "includes/campo.html" with campo=form.cpf %}
+          {% else %}
+            {% include "includes/campo.html" with campo=form.cpf ajuda="Com ou sem pontos e hífen." %}
+          {% endif %}
         </div>
         <div class="col-md-6">
           {% include "includes/campo.html" with campo=form.telefone ajuda="Com DDD, 10 ou 11 dígitos. Exemplo: (81) 99999-8888." %}

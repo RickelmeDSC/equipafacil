@@ -12,7 +12,10 @@ Contrato dos botões (não mude sem combinar com o backend):
   resumo antes da gravação);
 - a prévia vem ANTES no HTML, porque o Enter dentro de um campo dispara o
   primeiro botão de envio do formulário;
-- sem "acao", com outro valor ou com mais de um, nada é gravado.
+- sem "acao", com outro valor ou com mais de um, nada é gravado;
+- data-envio-unico (static/js/envio-unico.js) cancela um segundo envio enquanto
+  o primeiro espera a resposta, sem desabilitar o botão clicado (o "acao" do
+  botão continua indo no POST).
 
 O resumo fica ao lado do formulário no desktop (coluna presa) e abaixo dele no
 celular — RentalSummary fica dentro do mesmo <form>, sem etapa adicional, como
@@ -46,7 +49,7 @@ estimativa em JavaScript é informativa e nunca os substitui.
     </div>
   </div>
 {% else %}
-  <form method="post" novalidate>
+  <form method="post" novalidate data-envio-unico>
     {% csrf_token %}
     <div class="row g-3">
       <div class="col-lg-8">
@@ -61,11 +64,11 @@ estimativa em JavaScript é informativa e nunca os substitui.
                 {% include "includes/campo.html" with campo=form.data_retirada ajuda="Hoje ou uma data futura." %}
               </div>
               <div class="col-md-6">
-                {% include "includes/campo.html" with campo=form.data_devolucao_prevista %}
+                {% include "includes/campo.html" with campo=form.data_devolucao_prevista ajuda="Igual ou posterior à retirada." %}
               </div>
             </div>
 
-            <p class="form-text" id="previa-ao-vivo" hidden></p>
+            <p class="eqf-estimativa" id="previa-ao-vivo" hidden></p>
             {% include "includes/legenda_obrigatorio.html" %}
 
             <div class="d-flex flex-wrap gap-2 mt-4">

@@ -48,6 +48,14 @@
     return total >= 1 ? total : null;
   }
 
+  // "2026-11-05" → "05/11/2026". O campo nativo mostra a data no formato do
+  // idioma do navegador (em inglês, mês/dia/ano); aqui o período aparece
+  // sempre em dia/mês/ano. Só reordena o texto, sem Date e sem fuso.
+  function dataBrasileira(iso) {
+    var partes = iso.split("-");
+    return partes[2] + "/" + partes[1] + "/" + partes[0];
+  }
+
   function atualizar() {
     var diaria = diarias[equipamento.value];
     var total = quantidadeDeDiarias(retirada.value, prevista.value);
@@ -62,7 +70,11 @@
     var centavos = Math.round(parseFloat(diaria) * 100) * total;
 
     regiao.textContent =
-      "Estimativa: " +
+      "Estimativa de " +
+      dataBrasileira(retirada.value) +
+      " a " +
+      dataBrasileira(prevista.value) +
+      ": " +
       total +
       (total === 1 ? " diária × " : " diárias × ") +
       moeda.format(parseFloat(diaria)) +

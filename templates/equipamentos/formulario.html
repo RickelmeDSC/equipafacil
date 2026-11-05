@@ -32,7 +32,7 @@ As categorias são as cinco fixas do backend; a tela não as repete.
 
     {% include "includes/form_errors.html" %}
 
-    <form method="post" novalidate>
+    <form method="post" novalidate data-envio-unico>
       {% csrf_token %}
       <div class="row">
         <div class="col-md-5">
