@@ -312,6 +312,10 @@ body {
   .eqf-menu {
     flex-direction: row;
     flex-wrap: wrap;
+    /* A regra base (flex: 1 0 auto) não deixa o menu encolher: abaixo de
+       ~500px ele passava da largura da tela e criava rolagem lateral. */
+    flex-shrink: 1;
+    min-width: 0;
     padding: 0;
     gap: var(--ef-space-1);
   }
