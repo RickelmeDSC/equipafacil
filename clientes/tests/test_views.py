@@ -1,4 +1,7 @@
-"""Views de clientes: cadastro, listagem (D14), edição e segurança (P05, P06)."""
+"""Views de clientes: cadastro, listagem com pesquisa (D16), edição e segurança.
+
+P05 e P06. A pesquisa do RF009 tem testes próprios em ``test_pesquisa.py``.
+"""
 
 import logging
 from contextlib import contextmanager
@@ -195,13 +198,17 @@ class ListagemTests(ComFuncionario):
         ordem = [c.pk for c in self._lista().context["object_list"]]
         self.assertEqual(ordem, [ana_1.pk, ana_2.pk, bruno.pk])
 
-    def test_19_sem_pesquisa(self):
-        criar_cliente(nome_completo="Ana Fictícia")
-        criar_cliente(nome_completo="Bruno Fictício")
-        resposta = self._lista(q="Ana")
-        self.assertEqual(len(resposta.context["object_list"]), 2)  # parâmetro ignorado
-        self.assertNotIn("query", resposta.context)
-        self.assertNotContains(resposta, 'name="q"')
+    def test_19_pesquisa_por_nome_ou_cpf_d16(self):
+        # D16 (EQF-5, comentário 10078) revisa a D14: a lista passa a ter a
+        # pesquisa do RF009; detalhes em test_pesquisa.py e nos CT17 e CT18.
+        ana = criar_cliente(nome_completo="Ana Fictícia", cpf=CPF_A)
+        criar_cliente(nome_completo="Bruno Fictício", cpf=CPF_B)
+        for termo in ("ana", formatar_cpf(CPF_A), CPF_A[:5]):
+            with self.subTest(termo=termo):
+                resposta = self._lista(q=termo)
+                self.assertEqual(list(resposta.context["object_list"]), [ana])
+                self.assertEqual(resposta.context["query"], termo)
+                self.assertContains(resposta, f'name="q" value="{termo}"')
 
     def test_20_sem_pagina_de_detalhe(self):
         cliente = criar_cliente()

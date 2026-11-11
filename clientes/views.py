@@ -1,9 +1,10 @@
-"""Views de clientes (P05, P06; RF005, D12, D14).
+"""Views de clientes (P05, P06; RF005, RF009, D12, D14, D16).
 
 Todas exigem login (LoginRequiredMiddleware). GET só lê; a gravação é POST com
-CSRF e segue POST/redirect/GET. Sem pesquisa, sem página de detalhe e sem
-exclusão (D14, RN003). Rotas, nomes de template e variáveis seguem o contrato
-proposto (PR #2), ainda sem aceite.
+CSRF e segue POST/redirect/GET. Sem página de detalhe e sem exclusão (D14,
+RN003). A lista pesquisa por nome ou CPF com GET ``q``, como P02 (RF009, D16).
+Rotas, nomes de template e variáveis seguem o contrato proposto (PR #2), ainda
+sem aceite; ``query`` em P05 é acréscimo do RF009.
 
 CPF, telefone e e-mail são marcados como sensíveis: relatórios de erro do
 Django mascaram esses campos do POST.
@@ -27,12 +28,16 @@ CAMPOS_SENSIVEIS = ("cpf", "telefone", "email")
 
 @require_safe
 def lista(request: HttpRequest) -> HttpResponse:
-    """P05: todos os clientes, por nome e ordem de cadastro (D14: sem pesquisa)."""
+    """P05: clientes por nome e ordem de cadastro, com a pesquisa do RF009."""
+    query = request.GET.get("q", "").strip()
     return render(
         request,
         "clientes/lista.html",
         {
-            "object_list": Cliente.objects.order_by("nome_completo", "pk"),
+            "object_list": Cliente.objects.pesquisar(query).order_by(
+                "nome_completo", "pk"
+            ),
+            "query": query,
             "empty_message": mensagens.NENHUM_REGISTRO,
         },
     )

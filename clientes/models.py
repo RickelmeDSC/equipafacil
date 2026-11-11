@@ -1,7 +1,8 @@
-"""Modelo de clientes (RF005, RN002, RN003, I5, D12, D14).
+"""Modelo de clientes (RF005, RF009, RN002, RN003, I5, D12, D14, D16).
 
-Clientes não são excluídos nem inativados, não têm pesquisa nem página de
-detalhe (D14) e não têm endereço (fora do escopo aprovado).
+Clientes não são excluídos nem inativados, não têm página de detalhe (D14) e
+não têm endereço (fora do escopo aprovado). A pesquisa por nome ou CPF é a do
+RF009 (D16, que revisa a D14; EQF-5, comentário 10078).
 """
 
 from django.core.exceptions import ValidationError
@@ -9,6 +10,7 @@ from django.db import models
 from django.db.models import Q
 
 from clientes.validadores import (
+    digitos_para_pesquisa,
     formatar_cpf,
     formatar_telefone,
     mascarar_cpf,
@@ -25,6 +27,24 @@ _ERROS_OBRIGATORIO = {
     "null": mensagens.CAMPO_OBRIGATORIO,
 }
 _CPFS_REPETIDOS = [digito * 11 for digito in "0123456789"]
+
+
+class ClienteQuerySet(models.QuerySet):
+    def pesquisar(self, termo: str | None):
+        """RF009 (D16): parte do nome ou do CPF; sem termo, todos os clientes.
+
+        O nome é comparado sem diferenciar maiúsculas e sem ignorar acentos. O CPF
+        é comparado pelos dígitos armazenados, parcial ou completo, com ou sem
+        pontos e hífen. Só leitura; a ordem fica com quem chama.
+        """
+        termo = (termo or "").strip()
+        if not termo:
+            return self
+        condicao = Q(nome_completo__icontains=termo)
+        digitos = digitos_para_pesquisa(termo)
+        if digitos:
+            condicao |= Q(cpf__contains=digitos)
+        return self.filter(condicao)
 
 
 class Cliente(ModeloValidado):
@@ -48,6 +68,8 @@ class Cliente(ModeloValidado):
     email = models.EmailField(
         "e-mail", blank=True, error_messages={"invalid": mensagens.EMAIL_INVALIDO}
     )
+
+    objects = ClienteQuerySet.as_manager()
 
     class Meta:
         verbose_name = "cliente"

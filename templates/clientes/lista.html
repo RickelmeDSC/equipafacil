@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% comment %}
-P05 — Lista de clientes (RF005, D14).
+P05 — Lista e pesquisa de clientes (RF005, RF009, D14, D16; CT09, CT17, CT18).
 Contexto: object_list (nome_completo, cpf_formatado, telefone_formatado, email),
-empty_message.
+query, empty_message.
 
-D14: sem pesquisa e sem página de detalhe nesta versão — a consulta é pela
-própria listagem. Também não há exclusão de cliente (RN003).
+D16 (revisão da D14): pesquisa por parte do nome ou do CPF, com ou sem pontos e
+hífen, no mesmo padrão de P02. O termo volta em query e fica no campo. Continua
+sem página de detalhe (D14) e sem exclusão de cliente (RN003).
 
 CPF e telefone chegam formatados do backend; a tela não formata nem normaliza.
+Revisão de Raphael pendente (EQF-43).
 {% endcomment %}
 
 {% block title %}Clientes | EquipaFácil{% endblock %}
@@ -20,6 +22,19 @@ CPF e telefone chegam formatados do backend; a tela não formata nem normaliza.
   </div>
   <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Novo cliente</a>
 </div>
+
+<form class="eqf-painel mb-3" method="get" action="{% url 'clientes:lista' %}">
+  <div class="eqf-painel-corpo">
+    <label class="form-label" for="id_q">Pesquisar por nome ou CPF</label>
+    <div class="d-flex flex-wrap gap-2">
+      <input class="form-control eqf-campo-de-pesquisa" type="search" id="id_q" name="q" value="{{ query }}">
+      <button class="btn btn-outline-secondary" type="submit">Pesquisar</button>
+      {% if query %}
+        <a class="btn btn-link" href="{% url 'clientes:lista' %}">Limpar</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
 
 <div class="eqf-painel">
   {% if object_list %}
@@ -52,8 +67,13 @@ CPF e telefone chegam formatados do backend; a tela não formata nem normaliza.
   {% else %}
     <div class="eqf-vazio">
       <p class="eqf-vazio-titulo">{{ empty_message }}</p>
-      <p class="eqf-vazio-texto">Cadastre o primeiro cliente para começar a registrar aluguéis.</p>
-      <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Novo cliente</a>
+      {% if query %}
+        <p class="eqf-vazio-texto">Pesquise por parte do nome ou do CPF do cliente.</p>
+        <a class="btn btn-outline-secondary" href="{% url 'clientes:lista' %}">Limpar pesquisa</a>
+      {% else %}
+        <p class="eqf-vazio-texto">Cadastre o primeiro cliente para começar a registrar aluguéis.</p>
+        <a class="btn btn-primary" href="{% url 'clientes:criar' %}">Novo cliente</a>
+      {% endif %}
     </div>
   {% endif %}
 </div>

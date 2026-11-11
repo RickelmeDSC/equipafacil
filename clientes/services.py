@@ -11,8 +11,8 @@ O cadastro não tem linha a bloquear: dois cadastros simultâneos com o mesmo CP
 são decididos pelo índice único ``cliente_cpf_unico``, e o conflito vira erro de
 campo, nunca erro 500.
 
-Não há exclusão, inativação, pesquisa nem página de detalhe de cliente (RN003,
-D14).
+Não há exclusão, inativação nem página de detalhe de cliente (RN003, D14). A
+pesquisa do RF009 (D16) é só leitura e fica em ``ClienteQuerySet.pesquisar``.
 """
 
 from typing import Any

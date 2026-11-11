@@ -1,9 +1,10 @@
-"""Normalização, validação e formatação de CPF e telefone (D12)."""
+"""Normalização, validação e formatação de CPF e telefone (D12; pesquisa RF009)."""
 
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 
 from clientes.validadores import (
+    digitos_para_pesquisa,
     formatar_cpf,
     formatar_telefone,
     normalizar_cpf,
@@ -46,6 +47,23 @@ class CpfTests(SimpleTestCase):
 
     def test_formatacao(self):
         self.assertEqual(formatar_cpf(CPF_VALIDO), "529.982.247-25")
+
+    def test_digitos_para_pesquisa(self):
+        # RF009: termo vale como CPF só se, sem pontos e hífen, sobrarem dígitos.
+        casos = {
+            "529.982.247-25": CPF_VALIDO,
+            CPF_VALIDO: CPF_VALIDO,
+            "982.24": "98224",
+            "7": "7",
+            "": "",
+            ".-": "",
+            "529 982": "",
+            "Maria": "",
+            "５２９": "",
+        }
+        for termo, esperado in casos.items():
+            with self.subTest(termo=termo):
+                self.assertEqual(digitos_para_pesquisa(termo), esperado)
 
 
 class TelefoneTests(SimpleTestCase):

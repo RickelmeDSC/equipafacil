@@ -1,7 +1,8 @@
 """Rotas de clientes.
 
 PROVISÓRIO: caminhos e nomes seguem o contrato técnico proposto no PR #2
-(seção 6), ainda sem aceite de Raphael. D14: sem pesquisa e sem detalhe.
+(seção 6), ainda sem aceite de Raphael. D14: sem detalhe. A pesquisa do RF009
+(D16) usa a própria lista, com GET ``q``.
 """
 
 from django.urls import path
