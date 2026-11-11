@@ -81,8 +81,8 @@ Estes pontos são contrato verificado pela suíte: mudá-los quebra teste e exig
 | Onde | O que não pode mudar |
 |------|----------------------|
 | P07 | `name="acao" value="previa"` e `name="acao" value="registrar"` nessa ordem de atributos e com a prévia antes no HTML; o botão de registro só com `resumo`; o rótulo `Total previsto: R$ …`; a frase “não pode ser cancelado”; `json_script` com id `diarias-equipamentos` |
-| P08 | Situação como texto direto do `<td>` (`>Ativo</td>`); célula do equipamento como `código — nome` com `(inativo)` no mesmo texto; histórico vazio sem nenhum “R$” na página (inclusive nos cabeçalhos) e sem “Registrar devolução” |
-| P05 | Nenhum `name="q"` na página (D14) |
+| P08 | Situação como texto direto do `<td>` (`>Ativo</td>`); célula do equipamento como `código — nome` com `(inativo)` no mesmo texto; histórico vazio sem nenhum “R$” na página (inclusive nos cabeçalhos) e sem “Registrar devolução”; filtro do RF010 (EQF-43) com `name="situacao"`, opção marcada como `<option value="…" selected>Rótulo</option>`, "Limpar" só com filtro e "Limpar filtro" no estado vazio filtrado |
+| P05 | Pesquisa do RF009 (D16, revisão da D14; EQF-43): `name="q" value="{{ query }}"` nessa ordem de atributos; "Limpar" só com termo; sem resultado, "Nenhum registro encontrado." com "Limpar pesquisa", sem o texto de primeiro cadastro |
 | P02 | As palavras Ativo, Inativo, Disponível e Indisponível |
 | P03, P06 | A explicação do código e do CPF bloqueados, com os textos do EQF-5 |
 | P09 | “Este aluguel já foi encerrado.” na página de aluguel encerrado; `min` e `max` do campo de data |
@@ -100,10 +100,10 @@ Fora dos rótulos de navegação, cabeçalhos de tabela e botões, estas frases 
 | P02 | “Equipamentos ativos e inativos da locadora.” |
 | P03 | “O equipamento é cadastrado ativo e fica disponível para aluguel.”; “Use vírgula para os centavos. Exemplo: 35,50.” |
 | P04 | “O equipamento inativo deixa de ficar disponível para novos aluguéis e continua no histórico.”; “O equipamento reativado volta a ficar disponível para aluguel. O histórico não é alterado.”; “A exclusão apaga o equipamento do sistema e só é possível enquanto ele não tiver histórico de locação.”; “Confirmar a exclusão de … ?”; “Esta ação é definitiva e não pode ser desfeita.” |
-| P05 | “Clientes cadastrados, em ordem alfabética.” |
+| P05 | “Clientes cadastrados, em ordem alfabética.”; pesquisa do RF009 (EQF-43): “Pesquisar por nome ou CPF”, “Pesquise por parte do nome ou do CPF do cliente.”, “Limpar pesquisa” |
 | P06 | “Com ou sem pontos e hífen.”; “Com DDD, 10 ou 11 dígitos. Exemplo: (81) 99999-8888.” |
 | P07 | “Hoje ou uma data futura.”; “Resumo do aluguel”; “Estimativa: … Use ‘Calcular resumo’ para o valor do servidor.” |
-| P08 | “Todos os aluguéis registrados, do mais recente para o mais antigo.” |
+| P08 | “Todos os aluguéis registrados, do mais recente para o mais antigo.”; filtro do RF010 (EQF-43): “Filtrar por situação”, “Todas”, “Escolha outra situação ou limpe o filtro para ver todos os aluguéis.”, “Limpar filtro” |
 | P09 | “A devolução é registrada uma única vez e não pode ser corrigida depois. Não há multa por atraso.” |
 | Todas | “(opcional)” nos campos não obrigatórios; “—” em célula sem valor; rodapé “EquipaFácil — gestão de aluguel de equipamentos.” |
 

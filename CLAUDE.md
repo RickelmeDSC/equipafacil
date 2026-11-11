@@ -8,23 +8,24 @@ EquipaFácil é um sistema web acadêmico (ADS/UNIBRA) de gestão de aluguel de 
 
 - Planejamento: Jira, projeto `EQF` — https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2
 - **Especificação técnica v3** no Jira (épicos EQF-4 Requisitos, EQF-5 Desenvolvimento, EQF-6 Testes): referência de **planejamento**. Resumo em `docs/rastreabilidade.md`.
-- **Documento de Requisitos v1.1**: documento **acadêmico**, revisado tecnicamente. Não é publicado neste repositório — nunca adicione o DOCX ao Git. A v3 e a v1.1 não são versões concorrentes do mesmo arquivo.
+- **Documento de Requisitos v1.1**: documento **acadêmico**, revisado tecnicamente. Não é publicado neste repositório — nunca adicione o DOCX ao Git. A v3 e a v1.1 não são versões concorrentes do mesmo arquivo. Em 10/11/2026 vieram o Documento de Requisitos v1.3 (RF009 e RF010) e o Documento de Casos de Teste v1.4 (CT17–CT20), também fora do Git.
 - **Decisões I1–I5**: aprovadas por Rickelme em 01/11/2026. O detalhamento está no Jira e no Documento v1.1; o resumo `docs/rastreabilidade.md` não o reproduz. Antes de implementar algo afetado por I1–I5 (retirada futura, correção de registros, reativação, prioridades, armazenamento do CPF), consulte a decisão registrada; se ela não estiver disponível na sessão, pergunte.
 - **Decisões complementares D10–D15**: aprovadas por Rickelme e registradas na descrição do épico EQF-5 no Jira em 01/11/2026. Complementam a interpretação técnica dos RF/RN, sem alterar o texto normativo nem criar requisitos novos:
   - D10 — inativação de equipamento sem aluguel aberto, com ou sem histórico (RF004);
   - D11 — normalização do código e unicidade sem diferenciar maiúsculas e minúsculas (RF001, RF003, RN002);
   - D12 — validações adicionais de CPF e telefone (RF005, RN002);
   - D13 — aluguel em formulário único, com resumo antes da gravação (RF006);
-  - D14 — clientes sem pesquisa na primeira versão; consulta pela listagem (RF005);
+  - D14 — clientes consultados pela listagem, sem página de detalhe (RF005); a parte "sem pesquisa" foi revisada pela D16;
   - D15 — contas de funcionários provisionadas pelo administrador via Django Admin (D1).
 
   Resumo em `docs/rastreabilidade.md`. O detalhamento técnico está em `docs/contrato-tecnico-frontend-backend.md`, `docs/modelagem-proposta.md` e `docs/plano-backend-dev01-dev03.md`, que continuam **propostas** até o aceite de Rickelme e Raphael e entram na `main` por PR próprio. Se esses arquivos não existirem na branch da sessão, o contrato do DEV-01 ainda não foi integrado: consulte o EQF-5 e, se a decisão não estiver disponível, pergunte. A equipe de Requisitos avalia se D10, D11 e D12 exigem atualização do Documento v1.1, que trata esses pontos de forma mais geral; divergência com o documento acadêmico é registrada para essa equipe, não resolvida pelo Claude.
+- **Decisão D16 e RF009/RF010**: aprovados tecnicamente por Rickelme em 10/11/2026 no EQF-5 (comentário 10078), a pedido do professor. D16 revisa a D14: a lista de clientes oferece pesquisa por nome ou CPF (RF009), ainda sem página de detalhe. RF010 filtra o histórico por situação. Decisões técnicas do mesmo registro: CPF parcial ou completo, com ou sem máscara; sem pesquisa insensível a acentos; histórico filtrado na ordem `-data_retirada, -pk`; filtro desconhecido vale "Todas". Implementação no EQF-43. A validação documental de Rafael Ferreira e Ivisson segue pendente e independente: não declare homologação por eles.
 - Validação acadêmica final dos requisitos: aguardando Rafael Ferreira e Ivisson.
 - Prazos: primeira entrega 03/11/2026; entrega final 15/11/2026.
 
 ## Estado atual
 
-Backend de RF001–RF008 **implementado e integrado à `main`** (marco de 02/11/2026: `main` em `85b4d1a`, PRs #1 e #3 a #8, com merge commit). Inclui a fundação DEV-02 (projeto `config`, autenticação nativa com `LoginRequiredMiddleware`, preparação para Render + Neon), os modelos do DEV-03 (`Equipamento`, `Cliente`, `Aluguel`, restrições no PostgreSQL, migrations `0001_initial`) e os fluxos de DEV-04 (equipamentos), DEV-05 (clientes) e DEV-06 (aluguéis, devoluções e histórico, com confirmação explícita `acao=registrar`). Detalhes em `docs/modelagem-implementada.md`, `docs/equipamentos-operacional.md`, `docs/clientes-operacional.md` e `docs/alugueis-operacional.md`. Validação 13A: 360 testes aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. **Todos os templates são provisórios**: o frontend definitivo (DEV-07, Raphael) e a homologação visual estão pendentes, e o contrato técnico (PR #2) continua em rascunho, sem aprovação. **Não existem banco Neon, serviço no Render nem deploy.** Migrations só rodam no banco de testes `test_equipafacil_dev` (com `--keepdb`); nunca no `equipafacil_dev` nem no Neon sem autorização explícita. Não crie funcionalidades novas, templates definitivos (são do frontend), dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
+Backend de RF001–RF008 **implementado e integrado à `main`** (marco de 02/11/2026: `main` em `85b4d1a`, PRs #1 e #3 a #8, com merge commit). Inclui a fundação DEV-02 (projeto `config`, autenticação nativa com `LoginRequiredMiddleware`, preparação para Render + Neon), os modelos do DEV-03 (`Equipamento`, `Cliente`, `Aluguel`, restrições no PostgreSQL, migrations `0001_initial`) e os fluxos de DEV-04 (equipamentos), DEV-05 (clientes) e DEV-06 (aluguéis, devoluções e histórico, com confirmação explícita `acao=registrar`). RF009 (pesquisa de clientes) e RF010 (filtro do histórico por situação) foram implementados no EQF-43, com CT17–CT20 automatizados e templates P05 e P08 sujeitos à revisão de Raphael. Detalhes em `docs/modelagem-implementada.md`, `docs/equipamentos-operacional.md`, `docs/clientes-operacional.md` e `docs/alugueis-operacional.md`. Validação 13A: 360 testes aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. **Todos os templates são provisórios**: o frontend definitivo (DEV-07, Raphael) e a homologação visual estão pendentes, e o contrato técnico (PR #2) continua em rascunho, sem aprovação. **Não existem banco Neon, serviço no Render nem deploy.** Migrations só rodam no banco de testes `test_equipafacil_dev` (com `--keepdb`); nunca no `equipafacil_dev` nem no Neon sem autorização explícita. Não crie funcionalidades novas, templates definitivos (são do frontend), dependências novas, banco Neon, configuração no Render nem deploy, a menos que a tarefa da sessão autorize explicitamente.
 
 ## Stack definida
 
@@ -40,7 +41,7 @@ Backend de RF001–RF008 **implementado e integrado à `main`** (marco de 02/11/
 | Rickelme David | Backend, banco de dados, regras RN001–RN004, autenticação, fuso, integração, infraestrutura, deploy, revisão técnica |
 | Raphael Eloi | Frontend: templates, Bootstrap, HTML/CSS/JS, responsividade, exibição de estados e mensagens vindas do backend |
 | Requisitos (Rafael Ferreira, Ivisson) | Validação acadêmica dos RF/RN |
-| Testes (Alexandre Abreu, Vinícius Soares) | Validação acadêmica dos cenários CT01–CT16 e execução dos testes |
+| Testes (Alexandre Abreu, Vinícius Soares) | Validação acadêmica dos cenários CT01–CT20 e execução dos testes |
 
 Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e Raphael antes de implementar.
 
@@ -56,7 +57,7 @@ Mudanças no contrato frontend × backend devem ser combinadas entre Rickelme e 
 
 ## Escopo
 
-- Implemente apenas requisitos aprovados (RF001–RF008, RN001–RN004 e decisões D1–D9, N2–N6, TZ, I1–I5 e D10–D15), conforme a especificação técnica v3, incluindo as decisões complementares registradas no EQF-5, e o Documento de Requisitos v1.1.
+- Implemente apenas requisitos aprovados (RF001–RF010, RN001–RN004 e decisões D1–D9, N2–N6, TZ, I1–I5 e D10–D16), conforme a especificação técnica v3, incluindo as decisões complementares registradas no EQF-5, e o Documento de Requisitos v1.1 (v1.3 para RF009 e RF010).
 - Não invente requisitos, campos, telas ou integrações (ex.: multa, WhatsApp, reservas, pagamentos).
 - Ambiguidade de requisito → pare e pergunte; registre a dúvida para o Jira em vez de decidir sozinho.
 - Não altere atividades do Jira sem pedido explícito.

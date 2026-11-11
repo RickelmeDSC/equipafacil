@@ -199,7 +199,7 @@ A disponibilidade é calculada (ativo e sem aluguel em aberto); não é campo ed
 - Valores monetários e quantidades à direita com `tabular-nums`; código e CPF em mono.
 - Coluna de ações por último, à direita, com `btn-sm`. Linha de equipamento inativo fica em `muted`.
 - Abaixo de 768px a tabela vira lista de cartões: `thead` oculto e cada `td` mostra o rótulo via `data-label`. Alternativa aceita: `table-responsive` com rolagem horizontal só na tabela.
-- Toolbar acima da tabela: pesquisa só em Equipamentos. Clientes não tem pesquisa (D14).
+- Toolbar acima da tabela: pesquisa em Equipamentos (RF002) e em Clientes (RF009, D16, que revisa a D14); filtro por situação no Histórico (RF010).
 - Sem resultados ou sem registros: substituir a tabela inteira por EmptyState. Nunca mostrar linhas fictícias.
 
 Exemplo de colunas: CÓDIGO · NOME · DIÁRIA · DISPONIBILIDADE · ações.
@@ -294,10 +294,10 @@ Cada página do protótipo mostra seu identificador (P01–P10) ao lado do títu
 | P02 | Equipamentos | `/equipamentos/` | Pesquisar (nome ou código) · Novo equipamento · Editar · Ações | Colunas: código, nome, categoria, diária, situação, disponibilidade. Estados: lista preenchida, vazia, pesquisa sem resultado |
 | P03 | Novo / Editar equipamento | `/equipamentos/novo/` · `/equipamentos/<id>/editar/` | Salvar · Voltar | Código, nome, categoria e diária obrigatórios; descrição opcional; diária > 0 com até 2 casas. Código bloqueado com aviso quando há histórico. Erros por campo + resumo |
 | P04 | Ações do equipamento (modal) | POST `/equipamentos/<id>/excluir/` · `/inativar/` · `/reativar/` | Inativar · Reativar · Excluir (com confirmação) | Ações sempre listadas; as não permitidas ficam desabilitadas com motivo. Exclusão pede confirmação |
-| P05 | Clientes | `/clientes/` | Novo cliente · Editar | Nome, CPF formatado, telefone formatado, e-mail. Sem pesquisa (D14), sem página de detalhes. Estado vazio |
+| P05 | Clientes | `/clientes/` | Novo cliente · Editar | Nome, CPF formatado, telefone formatado, e-mail. Pesquisa por nome ou CPF (RF009, D16), sem página de detalhes (D14). Estado vazio e estado sem resultado |
 | P06 | Novo / Editar cliente | `/clientes/novo/` · `/clientes/<id>/editar/` | Salvar · Voltar | Nome completo e CPF obrigatórios; telefone (com DDD) e e-mail opcionais. CPF inválido, duplicado, bloqueado após o primeiro aluguel. Sem excluir |
 | P07 | Novo aluguel | `/alugueis/novo/` | Registrar aluguel · Voltar | Cliente, equipamento disponível, retirada ≥ hoje (Recife), devolução prevista ≥ retirada. Painel de resumo (diárias inclusivas, diária, total previsto). Aviso de que o aluguel não pode ser cancelado. Um único formulário |
-| P08 | Histórico de aluguéis | `/alugueis/` | Novo aluguel · Registrar devolução (só em aberto) | Colunas: cliente, equipamento, retirada, prevista, devolução real, diárias, diária, valor, situação. Situações: Ativo, Atrasado, Encerrado, Encerrado com atraso. Estado vazio sem linhas fictícias |
+| P08 | Histórico de aluguéis | `/alugueis/` | Novo aluguel · Registrar devolução (só em aberto) | Colunas: cliente, equipamento, retirada, prevista, devolução real, diárias, diária, valor, situação. Situações: Ativo, Atrasado, Encerrado, Encerrado com atraso. Filtro por situação (RF010): Todas e as quatro situações. Estado vazio sem linhas fictícias |
 | P09 | Registrar devolução | `/alugueis/<id>/devolucao/` | Confirmar devolução · Voltar | Dados do aluguel + data real (padrão: hoje). Limites: ≥ retirada e ≤ hoje. Mostra atraso em dias, sem multa. Aluguel encerrado mostra aviso e não permite nova devolução. Após confirmar: situação atualizada e equipamento disponível de novo |
 
 ### Fluxo principal
@@ -413,7 +413,7 @@ Include para todos os campos (`includes/_field.html`, uso: `{% include "includes
 
 ### 5.5 Listas, pesquisa e estado vazio
 
-- Pesquisa de equipamentos: `<form method="get">` com `<input name="q">`; a view filtra por `Q(nome__icontains=q) | Q(codigo__icontains=q)`. Clientes não têm pesquisa.
+- Pesquisa de equipamentos: `<form method="get">` com `<input name="q">`; a view filtra por `Q(nome__icontains=q) | Q(codigo__icontains=q)`. Clientes usam o mesmo padrão com `q` por nome ou CPF (RF009). O histórico usa `<select name="situacao">` (RF010).
 - Vazio: `{% for e in equipamentos %}…{% empty %}{% include "includes/_empty_state.html" %}{% endfor %}`. Diferencie "nenhum cadastrado" de "nenhum resultado para q".
 - Disponibilidade e situação do aluguel chegam prontas da view/model (`@property`); o template só escolhe a classe do badge.
 - Mobile: o mais simples é `table-responsive`. Para cartões, adicione `data-label="Código"` em cada `<td>` e use o CSS de 5.7.
@@ -458,7 +458,7 @@ Em `static/js/equipafacil.js`, sem frameworks:
 | Categoria | O que entra aqui |
 |---|---|
 | Protótipo funcional demonstrativo | Login, navegação, pesquisa, cadastros, ações de equipamento, aluguel e devolução funcionam só em memória no navegador. Recarregar volta aos dados iniciais. Senha de demonstração fixa. Nada é enviado a servidor |
-| Regra de negócio aprovada (RF001–RF008, RN001–RN004, I1–I5, D10–D15) | Disponibilidade = ativo e sem aluguel aberto · retirada a partir de hoje (Recife) · devolução prevista ≥ retirada · diárias inclusivas · diária contratada congelada no aluguel · sem cancelamento de aluguel · devolução entre a retirada e hoje, uma única vez · excluir só sem histórico e sem aluguel aberto · inativar/reativar sem aluguel aberto · código bloqueado com histórico · CPF bloqueado após o primeiro aluguel · sem pesquisa e sem exclusão de clientes (D14) |
+| Regra de negócio aprovada (RF001–RF010, RN001–RN004, I1–I5, D10–D16) | Disponibilidade = ativo e sem aluguel aberto · retirada a partir de hoje (Recife) · devolução prevista ≥ retirada · diárias inclusivas · diária contratada congelada no aluguel · sem cancelamento de aluguel · devolução entre a retirada e hoje, uma única vez · excluir só sem histórico e sem aluguel aberto · inativar/reativar sem aluguel aberto · código bloqueado com histórico · CPF bloqueado após o primeiro aluguel · sem pesquisa e sem exclusão de clientes (D14) |
 | Proposta visual (pode mudar sem afetar o backend) | Paleta, tipografia IBM Plex, ícones, layout com barra lateral, textos de mensagens, tabela em cartões no mobile, confirmação de exclusão digitando o código, chip Pxx no cabeçalho, tema escuro, atalhos com contagem na página inicial |
 | Integração real ainda não implementada | Autenticação Django, persistência PostgreSQL, validação no servidor, transação/bloqueio na criação do aluguel (corrida de disponibilidade), fuso America/Recife no servidor, `django.contrib.messages`, proteção CSRF |
 

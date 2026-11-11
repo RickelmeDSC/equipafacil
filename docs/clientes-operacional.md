@@ -2,16 +2,18 @@
 
 > **Situação:** integrado à `main` em 02/11/2026 pelo PR #7 (merge commit `3cd5092`; marco da `main` integrada: `85b4d1a`). Desenvolvido na branch `feat/backend-eqf-17-clientes`, sobre DEV-04, DEV-03 e DEV-02. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda em rascunho e sem aceite de Raphael. As páginas HTML são **provisórias**.
 
-Escopo: RF005 (cadastrar, listar, consultar pela lista e editar), com RN002, RN003, I5, D12 e D14. Fora do escopo: exclusão de cliente (RN003), pesquisa e página de detalhe (D14), endereço, registro de aluguel e devolução (DEV-06).
+Escopo: RF005 (cadastrar, listar, consultar pela lista e editar) e, desde o EQF-43, RF009 (pesquisar pela lista), com RN002, RN003, I5, D12, D14 e D16. Fora do escopo: exclusão de cliente (RN003), página de detalhe (D14), endereço, registro de aluguel e devolução (DEV-06).
+
+> **RF009 (EQF-43, 10/11/2026):** pesquisa de clientes por nome ou CPF na própria lista, conforme a D16 (revisão da D14), aprovada tecnicamente por Rickelme no EQF-5 (comentário 10078). Validação documental da equipe de Requisitos e revisão dos templates por Raphael pendentes. Veja a seção [Pesquisa (RF009)](#pesquisa-rf009).
 
 ## Classificação das fontes
 
 | Tipo | O que foi usado |
 |------|-----------------|
-| Regras aprovadas | RF005, RN002, RN003, I5 (CPF com 11 dígitos), D12 (CPF e telefone), D14 (sem pesquisa e sem detalhe) |
-| Proposta técnica (PR #2, sem aceite) | Rotas `clientes:lista`, `clientes:criar`, `clientes:editar`; templates `clientes/lista.html` e `clientes/formulario.html`; variáveis `object_list`, `empty_message`, `form`, `object`, `cpf_editavel`; colunas de P05; CPF e telefone formatados na edição |
+| Regras aprovadas | RF005, RF009, RN002, RN003, I5 (CPF com 11 dígitos), D12 (CPF e telefone), D14 (sem detalhe), D16 (pesquisa por nome ou CPF, revisão da D14) |
+| Proposta técnica (PR #2, sem aceite) | Rotas `clientes:lista`, `clientes:criar`, `clientes:editar`; templates `clientes/lista.html` e `clientes/formulario.html`; variáveis `object_list`, `empty_message`, `form`, `object`, `cpf_editavel`; colunas de P05; CPF e telefone formatados na edição. Acréscimo do RF009 fora do PR #2: GET `q` e variável `query` em P05, como em P02 |
 | Mensagens | Textos propostos no EQF-5 (`config/mensagens.py`); sucesso: padrão de implementação adotado, sem aprovação formal (o EQF-5 não define) |
-| Aguardam validação acadêmica | Documento v1.1 (inclusive se D12 exige atualização) e cenários CT09–CT10 (equipe de Testes) |
+| Aguardam validação acadêmica | Documento v1.1 (inclusive se D12 exige atualização), Documento v1.3 (RF009 e D16) e cenários CT09–CT10, CT17–CT18 (equipe de Testes) |
 
 ## Campos e regras
 
@@ -28,11 +30,28 @@ A normalização e a validação ficam no modelo (`clientes/validadores.py` e `C
 
 | Página | Rota (nome) | Método | Comportamento |
 |--------|-------------|--------|---------------|
-| P05 — lista | `/clientes/` (`clientes:lista`) | GET | Todos os clientes, por `nome_completo` e, no empate, pela ordem de cadastro (`pk`). Colunas: nome completo, CPF formatado, telefone formatado, e-mail, Editar. Sem clientes: "Nenhum registro encontrado." Sem pesquisa: `?q=` é ignorado. Sem paginação (não prevista) |
+| P05 — lista e pesquisa | `/clientes/` (`clientes:lista`) | GET | Clientes por `nome_completo` e, no empate, pela ordem de cadastro (`pk`); com `?q=`, só os que correspondem ao termo (RF009). Colunas: nome completo, CPF formatado, telefone formatado, e-mail, Editar. Sem clientes ou sem correspondência: "Nenhum registro encontrado." Sem paginação (não prevista) |
 | P06 — cadastro | `/clientes/novo/` (`clientes:criar`) | GET, POST | Sucesso → P05 (POST/redirect/GET); erro → mesma página (200) com erros por campo |
 | P06 — edição | `/clientes/<pk>/editar/` (`clientes:editar`) | GET, POST | CPF e telefone aparecem formatados. Com aluguel registrado, o CPF fica somente leitura, com a explicação |
 
 Não existem `clientes:detalhe`, `clientes/detalhe.html`, rota de exclusão nem endpoint JSON. Todas as rotas exigem login; GET nunca grava; outros métodos recebem 405; `pk` inexistente recebe 404 (GET e POST). Clientes não são registrados no Django Admin (D15).
+
+## Pesquisa (RF009)
+
+`ClienteQuerySet.pesquisar(termo)` (`clientes/models.py`), chamado pela view de P05 com o GET `q`. Só leitura; a view mantém a ordem de P05.
+
+| Situação | Resultado |
+|----------|-----------|
+| Termo ausente, vazio ou só com espaços | Todos os clientes; sem opção de limpar |
+| Espaços nas extremidades | Desconsiderados; o termo volta sem eles em `query` e no campo |
+| Parte do nome | `icontains`: não diferencia maiúsculas e **não ignora acentos** ("joao" não encontra "João"). No SQLite, maiúsculas acentuadas ("ÉRICA" × "Érica") não são equivalentes; no PostgreSQL dependem do `lc_ctype` do banco (local e CI: equivalentes) |
+| CPF parcial ou completo | Se, sem pontos e hífen, o termo tiver só dígitos `0-9`, também compara com o CPF armazenado por `contains`: `529.982.247-25`, `52998224725`, `982.247` e `98224` encontram o mesmo cliente |
+| Só pontuação (`.`, `-`) | Não vira CPF: nenhum resultado, nunca "todos" |
+| Espaço, barra, vírgula ou letras junto dos dígitos | Não vale como CPF (RN002 b: só pontos e hífen são desconsiderados); compara só com o nome |
+| `_` e `%` | Texto literal, não curinga |
+| Sem correspondência | "Nenhum registro encontrado." e "Limpar pesquisa"; sem linhas na tabela |
+
+O termo vai na URL (GET), como em P02: fica no histórico do navegador. O Django não registra a query string nos logs de erro, o Gunicorn roda sem log de acesso e a `Referrer-Policy` padrão (`same-origin`) não envia a URL a outros sites. Não foi verificado se os logs da plataforma Render guardam a query string; use só dados fictícios.
 
 ## Formulário (`clientes/forms.py`)
 
@@ -81,7 +100,7 @@ Protocolo de bloqueios: `registrar_aluguel` bloqueia **equipamento → cliente**
 
 ## Integração com o frontend (Raphael)
 
-- `clientes/lista.html`: `object_list` (atributos `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`, `pk`) e `empty_message`, dentro de `{% empty %}`.
+- `clientes/lista.html`: `object_list` (atributos `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`, `pk`), `query` e `empty_message`. Formulário GET com `name="q"` e `value="{{ query }}"`; com termo, "Limpar" no formulário e, sem resultado, "Limpar pesquisa" no estado vazio (RF009). Revisão de Raphael pendente (EQF-43).
 - `clientes/formulario.html`: `form`; na edição, também `object` e `cpf_editavel`. Manter `method="post"`, `{% csrf_token %}`, os nomes dos campos e a exibição de `form.non_field_errors` e dos erros de cada campo.
 - Máscaras de CPF e telefone podem ser só visuais: o backend aceita a entrada com ou sem máscara e normaliza.
 - Os templates provisórios não têm Bootstrap nem herança de `base.html`; podem ser substituídos sem alterar serviços, formulário ou views.
@@ -91,8 +110,9 @@ Protocolo de bloqueios: `registrar_aluguel` bloqueia **equipamento → cliente**
 | Arquivo | Testes | Cobertura |
 |---------|--------|-----------|
 | `clientes/tests/test_servicos.py` | 8 | Cadastro normalizado, campos extras, CPF inválido, corrida de CPF duplicado, edição com e sem histórico, CPF de outro cliente, cliente inexistente |
-| `clientes/tests/test_views.py` | 34 | Itens 1–30 da tarefa 11C (cadastro, listagem, edição), `IntegrityError` sem 500, consultas da lista, login, CSRF, métodos, ausência de exclusão, logs sem CPF, mascaramento em relatórios de erro, Admin |
-| `clientes/tests/test_cenarios_ct.py` | 2 | CT09 e CT10 automatizados |
+| `clientes/tests/test_views.py` | 34 | Itens 1–30 da tarefa 11C (cadastro, listagem, edição), `IntegrityError` sem 500, consultas da lista, login, CSRF, métodos, ausência de exclusão, logs sem CPF, mascaramento em relatórios de erro, Admin. O item 19 ("sem pesquisa", D14) foi substituído pela pesquisa da D16 |
+| `clientes/tests/test_pesquisa.py` | 21 | RF009: termo vazio, nome parcial, CPF parcial e completo com e sem máscara, só pontuação, termo misto, separadores recusados, dígitos de outros alfabetos, curingas literais, acentos, ordem, termo preservado, estados vazios, escape de HTML, só `SELECT`, 3 consultas, login |
+| `clientes/tests/test_cenarios_ct.py` | 4 | CT09, CT10, CT17 e CT18 automatizados |
 | `clientes/tests/test_concorrencia.py` | 4 | Cenários A, B e C e edições simultâneas (só PostgreSQL) |
 
 CT09 e CT10 foram **automatizados**, não executados manualmente: CT09 cadastra cliente com nome e CPF válidos, sem contatos, e o encontra na lista; CT10 recusa CPF já cadastrado, com e sem pontuação. As correções recomendadas na auditoria QA-AUD-01 **não estavam disponíveis** nesta sessão (nem no repositório); os testes seguem a descrição dos cenários em `docs/rastreabilidade.md`.
@@ -104,6 +124,6 @@ O executor de corridas passou a ser comum (`config/tests/concorrencia.py`) e é 
 1. **Contrato, seção 7:** classes do Bootstrap 5.3 nos widgets. Resolvido na preparação do DEV-07: todos os formulários aplicam `form-control`/`form-select` e `is-invalid` nos campos com erro (`config/formularios.py`; veja [`integracao-frontend-dev07.md`](integracao-frontend-dev07.md)).
 2. **Contrato, seção 5, item 2:** sucesso com mensagem do framework `messages`. Cadastro e edição enviam `messages.success` depois da gravação, com os textos de `config/mensagens.py` ("Cliente cadastrado com sucesso." e "Cliente atualizado com sucesso."): padrão de implementação adotado em 04/11/2026, sem aprovação formal, porque o EQF-5 não define esses textos.
 3. **Espaços nas extremidades do CPF:** recusados (leitura literal de D12). Se a equipe preferir aceitá-los, a mudança é só `strip=True` no formulário; registrar para a equipe de Requisitos.
-4. **Ordenação de P05:** por nome e, no empate, pela ordem de cadastro. A comparação de maiúsculas e acentos segue a collation do banco (PostgreSQL e SQLite diferem).
-5. Aceite do contrato (PR #2) por Raphael; validação acadêmica de D12, CT09 e CT10; QA-AUD-01.
+4. **Ordenação de P05:** por nome e, no empate, pela ordem de cadastro, com ou sem pesquisa. A comparação de maiúsculas e acentos segue a collation do banco (PostgreSQL e SQLite diferem).
+5. Aceite do contrato (PR #2) por Raphael; validação acadêmica de D12, D16, CT09, CT10, CT17 e CT18; QA-AUD-01. O texto do PR #2 ainda descreve P05 sem pesquisa (D14) e precisa ser revisto em separado.
 6. DEV-06 (registro de aluguel pela interface e devolução): implementado e integrado (PR #8). A seleção de clientes usa nome e CPF mascarado, sem alterar `Cliente.__str__`.

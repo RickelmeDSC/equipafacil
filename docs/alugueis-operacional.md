@@ -2,7 +2,9 @@
 
 > **Situação:** integrado à `main` em 02/11/2026 pelo PR #8 (merge commit `85b4d1a`, marco da `main` integrada), já com a confirmação explícita do registro (`f3ad6d8`). Desenvolvido na branch `feat/backend-eqf-18-alugueis`, sobre DEV-05, DEV-04, DEV-03 e DEV-02. Rotas, nomes de template e variáveis seguem o contrato técnico **proposto** no PR #2 (v0.4), ainda em rascunho e sem aceite de Raphael. As páginas HTML são **provisórias**.
 
-Escopo: RF006 (registro), RF007 (devolução) e RF008 (histórico), com RN001–RN004, I1, I2 e D13. Fora do escopo: cancelamento, edição de aluguel ou de devolução, multa, pagamento, reserva, filtros e paginação do histórico.
+Escopo: RF006 (registro), RF007 (devolução), RF008 (histórico) e, desde o EQF-43, RF010 (filtro do histórico por situação), com RN001–RN004, I1, I2 e D13. Fora do escopo: cancelamento, edição de aluguel ou de devolução, multa, pagamento, reserva, outros filtros e paginação do histórico.
+
+> **RF010 (EQF-43, 10/11/2026):** aprovado tecnicamente por Rickelme no EQF-5 (comentário 10078). Validação documental da equipe de Requisitos e revisão do template por Raphael pendentes. Veja a seção [Filtro do histórico (RF010)](#filtro-do-histórico-rf010).
 
 > **Atribuição no Jira:** a rastreabilidade associa CT15–CT16 (histórico) ao DEV-07 (EQF-19). Nesta tarefa, o RF008 foi implementado junto com o DEV-06, por instrução do responsável técnico. O Jira não foi alterado.
 
@@ -20,7 +22,7 @@ Escopo: RF006 (registro), RF007 (devolução) e RF008 (histórico), com RN001–
 
 | Página | Rota (nome) | Método | Comportamento |
 |--------|-------------|--------|---------------|
-| P08 — histórico | `/alugueis/` (`alugueis:historico`) | GET | Todos os aluguéis, do mais recente (`-data_retirada`, `-pk`), inclusive de equipamentos inativos. Sem filtros nem paginação (contrato, 9.4). Vazio: "Nenhum registro encontrado." |
+| P08 — histórico | `/alugueis/` (`alugueis:historico`) | GET | Todos os aluguéis, do mais recente (`-data_retirada`, `-pk`), inclusive de equipamentos inativos; com `?situacao=`, só os da situação escolhida, na mesma ordem (RF010). Sem paginação (contrato, 9.4). Vazio: "Nenhum registro encontrado." |
 | P07 — novo aluguel | `/alugueis/novo/` (`alugueis:criar`) | GET, POST | Formulário único. POST com `acao=previa`: valida e mostra o resumo, **sem gravar**. POST com `acao=registrar`: registra e vai para P08. Sem `acao`, com outro valor ou com mais de um: **nada é gravado** e o formulário volta (200) com os dados e o erro geral "Escolha calcular o resumo ou registrar o aluguel." |
 | P09 — devolução | `/alugueis/<pk>/devolver/` (`alugueis:devolver`) | GET, POST | Aluguel em leitura e a data real (inicial: data atual). Sucesso → P08 |
 
@@ -44,7 +46,7 @@ Sem rotas de cancelamento, edição, exclusão ou detalhe de aluguel, e sem endp
 | Template | Variáveis |
 |----------|-----------|
 | `alugueis/formulario.html` (P07) | `form`, `resumo` (`quantidade_diarias`, `valor_diaria`, `valor_previsto`; só depois da prévia), `data_atual`, `data_minima`, `diarias_equipamentos` (dicionário `{pk: "50.00"}`, para `json_script`), `sem_equipamentos_disponiveis`, `sem_clientes` |
-| `alugueis/historico.html` (P08) | `object_list` (com `cliente` e `equipamento` carregados), `empty_message`. Por aluguel: `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver`, `aberto` |
+| `alugueis/historico.html` (P08) | `object_list` (com `cliente` e `equipamento` carregados), `situacao_selecionada` (`""` para Todas ou um código de situação), `opcoes_situacao` (pares valor/rótulo, começando por `("", "Todas")`), `empty_message`. Por aluguel: `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver`, `aberto` |
 | `alugueis/devolver.html` (P09) | `object`, `form`, `pode_devolver`, `data_atual`, `data_minima`, `data_maxima` |
 
 `situacao`, `situacao_codigo` e `pode_devolver` são métodos do modelo, chamados sem argumentos no template (usam a data atual).
@@ -126,6 +128,24 @@ Verificação de sensibilidade feita durante o desenvolvimento:
 
 No SQLite, todos esses testes são pulados e não servem de evidência.
 
+## Filtro do histórico (RF010)
+
+`AluguelQuerySet.na_situacao(situacao, hoje)` (`alugueis/models.py`) filtra no banco com a mesma regra de `Aluguel.situacao_codigo` (RN004 g); a view passa `timezone.localdate()`, a data atual em America/Recife, calculada uma vez por requisição.
+
+| Opção (`situacao`) | Aluguéis |
+|--------------------|----------|
+| Todas (`""`) | Todos, como no RF008 |
+| `ativo` | Sem devolução e devolução prevista igual ou posterior à data atual (inclui retirada futura) |
+| `atrasado` | Sem devolução e devolução prevista anterior à data atual |
+| `encerrado` | Devolvidos até a devolução prevista |
+| `encerrado_com_atraso` | Devolvidos depois da devolução prevista |
+
+- Valor vazio, "todas", maiúsculas ("ATIVO") ou qualquer valor fora da lista valem "Todas"; o queryset recusa código desconhecido com `ValueError`, então o valor da URL nunca chega cru ao filtro.
+- A ordem é a do histórico sem filtro (`-data_retirada`, `-pk`), conforme a decisão técnica do EQF-5 (comentário 10078).
+- Filtro sem resultado: "Nenhum registro encontrado." e "Limpar filtro", sem linhas; sem filtro e sem aluguéis, o estado vazio do CT16 não muda.
+- Só leitura (`@require_safe`), uma consulta para a lista, como sem filtro.
+- O template recalcula a situação de cada linha com a própria data atual: na virada da meia-noite em Recife, uma linha pode aparecer com a situação do novo dia (mesmo comportamento já existente em `pode_devolver`).
+
 ## Segurança
 
 Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhum campo financeiro, `id` ou vínculo extra enviado pelo navegador é usado. POST inválido não grava nada: o registro é uma transação única. A seleção de clientes não mostra o CPF completo. Mensagens não expõem dados internos.
@@ -135,6 +155,7 @@ Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhu
 - Trocar os três templates provisórios mantendo nomes de campos, `{% csrf_token %}`, os dois botões de P07 com `name="acao"` (`previa` e `registrar`, ambos obrigatórios), `form.non_field_errors` em P07 e P09 e os links por `{% url %}`.
 - Valores: `|floatformat:"2g"` produz `1.500,00` com a localização pt-br; datas com `|date:"d/m/Y"`.
 - `situacao_codigo` (`ativo`, `atrasado`, `encerrado`, `encerrado_com_atraso`) serve para o estilo do selo; o texto é `situacao`.
+- Filtro do RF010 em P08: formulário GET com `<select name="situacao">` montado de `opcoes_situacao`, opção marcada por `situacao_selecionada`, "Limpar" com filtro ativo e "Limpar filtro" no estado vazio filtrado. O formulário não pode conter "R$" nem "Registrar devolução" (teste do CT16). Revisão de Raphael pendente (EQF-43).
 - Textos indefinidos no EQF-5 (provisórios nos templates): aviso de não cancelamento, "Nenhum cliente cadastrado.", "Nenhum equipamento disponível para aluguel." e a explicação da devolução antes da retirada.
 
 ## Testes
@@ -143,7 +164,8 @@ Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhu
 |---------|--------|-----------|
 | `alugueis/tests/test_devolucao_e_previa.py` | 15 | Resumo e Decimal, prévia sem gravar, recusas, cliente inexistente, erros de data juntos, nova diária, devolução hoje e em atraso, datas fora do intervalo, retirada futura, segunda devolução, equipamento inativo, inexistente, campos preservados |
 | `alugueis/tests/test_views.py` | 27 | P07 (contexto, seleção, prévia, registro, datas, indisponível, cliente inexistente, valores manipulados, corrida entre formulário e serviço, data atual em Recife), P08 (vazio, quatro situações, valores congelados, inativo, ordem, consultas), P09 (contexto, devolução, datas, segunda devolução, retirada futura, 404), segurança |
-| `alugueis/tests/test_cenarios_ct.py` | 6 | CT11–CT16 automatizados |
+| `alugueis/tests/test_cenarios_ct.py` | 8 | CT11–CT16, CT19 e CT20 automatizados |
+| `alugueis/tests/test_filtro_historico.py` | 16 | RF010: filtro igual a `situacao_codigo` nos limites e em outras datas, situações disjuntas, código inválido no queryset, cada situação na tela com a opção marcada, ordem, Todas/vazio/desconhecido, opções, devolução nos abertos, estados vazios com e sem filtro, data de Recife, só `SELECT`, 3 consultas, login e POST 405 |
 | `alugueis/tests/test_concorrencia_devolucao.py` | 4 | Cenários 2 e 6 (só PostgreSQL) |
 | `alugueis/tests/test_confirmacao.py` | 10 | Confirmação explícita: prévia não grava; só `acao=registrar` grava; sem ação, ação desconhecida, vazia ou repetida não gravam; valores manipulados; duplo clique; dados preservados nos erros; retirada futura |
 | `alugueis/tests/test_concorrencia_confirmacao.py` | 1 | Duas confirmações simultâneas pela view: um único aluguel aberto, a segunda recebe erro de campo (só PostgreSQL) |
@@ -154,5 +176,6 @@ CT11–CT16 foram **automatizados**, não executados manualmente. As expectativa
 
 1. Aceite do contrato (PR #2): variável nova `resumo`, campo `acao` (`previa`/`registrar`), prévia no servidor × JavaScript, CPF mascarado na seleção.
 2. Textos indefinidos no EQF-5: aviso de não cancelamento, ausência de opções, indicação de atraso, cliente inexistente e ação ausente ou inválida. As mensagens de sucesso do registro e da devolução ("Aluguel registrado com sucesso." e "Devolução registrada com sucesso.") seguem o padrão de implementação adotado em 04/11/2026, sem aprovação formal; a prévia não envia mensagem.
-3. QA-AUD-01 e validação acadêmica de CT11–CT16.
+3. QA-AUD-01 e validação acadêmica de CT11–CT16, CT19 e CT20.
 4. DEV-07 (EQF-19): registrar no Jira que o RF008 foi implementado aqui, e definir o que resta para a atividade.
+5. RF010 (EQF-43): revisão do template P08 por Raphael; o texto do PR #2 não prevê parâmetro nem variáveis de filtro para P08 e precisa ser revisto em separado.
