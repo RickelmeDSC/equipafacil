@@ -1,9 +1,10 @@
-"""Cenários CT11–CT16 (QA) automatizados pelas views de aluguéis.
+"""Cenários CT11–CT16, CT19 e CT20 (QA) automatizados pelas views de aluguéis.
 
 Execução automatizada, não manual. Expectativas conforme a rastreabilidade
-(RF006–RF008, RN001, RN004). As correções da auditoria QA-AUD-01 não estavam
-disponíveis nesta sessão; a validação acadêmica é da equipe de Testes. CT16 é
-obrigatório mesmo ausente do documento v1.1 da equipe de QA.
+(RF006–RF008, RF010, RN001, RN004). As correções da auditoria QA-AUD-01 não
+estavam disponíveis nesta sessão; a validação acadêmica é da equipe de Testes.
+CT16 é obrigatório mesmo ausente do documento v1.1 da equipe de QA. CT19 e CT20
+vêm do Documento de Casos de Teste v1.4.
 """
 
 from decimal import Decimal
@@ -18,6 +19,7 @@ from config.tests.fabricas import (
     criar_equipamento,
     criar_funcionario,
     dias,
+    encerrar,
     hoje,
     registrar,
 )
@@ -115,3 +117,51 @@ class CenariosDeAlugueisTests(TestCase):
         self.assertContains(resposta, mensagens.NENHUM_REGISTRO)
         self.assertNotContains(resposta, "R$")
         self.assertNotContains(resposta, "Registrar devolução")
+
+    def _historico(self, **params):
+        resposta = self.client.get(reverse("alugueis:historico"), params)
+        self.assertEqual(resposta.status_code, 200)
+        return resposta
+
+    def _ativo_e_encerrado(self):
+        ativo = registrar(
+            equipamento=self.equipamento, cliente=self.cliente, prevista=dias(2)
+        )
+        encerrado = encerrar(
+            registrar(
+                equipamento=criar_equipamento(codigo="FUR-01", nome="Furadeira"),
+                prevista=dias(1),
+            ),
+            hoje(),
+        )
+        return ativo, encerrado
+
+    def test_ct19_filtro_por_situacao_mostra_so_a_situacao_escolhida(self):
+        ativo, encerrado = self._ativo_e_encerrado()
+        self.assertEqual(ativo.situacao(), "Ativo")
+        resposta = self._historico(situacao=Situacao.ENCERRADO)
+        self.assertEqual(list(resposta.context["object_list"]), [encerrado])
+        self.assertContains(resposta, ">Encerrado</td>")
+        self.assertContains(resposta, "FUR-01 — Furadeira")
+        self.assertNotContains(resposta, ">Ativo</td>")
+        self.assertNotContains(resposta, "BET-01 — Betoneira")
+        self.assertContains(
+            resposta, '<option value="encerrado" selected>Encerrado</option>'
+        )
+
+    def test_ct20_situacao_sem_registros_informa_ausencia(self):
+        self._ativo_e_encerrado()
+        todas = self._historico()
+        self.assertEqual(len(todas.context["object_list"]), 2)
+        self.assertNotContains(todas, ">Encerrado com atraso</td>")  # pré-condição
+        resposta = self._historico(situacao=Situacao.ENCERRADO_COM_ATRASO)
+        self.assertEqual(list(resposta.context["object_list"]), [])
+        self.assertContains(resposta, mensagens.NENHUM_REGISTRO)
+        self.assertNotContains(resposta, "<tbody>")
+        self.assertNotContains(resposta, "R$")
+        self.assertContains(resposta, "Limpar filtro")
+        self.assertContains(
+            resposta,
+            '<option value="encerrado_com_atraso" selected>'
+            "Encerrado com atraso</option>",
+        )

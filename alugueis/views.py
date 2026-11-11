@@ -1,9 +1,10 @@
 """Views de aluguéis: registro (P07), histórico (P08) e devolução (P09).
 
-RF006–RF008, RN001, RN004, I1, I2, D13. Todas exigem login
+RF006–RF008, RF010, RN001, RN004, I1, I2, D13. Todas exigem login
 (LoginRequiredMiddleware). GET só lê; gravação é POST com CSRF e segue
 POST/redirect/GET. Sem cancelamento e sem edição de aluguel. Rotas, nomes de
-template e variáveis seguem o contrato proposto (PR #2), ainda sem aceite.
+template e variáveis seguem o contrato proposto (PR #2), ainda sem aceite;
+``situacao_selecionada`` e ``opcoes_situacao`` em P08 são acréscimos do RF010.
 
 "Data atual" é sempre ``timezone.localdate()`` (America/Recife); os serviços
 usam a própria data atual ao gravar.
@@ -23,7 +24,7 @@ from alugueis.forms import (
     clientes_para_escolha,
     equipamentos_para_escolha,
 )
-from alugueis.models import Aluguel
+from alugueis.models import Aluguel, Situacao
 from config import mensagens
 from config.formularios import aplicar_erros
 
@@ -34,6 +35,9 @@ ACAO_PREVIA = "previa"
 ACAO_REGISTRAR = "registrar"
 ACOES = (ACAO_PREVIA, ACAO_REGISTRAR)
 
+# Filtro de P08 (RF010), GET ``situacao``: "Todas" é o valor vazio, sem filtro.
+OPCOES_SITUACAO = (("", "Todas"), *Situacao.choices)
+
 
 def _acao_pedida(request: HttpRequest) -> str | None:
     """A ação do POST, só se houver exatamente um valor conhecido."""
@@ -41,20 +45,33 @@ def _acao_pedida(request: HttpRequest) -> str | None:
     return valores[0] if len(valores) == 1 and valores[0] in ACOES else None
 
 
+def _situacao_pedida(request: HttpRequest) -> str:
+    """Situação do filtro (RF010); vazia, "Todas" ou desconhecida vale "Todas"."""
+    valor = request.GET.get("situacao", "").strip()
+    return valor if valor in Situacao.values else ""
+
+
 @require_safe
 def historico(request: HttpRequest) -> HttpResponse:
-    """P08: todos os aluguéis, do mais recente para o mais antigo.
+    """P08: aluguéis do mais recente para o mais antigo, com o filtro do RF010.
 
     Inclui equipamentos inativos. Situação e ``pode_devolver`` são calculados
-    com a data atual; cliente e equipamento vêm na mesma consulta.
+    com a data atual; cliente e equipamento vêm na mesma consulta. O filtro usa
+    a data atual em America/Recife e mantém a ordem do histórico sem filtro.
     """
-    alugueis = Aluguel.objects.select_related("cliente", "equipamento").order_by(
-        "-data_retirada", "-pk"
-    )
+    situacao = _situacao_pedida(request)
+    alugueis = Aluguel.objects.select_related("cliente", "equipamento")
+    if situacao:
+        alugueis = alugueis.na_situacao(situacao, timezone.localdate())
     return render(
         request,
         "alugueis/historico.html",
-        {"object_list": alugueis, "empty_message": mensagens.NENHUM_REGISTRO},
+        {
+            "object_list": alugueis.order_by("-data_retirada", "-pk"),
+            "situacao_selecionada": situacao,
+            "opcoes_situacao": OPCOES_SITUACAO,
+            "empty_message": mensagens.NENHUM_REGISTRO,
+        },
     )
 
 

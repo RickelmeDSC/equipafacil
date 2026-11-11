@@ -61,6 +61,28 @@ class AluguelQuerySet(models.QuerySet):
     def encerrados(self):
         return self.filter(data_devolucao_real__isnull=False)
 
+    def na_situacao(self, situacao: str, hoje: date):
+        """Aluguéis numa situação (RF010), com a regra de ``situacao_codigo``.
+
+        A situação não é armazenada: sai das datas do aluguel e de ``hoje``, a
+        data atual em America/Recife informada por quem chama (RN004 a, g). Um
+        código fora de ``Situacao`` é erro de programação; a view converte o
+        valor da URL antes ("Todas" não filtra).
+        """
+        if situacao not in Situacao.values:
+            raise ValueError(f"Situação desconhecida: {situacao!r}")
+        aberto = Q(data_devolucao_real__isnull=True)
+        encerrado = Q(data_devolucao_real__isnull=False)
+        prevista = F("data_devolucao_prevista")
+        condicoes = {
+            Situacao.ATIVO: aberto & Q(data_devolucao_prevista__gte=hoje),
+            Situacao.ATRASADO: aberto & Q(data_devolucao_prevista__lt=hoje),
+            Situacao.ENCERRADO: encerrado & Q(data_devolucao_real__lte=prevista),
+            Situacao.ENCERRADO_COM_ATRASO: encerrado
+            & Q(data_devolucao_real__gt=prevista),
+        }
+        return self.filter(condicoes[situacao])
+
 
 class Aluguel(ModeloValidado):
     equipamento = models.ForeignKey(
