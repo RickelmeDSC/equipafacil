@@ -155,7 +155,7 @@ Login obrigatório; POST com CSRF; GET não grava; 405 e 404 previsíveis. Nenhu
 - Trocar os três templates provisórios mantendo nomes de campos, `{% csrf_token %}`, os dois botões de P07 com `name="acao"` (`previa` e `registrar`, ambos obrigatórios), `form.non_field_errors` em P07 e P09 e os links por `{% url %}`.
 - Valores: `|floatformat:"2g"` produz `1.500,00` com a localização pt-br; datas com `|date:"d/m/Y"`.
 - `situacao_codigo` (`ativo`, `atrasado`, `encerrado`, `encerrado_com_atraso`) serve para o estilo do selo; o texto é `situacao`.
-- Filtro do RF010 em P08: formulário GET com `<select name="situacao">` montado de `opcoes_situacao`, opção marcada por `situacao_selecionada`, "Limpar" com filtro ativo e "Limpar filtro" no estado vazio filtrado. O formulário não pode conter "R$" nem "Registrar devolução" (teste do CT16). Revisão de Raphael pendente (EQF-43).
+- Filtro do RF010 em P08: formulário GET com `<select name="situacao">` montado de `opcoes_situacao`, opção marcada por `situacao_selecionada`, "Limpar" com filtro ativo e "Limpar filtro" no estado vazio filtrado. O formulário não pode conter "R$" nem "Registrar devolução" (teste do CT16). Revisado por Raphael em 11/11/2026 (EQF-43).
 - Textos indefinidos no EQF-5 (provisórios nos templates): aviso de não cancelamento, "Nenhum cliente cadastrado.", "Nenhum equipamento disponível para aluguel." e a explicação da devolução antes da retirada.
 
 ## Testes

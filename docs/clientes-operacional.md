@@ -100,7 +100,7 @@ Protocolo de bloqueios: `registrar_aluguel` bloqueia **equipamento → cliente**
 
 ## Integração com o frontend (Raphael)
 
-- `clientes/lista.html`: `object_list` (atributos `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`, `pk`), `query` e `empty_message`. Formulário GET com `name="q"` e `value="{{ query }}"`; com termo, "Limpar" no formulário e, sem resultado, "Limpar pesquisa" no estado vazio (RF009). Revisão de Raphael pendente (EQF-43).
+- `clientes/lista.html`: `object_list` (atributos `nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`, `pk`), `query` e `empty_message`. Formulário GET com `name="q"` e `value="{{ query }}"`; com termo, "Limpar" no formulário e, sem resultado, "Limpar pesquisa" no estado vazio (RF009). Revisado por Raphael em 11/11/2026 (EQF-43).
 - `clientes/formulario.html`: `form`; na edição, também `object` e `cpf_editavel`. Manter `method="post"`, `{% csrf_token %}`, os nomes dos campos e a exibição de `form.non_field_errors` e dos erros de cada campo.
 - Máscaras de CPF e telefone podem ser só visuais: o backend aceita a entrada com ou sem máscara e normaliza.
 - Os templates provisórios não têm Bootstrap nem herança de `base.html`; podem ser substituídos sem alterar serviços, formulário ou views.

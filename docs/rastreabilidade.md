@@ -55,7 +55,7 @@ Decisões técnicas aprovadas no mesmo registro, implementadas no EQF-43:
 | Acentos | A pesquisa por nome não diferencia maiúsculas, mas **não ignora acentos** ("joao" não encontra "João") |
 | Ordem do histórico filtrado | A mesma do RF008 implementado: `-data_retirada`, `-pk`. O texto "ordem decrescente de registro" da v1.3 é lido como "do aluguel mais recente para o mais antigo" |
 | Filtro desconhecido | Vale "Todas" |
-| Templates | P05 e P08 implementados no padrão de P02; revisão de Raphael antes do merge |
+| Templates | P05 e P08 implementados no padrão de P02; revisados por Raphael em 11/11/2026 |
 
 O detalhamento técnico de D10–D15 (rotas, formulários, modelagem) está nos documentos do DEV-01 (`contrato-tecnico-frontend-backend.md`, `modelagem-proposta.md` e `plano-backend-dev01-dev03.md`), que são propostas até o aceite de Rickelme e Raphael e entram na `main` por PR próprio.
 
