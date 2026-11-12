@@ -29,7 +29,11 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
 <div class="eqf-cabecalho-da-pagina">
   <div>
     <h1 class="eqf-titulo">Histórico de aluguéis</h1>
-    <p class="eqf-subtitulo">Todos os aluguéis registrados, do mais recente para o mais antigo.</p>
+    {% if situacao_selecionada %}
+      <p class="eqf-subtitulo">Aluguéis na situação “{% for valor, rotulo in opcoes_situacao %}{% if valor == situacao_selecionada %}{{ rotulo }}{% endif %}{% endfor %}”, do mais recente para o mais antigo.</p>
+    {% else %}
+      <p class="eqf-subtitulo">Todos os aluguéis registrados, do mais recente para o mais antigo.</p>
+    {% endif %}
   </div>
   <a class="btn btn-primary" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
 </div>

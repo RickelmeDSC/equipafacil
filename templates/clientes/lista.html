@@ -27,12 +27,13 @@ Revisão de Raphael pendente (EQF-43).
   <div class="eqf-painel-corpo">
     <label class="form-label" for="id_q">Pesquisar por nome ou CPF</label>
     <div class="d-flex flex-wrap gap-2">
-      <input class="form-control eqf-campo-de-pesquisa" type="search" id="id_q" name="q" value="{{ query }}">
+      <input class="form-control eqf-campo-de-pesquisa" type="search" id="id_q" aria-describedby="ajuda_q" name="q" value="{{ query }}">
       <button class="btn btn-outline-secondary" type="submit">Pesquisar</button>
       {% if query %}
         <a class="btn btn-link" href="{% url 'clientes:lista' %}">Limpar</a>
       {% endif %}
     </div>
+    <div class="form-text" id="ajuda_q">Parte do nome, com os acentos, ou do CPF, com ou sem pontos e hífen.</div>
   </div>
 </form>
 

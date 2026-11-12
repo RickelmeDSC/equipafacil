@@ -100,10 +100,10 @@ Fora dos rótulos de navegação, cabeçalhos de tabela e botões, estas frases 
 | P02 | “Equipamentos ativos e inativos da locadora.” |
 | P03 | “O equipamento é cadastrado ativo e fica disponível para aluguel.”; “Use vírgula para os centavos. Exemplo: 35,50.” |
 | P04 | “O equipamento inativo deixa de ficar disponível para novos aluguéis e continua no histórico.”; “O equipamento reativado volta a ficar disponível para aluguel. O histórico não é alterado.”; “A exclusão apaga o equipamento do sistema e só é possível enquanto ele não tiver histórico de locação.”; “Confirmar a exclusão de … ?”; “Esta ação é definitiva e não pode ser desfeita.” |
-| P05 | “Clientes cadastrados, em ordem alfabética.”; pesquisa do RF009 (EQF-43): “Pesquisar por nome ou CPF”, “Pesquise por parte do nome ou do CPF do cliente.”, “Limpar pesquisa” |
+| P05 | “Clientes cadastrados, em ordem alfabética.”; pesquisa do RF009 (EQF-43): “Pesquisar por nome ou CPF”, “Pesquise por parte do nome ou do CPF do cliente.”, “Limpar pesquisa”, “Parte do nome, com os acentos, ou do CPF, com ou sem pontos e hífen.” (ajuda do campo, ligada por `aria-describedby`) |
 | P06 | “Com ou sem pontos e hífen.”; “Com DDD, 10 ou 11 dígitos. Exemplo: (81) 99999-8888.” |
 | P07 | “Hoje ou uma data futura.”; “Resumo do aluguel”; “Estimativa: … Use ‘Calcular resumo’ para o valor do servidor.” |
-| P08 | “Todos os aluguéis registrados, do mais recente para o mais antigo.”; filtro do RF010 (EQF-43): “Filtrar por situação”, “Todas”, “Escolha outra situação ou limpe o filtro para ver todos os aluguéis.”, “Limpar filtro” |
+| P08 | “Todos os aluguéis registrados, do mais recente para o mais antigo.”; filtro do RF010 (EQF-43): “Filtrar por situação”, “Todas”, “Escolha outra situação ou limpe o filtro para ver todos os aluguéis.”, “Limpar filtro”; com filtro ativo, o subtítulo vira “Aluguéis na situação “…”, do mais recente para o mais antigo.” |
 | P09 | “A devolução é registrada uma única vez e não pode ser corrigida depois. Não há multa por atraso.” |
 | Todas | “(opcional)” nos campos não obrigatórios; “—” em célula sem valor; rodapé “EquipaFácil — gestão de aluguel de equipamentos.” |
 
