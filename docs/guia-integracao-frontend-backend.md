@@ -41,13 +41,13 @@ A equipe de Testes (Alexandre/Vinícius) mantém os cenários Gherkin CT01–CT1
 | Equipamentos — cadastro | Nome, código, categoria fixa, valor de diária, descrição opcional; exibir erros do Django Form | RF001 |
 | Equipamentos — edição | Mesmos campos; indicar código bloqueado após histórico; não prometer edição retroativa | RF003 |
 | Equipamentos — ações | Confirmação de exclusão, inativação ou reativação quando permitidas; mensagens de bloqueio | RF004 |
-| Clientes — listagem | Lista dos clientes cadastrados, com acesso à edição; estado vazio. Sem pesquisa e sem página de detalhe na v1 (D14) | RF005 |
+| Clientes — listagem | Lista dos clientes cadastrados, com acesso à edição; estado vazio. Sem página de detalhe (D14). Pesquisa por nome ou CPF acrescentada pelo RF009 (D16, 10/11/2026) | RF005, RF009 |
 | Clientes — cadastro/edição | Nome completo, CPF, telefone opcional, e-mail opcional; máscaras apenas visuais | RF005 |
 | Aluguéis — registro | Seleção de cliente/equipamento disponível, retirada, devolução prevista, resumo da quantidade de diárias e do valor **servido pelo backend** | RF006 |
 | Devolução | Identificar aluguel ativo, informar data real, confirmação e resultado com atraso sem multa | RF007 |
-| Histórico | Listagem de cliente/equipamento/datas/diária contratada/total/status; mensagem para lista vazia | RF008 |
+| Histórico | Listagem de cliente/equipamento/datas/diária contratada/total/status; mensagem para lista vazia. Filtro por situação acrescentado pelo RF010 (10/11/2026) | RF008, RF010 |
 
-**Não incluir na v1:** cadastro público, recuperação de senha por e-mail, cobrança, multa, manutenção, WhatsApp/SMS, exclusão de clientes, pesquisa de clientes e página de detalhe de cliente (D14), edição/cancelamento de aluguéis ou devoluções já registrados. A pesquisa de **equipamentos** (RF002) continua no escopo.
+**Não incluir na v1:** cadastro público, recuperação de senha por e-mail, cobrança, multa, manutenção, WhatsApp/SMS, exclusão de clientes, página de detalhe de cliente (D14), edição/cancelamento de aluguéis ou devoluções já registrados. A pesquisa de **equipamentos** (RF002) continua no escopo; a de **clientes** entrou pelo RF009 (D16, que revisa a D14 nesse ponto).
 
 ## 4. Regras funcionais que o frontend deve refletir — sem duplicar validação no cliente
 

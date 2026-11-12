@@ -34,6 +34,10 @@ A especificação v3 e o Documento de Requisitos v1.1 não são versões concorr
 | RF006 | Registrar aluguel | Alta |
 | RF007 | Registrar devolução | Alta |
 | RF008 | Consultar histórico de aluguéis | Média |
+| RF009 | Pesquisar clientes cadastrados | Média |
+| RF010 | Filtrar histórico de aluguéis por situação | Média |
+
+RF009 e RF010 foram acrescentados em 10/11/2026 (Documento de Requisitos v1.3 e Casos de Teste v1.4, CT17–CT20), com a decisão D16; aprovação técnica no EQF-5 e implementação no EQF-43. A validação documental da equipe de Requisitos está pendente.
 
 Regras de negócio planejadas: RN001 (aluguéis simultâneos e disponibilidade), RN002 (validação de dados), RN003 (integridade e exclusão/inativação) e RN004 (datas, duração e valores). Detalhes e rastreabilidade em [`docs/rastreabilidade.md`](docs/rastreabilidade.md).
 
@@ -69,6 +73,7 @@ Até agora estão configurados o Python, o Django e o ambiente local, com Postgr
 - [ ] Revisão dos cenários de teste (equipe de Testes)
 - [x] Configuração do projeto Django (DEV-02, integrada à `main`)
 - [x] Implementação de RF001–RF008 no backend (DEV-02 a DEV-06), com páginas provisórias
+- [x] Implementação de RF009 e RF010 (EQF-43), com CT17–CT20 automatizados
 - [ ] Frontend definitivo e homologação visual (DEV-07)
 - [ ] Testes e demonstração
 - [ ] Deploy
@@ -137,7 +142,7 @@ black --check .
 python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=24)` (o Django conta os pulados dentro do total executado): os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py`, `alugueis/tests/test_concorrencia_devolucao.py`, `alugueis/tests/test_concorrencia_confirmacao.py`, `equipamentos/tests/test_concorrencia.py` e `clientes/tests/test_concorrencia.py` só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Na validação da tarefa 13A (`main` em `85b4d1a`), foram 360 testes no total: todos aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
+Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=25)` (o Django conta os pulados dentro do total executado): os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py`, `alugueis/tests/test_concorrencia_devolucao.py`, `alugueis/tests/test_concorrencia_confirmacao.py`, `equipamentos/tests/test_concorrencia.py` e `clientes/tests/test_concorrencia.py`, e o teste de maiúsculas acentuadas de `clientes/tests/test_pesquisa.py`, só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Na validação da tarefa 13A (`main` em `85b4d1a`), foram 360 testes no total: todos aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. Com RF009 e RF010 (EQF-43, 10/11/2026), são 424 testes: todos aprovados no PostgreSQL local; no SQLite, 399 aprovados e 25 pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
 
 `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
 
@@ -200,8 +205,8 @@ Advertências ainda abertas:
 
 - Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)).
 - Gestão de equipamentos (RF001–RF004, DEV-04; veja [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md)) com páginas provisórias.
-- Gestão de clientes (RF005, DEV-05; veja [`docs/clientes-operacional.md`](docs/clientes-operacional.md)), sem pesquisa, detalhe nem exclusão (D14, RN003), com páginas provisórias.
-- Aluguéis, devoluções e histórico (RF006–RF008, DEV-06; veja [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md)), com prévia calculada no servidor (D13), sem cancelamento nem edição de aluguel, com páginas provisórias.
+- Gestão de clientes (RF005, DEV-05; veja [`docs/clientes-operacional.md`](docs/clientes-operacional.md)), sem detalhe nem exclusão (D14, RN003), com pesquisa por nome ou CPF (RF009, D16, EQF-43).
+- Aluguéis, devoluções e histórico (RF006–RF008, DEV-06; veja [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md)), com prévia calculada no servidor (D13), sem cancelamento nem edição de aluguel; histórico com filtro por situação (RF010, EQF-43).
 - As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
 - Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
 - Sem Bootstrap nem arquivos estáticos próprios: o frontend definitivo (DEV-07) e a homologação visual estão pendentes. O contrato técnico (PR #2) continua em rascunho, sem aprovação.

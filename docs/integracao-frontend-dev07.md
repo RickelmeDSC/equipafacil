@@ -12,13 +12,13 @@
 | P02 Equipamentos | `equipamentos:lista` (`?q=`) | `equipamentos/lista.html` | `object_list` (`codigo`, `nome`, `get_categoria_display`, `valor_diaria`, `ativo`, `disponivel`, `acoes`), `query`, `empty_message` |
 | P03 Formulário de equipamento | `equipamentos:criar`, `equipamentos:editar` | `equipamentos/formulario.html` | `form`; na edição, `object` e `codigo_editavel` |
 | P04 Ações do equipamento | `equipamentos:acoes` (GET) e `excluir`, `inativar`, `reativar` (POST) | `equipamentos/acoes.html` | `object`, `acoes` (`motivo_exclusao`, `motivo_inativacao`, `motivo_reativacao`), `tem_historico`, `tem_aluguel_ativo`, `pode_excluir`, `pode_inativar`, `pode_reativar` |
-| P05 Clientes | `clientes:lista` | `clientes/lista.html` | `object_list` (`nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`), `empty_message` |
+| P05 Clientes | `clientes:lista` | `clientes/lista.html` | `object_list` (`nome_completo`, `cpf_formatado`, `telefone_formatado`, `email`), `query` (termo da pesquisa do RF009, GET `q`), `empty_message` |
 | P06 Formulário de cliente | `clientes:criar`, `clientes:editar` | `clientes/formulario.html` | `form`; na edição, `object` e `cpf_editavel` |
 | P07 Novo aluguel | `alugueis:criar` | `alugueis/formulario.html` | `form`, `resumo` (depois da prévia), `data_atual`, `data_minima`, `diarias_equipamentos` (para `json_script`), `sem_equipamentos_disponiveis`, `sem_clientes` |
-| P08 Histórico | `alugueis:historico` | `alugueis/historico.html` | `object_list` (`cliente`, `equipamento`, datas, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver`), `empty_message` |
+| P08 Histórico | `alugueis:historico` | `alugueis/historico.html` | `object_list` (`cliente`, `equipamento`, datas, `quantidade_diarias`, `valor_diaria_contratada`, `valor_contratado`, `situacao`, `situacao_codigo`, `pode_devolver`), `situacao_selecionada` e `opcoes_situacao` (filtro do RF010, GET `situacao`), `empty_message` |
 | P09 Devolução | `alugueis:devolver` | `alugueis/devolver.html` | `object`, `form`, `pode_devolver`, `data_atual`, `data_minima`, `data_maxima` |
 
-Não existem, de propósito: pesquisa e detalhe de cliente (D14), exclusão de cliente, edição ou cancelamento de aluguel, cadastro público, recuperação de senha e API JSON.
+Não existem, de propósito: detalhe de cliente (D14), exclusão de cliente, edição ou cancelamento de aluguel, cadastro público, recuperação de senha e API JSON.
 
 ## 2. Componentes compartilhados (frontend)
 

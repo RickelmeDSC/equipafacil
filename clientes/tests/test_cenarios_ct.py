@@ -1,7 +1,8 @@
-"""Cenários CT09 e CT10 (QA) automatizados pelas views de clientes.
+"""Cenários CT09, CT10, CT17 e CT18 (QA) automatizados pelas views de clientes.
 
 Execução automatizada, não manual. Expectativas conforme a rastreabilidade
-(RF005, RN002) e D12; a validação acadêmica dos cenários é da equipe de Testes.
+(RF005, RF009, RN002), D12 e D16 (Documento de Casos de Teste v1.4); a
+validação acadêmica dos cenários é da equipe de Testes.
 """
 
 from django.test import TestCase
@@ -53,3 +54,24 @@ class CenariosDeClientesTests(TestCase):
                 )
                 self.assertContains(resposta, mensagens.CPF_DUPLICADO)
         self.assertEqual(Cliente.objects.count(), 1)
+
+    def test_ct17_pesquisa_por_nome_parcial_sem_diferenciar_maiusculas(self):
+        maria = criar_cliente(nome_completo="Maria QA Pesquisa", cpf=CPF)
+        criar_cliente(nome_completo="João Silva")
+        resposta = self.client.get(reverse("clientes:lista"), {"q": "maria qa"})
+        self.assertEqual(list(resposta.context["object_list"]), [maria])
+        self.assertContains(resposta, "Maria QA Pesquisa")
+        self.assertContains(resposta, formatar_cpf(CPF))
+        self.assertNotContains(resposta, "João Silva")
+        self.assertContains(resposta, 'name="q" value="maria qa"')
+
+    def test_ct18_pesquisa_sem_correspondencia_informa_ausencia(self):
+        criar_cliente(nome_completo="Maria QA Pesquisa")
+        resposta = self.client.get(
+            reverse("clientes:lista"), {"q": "CLIENTE_FANTASMA_999"}
+        )
+        self.assertEqual(list(resposta.context["object_list"]), [])
+        self.assertContains(resposta, mensagens.NENHUM_REGISTRO)
+        self.assertNotContains(resposta, "Maria QA Pesquisa")
+        self.assertNotContains(resposta, "<tbody>")
+        self.assertContains(resposta, "Limpar pesquisa")

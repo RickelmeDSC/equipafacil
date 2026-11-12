@@ -19,8 +19,8 @@ Base: `docs/modelagem-proposta.md` (v0.4, proposta no PR #2), `docs/rastreabilid
 | Modelo | Campos | Observações |
 |--------|--------|-------------|
 | `Equipamento` | `codigo`, `nome`, `categoria`, `valor_diaria`, `descricao`, `ativo` | Código sem espaços nas extremidades e único sem diferenciar maiúsculas (D11); grafia preservada; diária `Decimal` > 0 com até duas casas; criado ativo. Sem campo de disponibilidade |
-| `Cliente` | `nome_completo`, `cpf`, `telefone`, `email` | CPF persistido com 11 dígitos (I5); remove só pontos e hífen e recusa outros caracteres, dígitos verificadores inválidos e dígitos todos iguais (D12); telefone opcional com 10 ou 11 dígitos; sem endereço, exclusão, pesquisa ou detalhe (D14) |
-| `Aluguel` | `equipamento`, `cliente`, `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `valor_diaria_contratada`, `quantidade_diarias`, `valor_contratado` | Aberto = `data_devolucao_real` nula; diárias inclusivas; diária e valor congelados no registro; sem status, multa, cancelamento ou pagamento |
+| `Cliente` | `nome_completo`, `cpf`, `telefone`, `email` | CPF persistido com 11 dígitos (I5); remove só pontos e hífen e recusa outros caracteres, dígitos verificadores inválidos e dígitos todos iguais (D12); telefone opcional com 10 ou 11 dígitos; sem endereço, exclusão ou detalhe (D14). Pesquisa por nome ou CPF em `ClienteQuerySet.pesquisar` (RF009, D16), sem campo nem índice novo |
+| `Aluguel` | `equipamento`, `cliente`, `data_retirada`, `data_devolucao_prevista`, `data_devolucao_real`, `valor_diaria_contratada`, `quantidade_diarias`, `valor_contratado` | Aberto = `data_devolucao_real` nula; diárias inclusivas; diária e valor congelados no registro; sem status, multa, cancelamento ou pagamento. O filtro do RF010 (`AluguelQuerySet.na_situacao`) calcula a situação pelas datas, sem campo novo |
 
 Sem campos de criação e atualização: não estão previstos na arquitetura nem na modelagem. Os modelos de domínio não são registrados no Django Admin (D15; modelagem, seção 7).
 

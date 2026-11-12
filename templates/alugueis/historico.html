@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 {% comment %}
-P08 — Histórico de aluguéis (RF008, RN004, CT15, CT16).
-Contexto: object_list (com cliente e equipamento já carregados), empty_message.
+P08 — Histórico de aluguéis e filtro por situação (RF008, RF010, RN004; CT15,
+CT16, CT19, CT20).
+Contexto: object_list (com cliente e equipamento já carregados),
+situacao_selecionada, opcoes_situacao, empty_message.
+
+Filtro por GET situacao: "Todas" é o valor vazio; valor desconhecido volta como
+"Todas". A situação é calculada no backend com a data atual em America/Recife e
+a ordem é a do histórico sem filtro. O formulário do filtro não pode ter "R$"
+nem "Registrar devolução" (teste do CT16). Revisado por Raphael em
+11/11/2026 (EQF-43).
 
 Valores congelados no registro: diária contratada e valor contratado são os do
 momento do aluguel e não mudam, nem na devolução em atraso. Sem multa.
@@ -22,10 +30,31 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
 <div class="eqf-cabecalho-da-pagina">
   <div>
     <h1 class="eqf-titulo">Histórico de aluguéis</h1>
-    <p class="eqf-subtitulo">Todos os aluguéis registrados, do mais recente para o mais antigo.</p>
+    {% if situacao_selecionada %}
+      <p class="eqf-subtitulo">Aluguéis na situação “{% for valor, rotulo in opcoes_situacao %}{% if valor == situacao_selecionada %}{{ rotulo }}{% endif %}{% endfor %}”, do mais recente para o mais antigo.</p>
+    {% else %}
+      <p class="eqf-subtitulo">Todos os aluguéis registrados, do mais recente para o mais antigo.</p>
+    {% endif %}
   </div>
   <a class="btn btn-primary" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
 </div>
+
+<form class="eqf-painel mb-3" method="get" action="{% url 'alugueis:historico' %}">
+  <div class="eqf-painel-corpo">
+    <label class="form-label" for="id_situacao">Filtrar por situação</label>
+    <div class="d-flex flex-wrap gap-2">
+      <select class="form-select eqf-campo-de-pesquisa" id="id_situacao" name="situacao">
+        {% for valor, rotulo in opcoes_situacao %}
+          <option value="{{ valor }}"{% if valor == situacao_selecionada %} selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+      {% if situacao_selecionada %}
+        <a class="btn btn-link" href="{% url 'alugueis:historico' %}">Limpar</a>
+      {% endif %}
+    </div>
+  </div>
+</form>
 
 <div class="eqf-painel">
   {% if object_list %}
@@ -70,8 +99,13 @@ A tela não acessa nada fora do que a view carregou: o histórico é uma consult
   {% else %}
     <div class="eqf-vazio">
       <p class="eqf-vazio-titulo">{{ empty_message }}</p>
-      <p class="eqf-vazio-texto">Registre o primeiro aluguel para ver o histórico aqui.</p>
-      <a class="btn btn-primary" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
+      {% if situacao_selecionada %}
+        <p class="eqf-vazio-texto">Escolha outra situação ou limpe o filtro para ver todos os aluguéis.</p>
+        <a class="btn btn-outline-secondary" href="{% url 'alugueis:historico' %}">Limpar filtro</a>
+      {% else %}
+        <p class="eqf-vazio-texto">Registre o primeiro aluguel para ver o histórico aqui.</p>
+        <a class="btn btn-primary" href="{% url 'alugueis:criar' %}">Novo aluguel</a>
+      {% endif %}
     </div>
   {% endif %}
 </div>

@@ -11,11 +11,23 @@ _PONTUACAO_DO_CPF = str.maketrans("", "", ".-")
 _MASCARA_DO_TELEFONE = str.maketrans("", "", "() -")
 _ONZE_DIGITOS = re.compile(r"[0-9]{11}")
 _DEZ_OU_ONZE_DIGITOS = re.compile(r"[0-9]{10,11}")
+_DIGITOS = re.compile(r"[0-9]+")
 
 
 def normalizar_cpf(valor: str) -> str:
     """Remove apenas pontos e hífen; qualquer outro caractere fica para ser recusado."""
     return valor.translate(_PONTUACAO_DO_CPF) if isinstance(valor, str) else valor
+
+
+def digitos_para_pesquisa(termo: str) -> str:
+    """Dígitos de um termo de pesquisa por CPF (RF009), ou "" se não for CPF.
+
+    Desconsidera só pontos e hífen, como a normalização do cadastro (RN002 b).
+    Qualquer outro caractere, inclusive dígito de outro alfabeto, faz o termo não
+    valer como CPF; só pontuação também não, para não virar "contém vazio".
+    """
+    digitos = normalizar_cpf(termo)
+    return digitos if isinstance(digitos, str) and _DIGITOS.fullmatch(digitos) else ""
 
 
 def _digitos_verificadores_validos(cpf: str) -> bool:
