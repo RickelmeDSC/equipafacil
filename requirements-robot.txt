@@ -1,0 +1,8 @@
+# Automação de testes de interface do EquipaFácil (Robot Framework + Browser).
+# Não vai para produção. Inclui as dependências de execução.
+# Depois de instalar, baixe o navegador: rfbrowser init chromium
+# Instruções: docs/testes-robot.md
+-r requirements.txt
+
+robotframework==7.5.1
+robotframework-browser==21.0.0
