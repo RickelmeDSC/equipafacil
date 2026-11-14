@@ -22,7 +22,7 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "scripts.robot.settings_robot"
 
 
 def main(argumentos: list[str]) -> int:
-    if len(argumentos) != 1 or not re.fullmatch(r"ct\d{2}", argumentos[0]):
+    if len(argumentos) != 1 or not re.fullmatch(r"(controle_)?ct\d{2}", argumentos[0]):
         print("Uso: python scripts/robot/massa.py ctNN (ex.: ct16)", file=sys.stderr)
         return 2
     cenario = argumentos[0]

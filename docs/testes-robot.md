@@ -78,6 +78,17 @@ Ficam em `resultados-robot/`:
 Verde em `report.html` significa que todos os testes passaram. Em caso de falha,
 abra o `log.html`, expanda o teste em vermelho e veja a keyword que falhou.
 
+## Controle negativo do CT16
+
+`scripts/robot/controles/Controle_CT16.robot` é uma verificação técnica, fora de
+`tests/` e da suíte oficial. Ele cria um aluguel fictício no banco isolado e
+confirma que cada verificação do CT16 falha nessa situação; o controle passa
+quando as três falhas esperadas acontecem.
+
+```
+python scripts/robot/executar.py scripts/robot/controles/Controle_CT16.robot
+```
+
 ## Como adicionar o seu cenário
 
 Exemplo para o CT03:
