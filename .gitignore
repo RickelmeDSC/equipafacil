@@ -60,3 +60,7 @@ desktop.ini
 
 # ---- Ferramentas locais ----
 .claude/settings.local.json
+
+# ---- Robot Framework (banco isolado, relatórios e capturas) ----
+resultados-robot/
+playwright-log.txt
