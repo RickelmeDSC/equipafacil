@@ -51,7 +51,9 @@ python scripts/robot/executar.py                           # a suíte inteira
 python scripts/robot/executar.py --visivel tests/Cenario16.robot   # com o navegador na tela
 ```
 
-Opções do Robot podem ser repassadas, por exemplo `--include Smoke`.
+Opções do Robot podem ser repassadas, por exemplo `--include=Smoke`. Use o sinal
+de igual: com espaço (`--include Smoke`), o script entende `Smoke` como um
+arquivo de teste e a execução termina com erro.
 
 O script:
 
@@ -120,7 +122,7 @@ navegador), `Login_Steps.robot` (`Entrar Como Funcionario`), `Home_Steps.robot`
   outros já usam.
 - Não altere `Common_Steps.robot`, `executar.py`, `massa.py` nem
   `settings_robot.py` sem combinar com a equipe.
-- Uma branch por integrante, a partir da branch da infraestrutura, com PRs pequenos.
+- Uma branch por integrante, criada a partir de `origin/main` atualizada, com PRs pequenos.
 
 ## Segurança
 

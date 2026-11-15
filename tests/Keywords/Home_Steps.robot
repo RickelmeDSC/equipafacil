@@ -17,3 +17,8 @@ Acessar Novo Aluguel
 
 Acessar Historico
     Click    ${MENU_LINK_HISTORICO}
+
+Mensagem De Sucesso Deve Ser
+    [Documentation]    Mensagem verde exibida no topo de qualquer tela depois de uma gravação.
+    [Arguments]    ${texto}
+    Get Text    ${MENSAGEM_DE_SUCESSO}    ==    ${texto}
