@@ -1,5 +1,6 @@
 *** Settings ***
 Library           Browser
+Library           String
 Resource          ../Pages/Historico_Page.robot
 
 *** Keywords ***
@@ -17,3 +18,40 @@ Historico Deve Exibir Mensagem De Ausencia
 Historico Nao Deve Exibir Valores Nem Devolucao
     Get Text    ${HISTORICO_PAINEL_DE_RESULTADOS}    not contains    R$
     Get Element Count    ${HISTORICO_LINKS_DE_DEVOLUCAO}    ==    0
+
+Historico Deve Ter Quantidade De Linhas
+    [Arguments]    ${quantidade}
+    Get Element Count    ${HISTORICO_LINHAS}    ==    ${quantidade}
+
+Historico Deve Exibir Aluguel
+    [Documentation]    Confere a linha do equipamento, pelo código. Falha se houver mais de uma linha do mesmo código.
+    [Arguments]    ${codigo}    ${cliente}    ${diarias}    ${diaria}    ${valor}    ${situacao}
+    ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
+    Get Text    ${linha}${HISTORICO_COLUNA_CLIENTE}    ==    ${cliente}
+    Get Text    ${linha}${HISTORICO_COLUNA_DIARIAS}    ==    ${diarias}
+    Get Text    ${linha}${HISTORICO_COLUNA_DIARIA}    ==    ${diaria}
+    Get Text    ${linha}${HISTORICO_COLUNA_VALOR}    ==    ${valor}
+    Get Text    ${linha}${HISTORICO_COLUNA_SITUACAO}    ==    ${situacao}
+
+Historico Deve Exibir Periodo Do Aluguel
+    [Documentation]    Datas no formato dd/mm/aaaa.
+    [Arguments]    ${codigo}    ${retirada}    ${prevista}
+    ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
+    Get Text    ${linha}${HISTORICO_COLUNA_RETIRADA}    ==    ${retirada}
+    Get Text    ${linha}${HISTORICO_COLUNA_PREVISTA}    ==    ${prevista}
+
+Historico Deve Exibir Devolucao Do Aluguel
+    [Documentation]    Data no formato dd/mm/aaaa; aluguel sem devolução exibe um travessão.
+    [Arguments]    ${codigo}    ${devolucao}
+    ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
+    Get Text    ${linha}${HISTORICO_COLUNA_DEVOLUCAO}    ==    ${devolucao}
+
+Abrir Devolucao Do Aluguel
+    [Arguments]    ${codigo}
+    ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
+    Click    ${linha}${HISTORICO_LINKS_DE_DEVOLUCAO}
+
+Aluguel Nao Deve Permitir Devolucao
+    [Arguments]    ${codigo}
+    ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
+    Get Element Count    ${linha}${HISTORICO_LINKS_DE_DEVOLUCAO}    ==    0

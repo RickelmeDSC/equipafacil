@@ -7,3 +7,4 @@ ${MENU_LINK_NOVO_ALUGUEL}   ${MENU_NAVEGACAO}//a[normalize-space()='Novo aluguel
 ${MENU_LINK_HISTORICO}      ${MENU_NAVEGACAO}//a[normalize-space()='Histórico']
 ${MENU_USUARIO_LOGADO}      ${MENU_NAVEGACAO}//span[contains(@class,'eqf-identificacao')]
 ${MENU_BOTAO_SAIR}          ${MENU_NAVEGACAO}//button[normalize-space()='Sair']
+${MENSAGEM_DE_SUCESSO}      //div[@role='alert' and contains(@class,'alert-success')]
