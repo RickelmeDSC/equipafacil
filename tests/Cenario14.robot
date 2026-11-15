@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation     CT14 — Impedir devolução de aluguel já encerrado (RF007).
+Documentation     CT14 — Impedir devolução de aluguel já encerrado (RF007; RN001, RN004).
 ...               Massa: aluguel ativo do "FUR-001", retirado no dia anterior à execução (scripts/robot/massas/ct14.py).
 ...               A tela não oferece devolução para aluguel encerrado. Para a segunda devolução chegar ao backend,
 ...               a primeira aba deixa a devolução pronta para confirmar; a segunda aba registra a devolução
@@ -17,7 +17,7 @@ Test Teardown     Encerrar Cenario
 
 *** Test Cases ***
 CT14 - Impedir devolucao de aluguel ja encerrado
-    [Tags]    CT14    RF007    Regression
+    [Tags]    CT14    RF007    RN001    RN004    Regression
     Entrar Como Funcionario
     Acessar Historico
     Historico Deve Estar Aberto

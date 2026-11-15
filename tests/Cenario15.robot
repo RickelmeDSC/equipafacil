@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation     CT15 — Consultar histórico de aluguéis (RF008).
+Documentation     CT15 — Consultar histórico de aluguéis (RF008; RN004).
 ...               Massa: quatro aluguéis, um em cada situação, cada um com o próprio equipamento
 ...               (scripts/robot/massas/ct15.py).
 ...               Adaptação: as datas são relativas à data da execução, porque a situação é calculada
@@ -13,7 +13,7 @@ Test Teardown     Encerrar Cenario
 
 *** Test Cases ***
 CT15 - Consultar historico de alugueis
-    [Tags]    CT15    RF008    Smoke    Sanity    Regression
+    [Tags]    CT15    RF008    RN004    Smoke    Sanity    Regression
     ${hoje}=    Data Em Relacao A Hoje    0
     ${ontem}=    Data Em Relacao A Hoje    -1
     ${em_dois_dias}=    Data Em Relacao A Hoje    2
