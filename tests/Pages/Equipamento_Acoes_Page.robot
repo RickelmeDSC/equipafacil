@@ -4,3 +4,6 @@ ${EQUIPAMENTO_ACOES_INDICADOR}              //div[div[contains(@class,'eqf-subti
 ${EQUIPAMENTO_ACOES_ABRIR_EXCLUSAO}         //summary[normalize-space()='Excluir equipamento']
 ${EQUIPAMENTO_ACOES_PERGUNTA_DE_EXCLUSAO}   //details[contains(@class,'eqf-confirmacao')]//p[contains(@class,'fw-semibold')]
 ${EQUIPAMENTO_ACOES_CONFIRMAR_EXCLUSAO}     //button[@type='submit' and normalize-space()='Confirmar exclusão']
+${EQUIPAMENTO_ACOES_EXCLUSAO_BLOQUEADA}     //button[@disabled and normalize-space()='Excluir equipamento']
+${EQUIPAMENTO_ACOES_MOTIVO_DA_EXCLUSAO}     //div[contains(@class,'eqf-acao-bloqueada')][button[normalize-space()='Excluir equipamento']]/p[contains(@class,'eqf-motivo-do-bloqueio')]
+${EQUIPAMENTO_ACOES_BOTAO_INATIVAR}         //button[@type='submit' and normalize-space()='Inativar equipamento']
