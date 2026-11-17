@@ -1,4 +1,3 @@
-
 """Massa do CT10 — Impedir cadastro com CPF duplicado."""
 
 from config.tests.fabricas import criar_cliente
