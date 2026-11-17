@@ -55,3 +55,17 @@ Aluguel Nao Deve Permitir Devolucao
     [Arguments]    ${codigo}
     ${linha}=    Format String    ${HISTORICO_LINHA_DO_EQUIPAMENTO}    codigo=${codigo}
     Get Element Count    ${linha}${HISTORICO_LINKS_DE_DEVOLUCAO}    ==    0
+
+Abrir Historico Em Outra Aba
+    [Documentation]    Segunda aba na mesma sessão; a primeira continua aberta como estava.
+    New Page    ${BASE_URL}/alugueis/
+    Historico Deve Estar Aberto
+
+Data Em Relacao A Hoje
+    [Documentation]    Data atual em America/Recife (a mesma referência do servidor) deslocada em dias
+    ...    (negativo para o passado). Devolve a data em dd/mm/aaaa, como o histórico a exibe.
+    [Arguments]    ${dias}
+    ${data}=    Evaluate
+    ...    (datetime.datetime.now(zoneinfo.ZoneInfo('America/Recife')) + datetime.timedelta(days=int($dias))).strftime('%d/%m/%Y')
+    ...    modules=datetime,zoneinfo
+    RETURN    ${data}

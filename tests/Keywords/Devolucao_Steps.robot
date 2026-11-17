@@ -23,3 +23,17 @@ Informar Data De Devolucao Como Hoje
 
 Confirmar Devolucao
     Click    ${DEVOLUCAO_BOTAO_CONFIRMAR}
+
+Informar Data De Devolucao Como Data Da Retirada
+    [Documentation]    Usa a data de retirada do aluguel (limite mínimo do campo). Devolve a data em dd/mm/aaaa.
+    ${retirada}=    Get Attribute    ${DEVOLUCAO_INPUT_DATA}    min
+    Fill Text    ${DEVOLUCAO_INPUT_DATA}    ${retirada}
+    ${retirada_br}=    Convert Date    ${retirada}    result_format=%d/%m/%Y    date_format=%Y-%m-%d
+    RETURN    ${retirada_br}
+
+Devolucao Deve Ser Recusada
+    [Documentation]    A tela continua na devolução, com o aviso do backend e sem o botão de confirmar.
+    [Arguments]    ${mensagem}
+    Devolucao Deve Estar Aberta
+    Get Text    ${DEVOLUCAO_ALERTA_DE_RECUSA}    ==    ${mensagem}
+    Get Element Count    ${DEVOLUCAO_BOTAO_CONFIRMAR}    ==    0
