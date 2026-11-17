@@ -1,4 +1,3 @@
-
 """Massa do CT09 — Cadastro de cliente válido."""
 
 

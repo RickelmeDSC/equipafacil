@@ -1,4 +1,3 @@
-
 """Massa do CT17 — Pesquisar cliente pelo nome."""
 
 from config.tests.fabricas import criar_cliente
