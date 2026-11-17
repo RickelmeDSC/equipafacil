@@ -1,0 +1,9 @@
+*** Variables ***
+${EQUIPAMENTO_FORM_TITULO_NOVO}        //h1[normalize-space()='Novo equipamento']
+${EQUIPAMENTO_FORM_TITULO_EDICAO}      //h1[normalize-space()='Editar equipamento']
+${EQUIPAMENTO_FORM_INPUT_CODIGO}       //input[@id='id_codigo']
+${EQUIPAMENTO_FORM_INPUT_NOME}         //input[@id='id_nome']
+${EQUIPAMENTO_FORM_SELECT_CATEGORIA}   //select[@id='id_categoria']
+${EQUIPAMENTO_FORM_INPUT_DIARIA}       //input[@id='id_valor_diaria']
+${EQUIPAMENTO_FORM_INPUT_DESCRICAO}    //textarea[@id='id_descricao']
+${EQUIPAMENTO_FORM_BOTAO_SALVAR}       //form[.//input[@id='id_codigo']]//button[@type='submit']
