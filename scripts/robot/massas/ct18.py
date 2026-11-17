@@ -1,4 +1,3 @@
-
 """Massa do CT18 — Pesquisar cliente inexistente."""
 
 from config.tests.fabricas import criar_cliente
