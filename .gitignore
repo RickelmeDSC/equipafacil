@@ -53,6 +53,7 @@ logs/
 
 # ---- Editores e sistema operacional ----
 .vscode/
+.vs/
 .idea/
 .DS_Store
 Thumbs.db
