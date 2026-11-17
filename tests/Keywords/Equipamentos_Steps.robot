@@ -59,3 +59,20 @@ Acessar Acoes Do Equipamento
     [Arguments]    ${codigo}
     ${linha}=    Format String    ${EQUIPAMENTOS_LINHA_DO_CODIGO}    codigo=${codigo}
     Click    ${linha}${EQUIPAMENTOS_LINK_ACOES_DA_LINHA}
+
+A Pesquisa Deve Retornar Apenas Um Equipamento
+    [Documentation]    Pesquisa pelo código, a partir da lista, e exige uma única linha, com esse código.
+    [Arguments]    ${codigo}
+    Pesquisar Equipamento    ${codigo}
+    Equipamentos Deve Ter Quantidade De Linhas    1
+    ${linha}=    Format String    ${EQUIPAMENTOS_LINHA_DO_CODIGO}    codigo=${codigo}
+    Get Element Count    ${linha}    ==    1
+
+A Lista Deve Estar Vazia
+    [Arguments]    ${mensagem}=Nenhum registro encontrado.
+    Lista De Equipamentos Deve Exibir Mensagem De Ausencia    ${mensagem}
+
+A Lista Deve Exibir O Valor Da Diaria Do Equipamento
+    [Arguments]    ${codigo}    ${valor}
+    Equipamentos Deve Estar Aberto
+    Celula Do Equipamento Deve Ser    ${EQUIPAMENTOS_CELULA_DIARIA}    ${codigo}    ${valor}

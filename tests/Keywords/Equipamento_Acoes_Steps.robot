@@ -24,3 +24,16 @@ Solicitar Exclusao Do Equipamento
 
 Confirmar Exclusao Do Equipamento
     Click    ${EQUIPAMENTO_ACOES_CONFIRMAR_EXCLUSAO}
+
+O Botao De Excluir Deve Estar Desabilitado Com O Motivo
+    [Documentation]    A tela não oferece a confirmação de exclusão: só o botão desabilitado e o motivo.
+    [Arguments]    ${motivo}
+    Wait For Elements State    ${EQUIPAMENTO_ACOES_EXCLUSAO_BLOQUEADA}    visible
+    Get Element States    ${EQUIPAMENTO_ACOES_EXCLUSAO_BLOQUEADA}    contains    disabled
+    Get Text    ${EQUIPAMENTO_ACOES_MOTIVO_DA_EXCLUSAO}    ==    ${motivo}
+    Get Element Count    ${EQUIPAMENTO_ACOES_ABRIR_EXCLUSAO}    ==    0
+    Get Element Count    ${EQUIPAMENTO_ACOES_CONFIRMAR_EXCLUSAO}    ==    0
+
+O Botao De Inativar Deve Estar Habilitado
+    Get Element Count    ${EQUIPAMENTO_ACOES_BOTAO_INATIVAR}    ==    1
+    Get Element States    ${EQUIPAMENTO_ACOES_BOTAO_INATIVAR}    contains    visible    enabled

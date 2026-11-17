@@ -16,5 +16,7 @@ CT06 - Impedir edicao com diaria de R$ 0,00
     Acessar Edicao Do Equipamento    FUR-001
     Preencher Formulario De Equipamento    FUR-001    Furadeira Impacto    0,00
     Salvar Equipamento
+    Formulario De Edicao De Equipamento Deve Estar Aberto
     Mensagem De Erro Deve Ser    O valor da diária deve ser maior que R$ 0,00 e ter no máximo duas casas decimais.
+    Acessar Equipamentos
     A Lista Deve Exibir O Valor Da Diaria Do Equipamento    FUR-001    R$ 50,00

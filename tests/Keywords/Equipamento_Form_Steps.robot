@@ -37,3 +37,10 @@ Formulario De Equipamento Deve Exibir
 
 Salvar Equipamento
     Click    ${EQUIPAMENTO_FORM_BOTAO_SALVAR}
+
+Mensagem De Erro Deve Ser
+    [Documentation]    O formulário deve exibir um único erro de campo, com exatamente este texto.
+    [Arguments]    ${texto}
+    Wait For Elements State    ${EQUIPAMENTO_FORM_BOTAO_SALVAR}    visible
+    Get Element Count    ${EQUIPAMENTO_FORM_ERROS_DE_CAMPO}    ==    1
+    Get Text    ${EQUIPAMENTO_FORM_ERROS_DE_CAMPO}    ==    ${texto}

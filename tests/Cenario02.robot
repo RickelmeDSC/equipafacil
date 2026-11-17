@@ -14,7 +14,11 @@ CT02 - Impedir cadastro com codigo duplicado
     Entrar Como Funcionario
     Acessar Equipamentos
     Acessar Novo Equipamento
-    Preencher Formulario De Equipamento    FUR-001    Outra Furadeira    50,00
+    Formulario De Novo Equipamento Deve Estar Aberto
+    Preencher Formulario De Equipamento    FUR-001    Outra Furadeira    50,00    Ferramentas
     Salvar Equipamento
+    Formulario De Novo Equipamento Deve Estar Aberto
     Mensagem De Erro Deve Ser    Já existe um equipamento com este código.
+    Acessar Equipamentos
     A Pesquisa Deve Retornar Apenas Um Equipamento    FUR-001
+    Equipamento Deve Aparecer Na Lista    FUR-001    Furadeira Impacto    Ferramentas    R$ 50,00    Ativo    Disponível
