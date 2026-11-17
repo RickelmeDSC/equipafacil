@@ -1,0 +1,16 @@
+*** Variables ***
+${EQUIPAMENTOS_TITULO}                   //h1[normalize-space()='Equipamentos']
+${EQUIPAMENTOS_LINK_NOVO}                //div[contains(@class,'eqf-cabecalho-da-pagina')]//a[normalize-space()='Novo equipamento']
+${EQUIPAMENTOS_FORM_PESQUISA}            //form[@action='/equipamentos/']
+${EQUIPAMENTOS_INPUT_PESQUISA}           ${EQUIPAMENTOS_FORM_PESQUISA}//input[@name='q']
+${EQUIPAMENTOS_BOTAO_PESQUISAR}          ${EQUIPAMENTOS_FORM_PESQUISA}//button[@type='submit']
+${EQUIPAMENTOS_LINHAS}                   //table[thead//th[normalize-space()='Código']]/tbody/tr
+${EQUIPAMENTOS_LINHA_DO_CODIGO}          ${EQUIPAMENTOS_LINHAS}\[td[1][normalize-space()='{codigo}']]
+${EQUIPAMENTOS_CELULA_NOME}              ${EQUIPAMENTOS_LINHA_DO_CODIGO}/td[2]
+${EQUIPAMENTOS_CELULA_CATEGORIA}         ${EQUIPAMENTOS_LINHA_DO_CODIGO}/td[3]
+${EQUIPAMENTOS_CELULA_DIARIA}            ${EQUIPAMENTOS_LINHA_DO_CODIGO}/td[4]
+${EQUIPAMENTOS_CELULA_SITUACAO}          ${EQUIPAMENTOS_LINHA_DO_CODIGO}/td[5]
+${EQUIPAMENTOS_CELULA_DISPONIBILIDADE}   ${EQUIPAMENTOS_LINHA_DO_CODIGO}/td[6]
+${EQUIPAMENTOS_LINK_EDITAR_DA_LINHA}     //a[normalize-space()='Editar']
+${EQUIPAMENTOS_LINK_ACOES_DA_LINHA}      //a[normalize-space()='Ações']
+${EQUIPAMENTOS_VAZIO_TITULO}             //div[contains(@class,'eqf-vazio')][a[contains(@href,'/equipamentos/')]]/p[contains(@class,'eqf-vazio-titulo')]
