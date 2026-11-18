@@ -80,6 +80,41 @@ Ficam em `resultados-robot/`:
 Verde em `report.html` significa que todos os testes passaram. Em caso de falha,
 abra o `log.html`, expanda o teste em vermelho e veja a keyword que falhou.
 
+## Execução no GitHub Actions
+
+O job **Robot Framework (CT01 a CT20)** (`robot`, em `.github/workflows/ci.yml`)
+roda a suíte inteira em todo Pull Request para a `main` e em todo push na `main`,
+ao lado dos jobs de PostgreSQL, SQLite e Gunicorn, sem depender deles.
+
+- **Ambiente:** Ubuntu 24.04, Python do `.python-version`, Node.js 24,
+  `requirements-robot.txt` e `rfbrowser init --with-deps chromium` (dependências
+  Node da biblioteca Browser, Chromium e bibliotecas de sistema).
+- **Isolamento:** o mesmo `scripts/robot/executar.py` da execução local. O
+  Django temporário usa um SQLite criado no runner; o job não recebe segredos
+  nem variáveis de banco, e Render e Neon não são acessados.
+- **Resultado:** na aba *Checks* do Pull Request (ou em *Actions*), abra o job e
+  o passo "Executar os cenários". O fim da saída mostra o total, por exemplo
+  `20 tests, 20 passed, 0 failed`. Se um cenário falhar, o job falha.
+- **Relatórios:** na página da execução, em *Artifacts*, baixe
+  `relatorios-robot`. O arquivo traz `report.html`, `log.html`, `output.xml`,
+  `servidor.log`, `playwright-log.txt` e as capturas de tela das falhas. O banco
+  isolado não é enviado. Os relatórios ficam disponíveis por 14 dias e são
+  guardados mesmo quando os testes falham.
+- **Falha no navegador:** veja a keyword em vermelho e a captura de tela no
+  `log.html`; o `playwright-log.txt` registra o que o navegador fez.
+- **Falha no Django temporário:** veja o `servidor.log`. Se o servidor nem
+  iniciar, o passo termina com "O servidor de teste não iniciou".
+
+Limitações:
+
+- O job ainda não é obrigatório para o merge: uma falha aparece no Pull
+  Request, mas não o bloqueia.
+- O controle negativo do CT16 não roda no CI; continua sendo executado só
+  localmente.
+- As dependências indiretas da biblioteca Browser não têm versão fixada.
+- Os cenários usam a data atual de America/Recife; uma execução exatamente na
+  virada do dia pode falhar sem que haja defeito.
+
 ## Controle negativo do CT16
 
 `scripts/robot/controles/Controle_CT16.robot` é uma verificação técnica, fora de

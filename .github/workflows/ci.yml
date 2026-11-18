@@ -153,3 +153,61 @@ jobs:
         env:
           PYTHON: python
         run: bash scripts/validar-gunicorn-linux.sh
+
+  # Testes de interface (Robot Framework + Browser), CT01 a CT20. O script sobe
+  # um Django temporário em 127.0.0.1 com um SQLite criado no próprio runner e
+  # gera usuário e senha fictícios para a execução. O job não recebe segredos
+  # nem variáveis de banco: Render e Neon não são acessados.
+  robot:
+    name: Robot Framework (CT01 a CT20)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Python (versão do .python-version)
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-robot.txt
+
+      - name: Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Instalar dependências fixadas
+        run: python -m pip install --requirement requirements-robot.txt
+
+      # Instala as dependências Node da biblioteca Browser, o Chromium e as
+      # bibliotecas de sistema de que ele precisa no Ubuntu.
+      - name: Preparar o navegador (Chromium)
+        run: rfbrowser init --with-deps chromium
+
+      # Os 20 cenários rodam em sequência; se um falhar, o job falha.
+      - name: Executar os cenários
+        run: python scripts/robot/executar.py
+
+      # Lista explícita: o banco isolado (robot.sqlite3) não é enviado.
+      - name: Guardar relatórios
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: relatorios-robot
+          path: |
+            resultados-robot/report.html
+            resultados-robot/log.html
+            resultados-robot/output.xml
+            resultados-robot/servidor.log
+            resultados-robot/playwright-log.txt
+            resultados-robot/browser/screenshot/
+          if-no-files-found: warn
+          retention-days: 14
