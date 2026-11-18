@@ -87,8 +87,8 @@ roda a suíte inteira em todo Pull Request para a `main` e em todo push na `main
 ao lado dos jobs de PostgreSQL, SQLite e Gunicorn, sem depender deles.
 
 - **Ambiente:** Ubuntu 24.04, Python do `.python-version`, Node.js 24,
-  `requirements-robot.txt` e `rfbrowser init --with-deps chromium` (dependências
-  Node da biblioteca Browser, Chromium e bibliotecas de sistema).
+  `requirements-robot.txt` e `rfbrowser init chromium` (dependências Node da
+  biblioteca Browser e Chromium; as bibliotecas de sistema já vêm na imagem).
 - **Isolamento:** o mesmo `scripts/robot/executar.py` da execução local. O
   Django temporário usa um SQLite criado no runner; o job não recebe segredos
   nem variáveis de banco, e Render e Neon não são acessados.
