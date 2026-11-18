@@ -69,6 +69,7 @@ Data Em Relacao A Hoje
     ...    (datetime.datetime.now(zoneinfo.ZoneInfo('America/Recife')) + datetime.timedelta(days=int($dias))).strftime('%d/%m/%Y')
     ...    modules=datetime,zoneinfo
     RETURN    ${data}
+
 Filtrar Historico Por Situacao
     [Arguments]    ${situacao}
     Select Options By    ${HISTORICO_SELECT_SITUACAO}    label    ${situacao}
@@ -77,7 +78,13 @@ Filtrar Historico Por Situacao
 Filtro Do Historico Deve Estar Em
     [Arguments]    ${situacao}
     Get Selected Options    ${HISTORICO_SELECT_SITUACAO}    label    ==    ${situacao}
+
 Historico Todas As Linhas Devem Ter Situacao
     [Arguments]    ${situacao}
-        ${celulas_diferentes}=    Catenate    SEPARATOR=    ${HISTORICO_LINHAS}    ${HISTORICO_COLUNA_SITUACAO}    [normalize-space() != '${situacao}']
+    ${celulas_diferentes}=    Format String    ${HISTORICO_CELULAS_DE_OUTRA_SITUACAO}    situacao=${situacao}
     Get Element Count    ${celulas_diferentes}    ==    0
+
+Historico Nao Deve Ter Linhas Na Situacao
+    [Arguments]    ${situacao}
+    ${celulas}=    Format String    ${HISTORICO_CELULAS_NA_SITUACAO}    situacao=${situacao}
+    Get Element Count    ${celulas}    ==    0
