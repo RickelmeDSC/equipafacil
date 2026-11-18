@@ -4,7 +4,7 @@ Cria dois aluguéis em equipamentos diferentes:
 um ativo e outro encerrado.
 """
 
-from config.tests.fabricas import criar_cliente, criar_equipamento, registrar, encerrar
+from config.tests.fabricas import criar_cliente, criar_equipamento, encerrar, registrar
 
 
 def preparar() -> None:
