@@ -1,92 +1,87 @@
 # EquipaFácil — Sistema de Aluguel de Equipamentos
 
-> **Situação (marco de 02/11/2026, `main` em `85b4d1a`):** backend de RF001–RF008 implementado e integrado à `main` (DEV-02 a DEV-06, pelos PRs #1 e #3 a #8, com merge commit). Na validação da tarefa 13A, foram 360 testes aprovados no PostgreSQL e, no SQLite, 336 aprovados e 24 pulados. As páginas HTML são **provisórias**: o frontend definitivo (DEV-07) e a homologação visual estão pendentes, o contrato técnico (PR #2) ainda não foi aprovado e não há deploy (Neon e Render não foram criados). Publicação e colaboração com o frontend: [`docs/publicacao-e-colaboracao.md`](docs/publicacao-e-colaboracao.md). Veja [Ambiente local de desenvolvimento](#ambiente-local-de-desenvolvimento).
+Aplicação web para a gestão de aluguel de equipamentos de uma locadora: cadastro de equipamentos e clientes, registro de aluguéis e devoluções e consulta ao histórico.
 
-Sistema acadêmico de gestão de aluguel de equipamentos, desenvolvido com Python/Django e PostgreSQL.
+- **Sistema publicado:** https://equipafacil.onrender.com/ (acesso restrito a funcionários cadastrados)
+- **Situação em 19/11/2026:** RF001–RF010 implementados e integrados à `main` (`01d038d`); 20 cenários de interface automatizados; quatro jobs de integração contínua aprovados na execução [44413841611](https://github.com/RickelmeDSC/equipafacil/actions/runs/44413841611).
 
-## Objetivo
+## Apresentação
 
-Oferecer a funcionários autenticados de uma locadora uma aplicação web para cadastrar equipamentos e clientes, registrar aluguéis e devoluções e consultar o histórico de locações, com regras de disponibilidade, datas e valores verificadas no backend.
+O EquipaFácil substitui o controle manual de uma locadora de equipamentos. O funcionário autenticado consulta o que está disponível, registra o aluguel com o valor calculado pelo sistema, registra a devolução e acompanha a situação de cada aluguel. As regras de disponibilidade, datas e valores são verificadas no servidor.
 
-## Contexto acadêmico
+**Contexto acadêmico:** projeto em equipe da disciplina Qualidade de Software, turma ADS5NA 2026.2, do curso de Análise e Desenvolvimento de Sistemas da UNIBRA, ministrada pelo professor Lucas Edson. O trabalho foi dividido entre as equipes de Requisitos, Desenvolvimento e Testes de Software, com planejamento no Jira.
 
-Projeto em equipe do curso de Análise e Desenvolvimento de Sistemas (ADS) da UNIBRA. O trabalho é dividido entre as equipes de Requisitos, Desenvolvimento e Testes de Software, e o planejamento funcional é acompanhado no Jira.
+**Público-alvo:** funcionários de uma locadora. Não há cadastro público nem acesso de clientes; as contas são criadas pelo administrador.
 
-### Referências
+## Funcionalidades
 
-| Referência | Papel | Situação |
-|------------|-------|----------|
-| Especificação técnica v3 (Jira, épicos EQF-4, EQF-5 e EQF-6) | Referência de planejamento | Vigente |
-| Documento de Requisitos v1.1 | Documento acadêmico | Revisado tecnicamente; validação acadêmica final aguardando Rafael Ferreira e Ivisson. Não é publicado neste repositório |
-| Decisões I1–I5 | Ajustes da especificação | Aprovadas por Rickelme David em 01/11/2026 |
+### Equipamentos (RF001–RF004)
 
-A especificação v3 e o Documento de Requisitos v1.1 não são versões concorrentes do mesmo arquivo: a primeira organiza o planejamento no Jira; o segundo é o documento acadêmico de requisitos.
+- Cadastro com código único (sem diferenciar maiúsculas de minúsculas), nome, categoria fixa, diária e descrição.
+- Lista com pesquisa por código ou nome, situação (Ativo ou Inativo) e disponibilidade.
+- Edição; o código não pode ser alterado depois do primeiro aluguel.
+- Inativação e reativação; equipamento com aluguel em aberto não pode ser inativado.
+- Exclusão só de equipamento sem histórico de aluguéis; com histórico, a tela mostra o motivo do bloqueio.
+- Disponibilidade calculada: disponível é o equipamento ativo e sem aluguel em aberto.
 
-## Funcionalidades planejadas
+### Clientes (RF005, RF009)
 
-| ID | Requisito funcional | Prioridade |
-|----|---------------------|------------|
-| RF001 | Cadastrar equipamentos | Alta |
-| RF002 | Consultar e pesquisar equipamentos | Alta |
-| RF003 | Editar informações de equipamentos | Alta |
-| RF004 | Excluir, inativar ou reativar equipamentos | Alta |
-| RF005 | Cadastrar, listar, consultar e editar clientes | Alta |
-| RF006 | Registrar aluguel | Alta |
-| RF007 | Registrar devolução | Alta |
-| RF008 | Consultar histórico de aluguéis | Média |
-| RF009 | Pesquisar clientes cadastrados | Média |
-| RF010 | Filtrar histórico de aluguéis por situação | Média |
+- Cadastro com nome completo, CPF, telefone e e-mail.
+- CPF validado (dígitos verificadores) e único.
+- Lista com pesquisa por nome ou por CPF, completo ou parcial, com ou sem máscara.
+- Edição; o CPF não pode ser alterado depois do primeiro aluguel.
+- Não há exclusão de clientes nem página de detalhe.
 
-RF009 e RF010 foram acrescentados em 10/11/2026 (Documento de Requisitos v1.3 e Casos de Teste v1.4, CT17–CT20), com a decisão D16; aprovação técnica no EQF-5 e implementação no EQF-43. A validação documental da equipe de Requisitos está pendente.
+### Aluguéis (RF006–RF008, RF010)
 
-Regras de negócio planejadas: RN001 (aluguéis simultâneos e disponibilidade), RN002 (validação de dados), RN003 (integridade e exclusão/inativação) e RN004 (datas, duração e valores). Detalhes e rastreabilidade em [`docs/rastreabilidade.md`](docs/rastreabilidade.md).
+- Registro em formulário único: cliente, equipamento disponível, data de retirada (hoje ou futura) e devolução prevista.
+- Diárias inclusivas: `(devolução prevista − retirada) + 1`.
+- Prévia do valor calculada no servidor ("Calcular resumo") antes da confirmação; a prévia não grava nada.
+- O valor da diária e o valor total ficam congelados no registro: editar o equipamento depois não altera aluguéis anteriores.
+- No máximo um aluguel em aberto por equipamento, inclusive em registros simultâneos.
+- Devolução única, com data entre a retirada e a data atual; libera o equipamento.
+- Histórico com cliente, equipamento, datas, diárias, valores e situação.
+- Situação calculada: Ativo, Atrasado, Encerrado ou Encerrado com atraso. Não há multa por atraso.
+- Filtro do histórico por situação.
 
-Requisito técnico transversal: acesso restrito a funcionários autenticados (Django Auth), sem cadastro público.
+## Arquitetura
 
-## Tecnologias previstas
+Monólito Django com páginas renderizadas no servidor. Não existe API REST nem aplicação de frontend separada.
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Backend | Python 3.13, Django 5.2 LTS (5.2.18, fixado em `requirements.txt`) |
-| Frontend | Django Templates, Bootstrap, HTML, CSS, JavaScript |
-| Banco de dados | PostgreSQL (hospedagem prevista no Neon) |
-| Hospedagem | Render, um único Web Service com Gunicorn e WhiteNoise (preparado, não implantado) |
-| Gestão | Jira (Kanban), GitHub |
+```text
+Navegador ──> Templates Django (Bootstrap) ──> Views ──> Serviços ──> Models (ORM) ──> PostgreSQL
+```
 
-Até agora estão configurados o Python, o Django e o ambiente local, com PostgreSQL local validado para desenvolvimento e testes. O código está preparado para o Render e o Neon ([`docs/deploy-render-neon.md`](docs/deploy-render-neon.md)), mas nenhum serviço foi criado. Veja [`docs/arquitetura-planejada.md`](docs/arquitetura-planejada.md).
+- **Templates:** HTML renderizado pelo Django, com Bootstrap servido como arquivo estático do próprio projeto.
+- **Views:** recebem a requisição, validam com formulários e chamam os serviços.
+- **Serviços** (`*/services.py`): regras de negócio e transações, como o registro de aluguel e a devolução.
+- **Models:** `Equipamento`, `Cliente` e `Aluguel`, com restrições também no banco de dados.
+- **Autenticação:** Django Auth, com login obrigatório em todas as páginas; contas criadas no Django Admin.
 
-## Equipes
+Detalhes em [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md), [`docs/frontend-implementado.md`](docs/frontend-implementado.md) e [`docs/contrato-tecnico-frontend-backend.md`](docs/contrato-tecnico-frontend-backend.md).
 
-| Equipe | Integrantes | Responsabilidades |
-|--------|-------------|-------------------|
-| Requisitos | Rafael Ferreira, Ivisson | Documento de requisitos (RF, RN), revisão e validação acadêmica |
-| Desenvolvimento | Rickelme David | Backend Django, banco de dados, regras de negócio, autenticação, integração, infraestrutura e deploy, coordenação técnica |
-| Desenvolvimento | Raphael Eloi | Frontend (Django Templates, Bootstrap), responsividade e apresentação de dados e mensagens |
-| Testes de Software | Alexandre Abreu, Vinícius Soares | 16 cenários Gherkin (CT01–CT16), execução de testes e registro de defeitos |
+## Tecnologias
 
-## Situação atual
+| Uso | Tecnologia |
+|-----|-----------|
+| Aplicação | Python 3.13 (`.python-version`: 3.13.15), Django 5.2.18 (série LTS), psycopg 3.3.6, Django Templates, Bootstrap 5.3.8, HTML, CSS e JavaScript |
+| Banco de dados | PostgreSQL (validado com a versão 18); SQLite apenas como recurso de desenvolvimento e na suíte Robot |
+| Implantação | Render (Web Service), Gunicorn 26.2.0 e WhiteNoise 6.12.0 |
+| Desenvolvimento | Ruff 0.17.3 e Black 26.10.1, configurados em `pyproject.toml` |
+| Testes | Runner de testes do Django; Robot Framework 7.5.1 com a biblioteca Browser 21.0.0 (Playwright e Chromium), que exige Node.js |
+| Integração contínua | GitHub Actions |
+| Gestão | Jira (quadro Kanban) e GitHub |
 
-- [x] Planejamento no Jira (especificação técnica v3)
-- [x] Repositório e documentação inicial
-- [x] Revisão técnica do Documento de Requisitos v1.1 e aprovação das decisões I1–I5
-- [ ] Validação acadêmica final dos requisitos (Rafael Ferreira e Ivisson)
-- [ ] Revisão dos cenários de teste (equipe de Testes)
-- [x] Configuração do projeto Django (DEV-02, integrada à `main`)
-- [x] Implementação de RF001–RF008 no backend (DEV-02 a DEV-06), com páginas provisórias
-- [x] Implementação de RF009 e RF010 (EQF-43), com CT17–CT20 automatizados
-- [ ] Frontend definitivo e homologação visual (DEV-07)
-- [ ] Testes e demonstração
-- [ ] Deploy
+As versões estão fixadas em `requirements.txt`, `requirements-dev.txt` e `requirements-robot.txt`.
 
-## Ambiente local de desenvolvimento
+## Execução local
 
-> Backend de RF001–RF008 integrado à `main`: fundação (DEV-02, EQF-14), modelos de domínio (DEV-03, EQF-15) e gestão de equipamentos (DEV-04, EQF-16), de clientes (DEV-05, EQF-17) e de aluguéis (DEV-06, EQF-18). Todas as páginas HTML são **provisórias**, só para validar o backend; as definitivas são do frontend.
+Os comandos abaixo são para Windows com PowerShell. Não há Docker nem configuração automática.
 
 ### Requisitos
 
-- Windows com PowerShell (comandos abaixo) e Git.
-- Python **3.13** (`py -3.13 --version`).
-- PostgreSQL 14 ou superior é o banco-alvo (validado com o 18.6 local); para começar, o SQLite temporário também funciona (veja [Banco de dados](#banco-de-dados)).
+- Git e Python **3.13** (`py -3.13 --version`).
+- PostgreSQL 14 ou superior é o banco-alvo. Para começar, o SQLite temporário também funciona (veja [Banco de dados](#banco-de-dados)).
 
 ### Ambiente virtual e dependências
 
@@ -98,10 +93,11 @@ py -3.13 -m venv .venv
 python -m pip install -r requirements-dev.txt
 ```
 
-O projeto usa só o Python do `.venv`, nunca o Python global. Se o PowerShell não permitir executar o `Activate.ps1`, troque `python` por `.\.venv\Scripts\python.exe` nos comandos, sem ativar o ambiente.
+O projeto usa só o Python do `.venv`. Se o PowerShell não permitir executar o `Activate.ps1`, troque `python` por `.\.venv\Scripts\python.exe` nos comandos.
 
-- `requirements.txt`: dependências de execução (Django 5.2.18, série LTS; psycopg 3.3.6, driver do PostgreSQL; Gunicorn 26.2.0 e WhiteNoise 6.12.0, para a hospedagem). É o único arquivo usado fora do desenvolvimento.
-- `requirements-dev.txt`: inclui o anterior e as ferramentas de qualidade (Ruff 0.17.3 e Black 26.10.1), configuradas em `pyproject.toml`.
+- `requirements.txt`: dependências de execução; é o único arquivo usado na hospedagem.
+- `requirements-dev.txt`: inclui o anterior e as ferramentas de qualidade (Ruff e Black).
+- `requirements-robot.txt`: inclui o `requirements.txt` e a automação de interface.
 
 ### Configuração (`.env`)
 
@@ -120,7 +116,7 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | Origens HTTPS confiáveis, separadas por vírgula |
 | `DB_ENGINE` | `postgresql` (padrão, banco-alvo) ou `sqlite` (temporário) |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_SSLMODE` | Conexão com o PostgreSQL local |
-| `DATABASE_URL` | Conexão hospedada (Neon). Quando definida, vale sobre as `DB_*`; não use localmente para testes |
+| `DATABASE_URL` | Conexão do ambiente hospedado. Quando definida, vale sobre as `DB_*`; não use localmente para testes |
 | `DB_CONN_MAX_AGE` | Segundos de reuso da conexão; padrão `0` |
 | `DJANGO_SECURE_SSL_REDIRECT`, `DJANGO_SECURE_HSTS_SECONDS`, `DJANGO_SECURE_PROXY_SSL_HEADER` | Segurança fora do desenvolvimento (veja [`docs/deploy-render-neon.md`](docs/deploy-render-neon.md)) |
 | `RENDER_EXTERNAL_HOSTNAME` | Definida pelo Render; entra em `ALLOWED_HOSTS` automaticamente |
@@ -128,10 +124,22 @@ Cole a chave gerada em `DJANGO_SECRET_KEY` no `.env`. O `.env` é ignorado pelo 
 
 ### Banco de dados
 
-- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, siga [`docs/postgresql-local.md`](docs/postgresql-local.md): um usuário sem privilégios elevados, um banco de desenvolvimento e um banco de testes, com a senha no `pgpass.conf`. **Validado localmente** (PostgreSQL 18.6, todos os testes aprovados, nenhum pulado). Neon e o banco de produção ainda não existem; a conexão hospedada usa `DATABASE_URL` com TLS obrigatório.
-- **SQLite (`DB_ENGINE=sqlite`) é um recurso temporário de desenvolvimento.** O projeto o recusa com `DJANGO_DEBUG=False`. Ele não substitui o PostgreSQL: as restrições do banco e os testes de concorrência previstos a partir de DEV-03 exigem PostgreSQL.
+- **PostgreSQL é o banco do projeto.** Para usá-lo localmente, siga [`docs/postgresql-local.md`](docs/postgresql-local.md): um usuário sem privilégios elevados, um banco de desenvolvimento e um banco de testes.
+- **SQLite (`DB_ENGINE=sqlite`) é um recurso temporário de desenvolvimento.** O projeto o recusa com `DJANGO_DEBUG=False`. Ele não substitui o PostgreSQL: as restrições do banco e os testes de concorrência exigem PostgreSQL.
 
-### Verificações e testes
+### Iniciar o servidor
+
+```powershell
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Acesse http://127.0.0.1:8000/, que redireciona para o login. O Django Admin (http://127.0.0.1:8000/admin/) é o único meio de criar contas de funcionários. Crie o superusuário só no seu ambiente local, com senha própria.
+
+## Testes
+
+### Verificações e testes Django
 
 ```powershell
 python manage.py check
@@ -142,86 +150,175 @@ black --check .
 python -m pip check
 ```
 
-Os testes criam usuários e senhas temporários durante a execução. Rode-os com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS. Com SQLite, o resultado esperado é `OK (skipped=25)` (o Django conta os pulados dentro do total executado): os testes de `config/tests/test_postgresql.py`, `alugueis/tests/test_banco.py` (introspecção), `alugueis/tests/test_concorrencia.py`, `alugueis/tests/test_concorrencia_devolucao.py`, `alugueis/tests/test_concorrencia_confirmacao.py`, `equipamentos/tests/test_concorrencia.py` e `clientes/tests/test_concorrencia.py`, e o teste de maiúsculas acentuadas de `clientes/tests/test_pesquisa.py`, só rodam com PostgreSQL. **Com PostgreSQL, use sempre `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Na validação da tarefa 13A (`main` em `85b4d1a`), foram 360 testes no total: todos aprovados no PostgreSQL; no SQLite, 336 aprovados e 24 pulados. Com RF009 e RF010 (EQF-43, 10/11/2026), são 424 testes: todos aprovados no PostgreSQL local; no SQLite, 399 aprovados e 25 pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes (veja o documento do PostgreSQL).
+- São 424 testes de unidade e de integração nos apps `equipamentos`, `clientes`, `alugueis` e `config`.
+- Rode com `DJANGO_DEBUG=True`: com DEBUG desativado o projeto redireciona HTTP para HTTPS.
+- **Com PostgreSQL, use `python manage.py test --keepdb`**; o resultado esperado é `OK`, sem testes pulados. Sem `--keepdb`, o Django tentaria apagar e recriar o banco de testes.
+- **Com SQLite**, o resultado esperado é `OK (skipped=25)`: os testes de concorrência, de introspecção do banco e um teste de pesquisa com maiúsculas acentuadas só rodam com PostgreSQL.
+- `black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos alterados.
 
-`black --check` e `ruff check` apenas verificam. Para corrigir, rode `black <arquivo>` ou `ruff check --fix <arquivo>` só nos arquivos que você alterou.
+### Robot Framework (testes de interface)
 
-**Integração contínua:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em Pull Requests para a `main` e em pushes na `main`, em Ubuntu com o Python do `.python-version`. São três jobs:
-
-- **PostgreSQL 18** (serviço do runner, com credenciais fictícias): `pip check`, Ruff, Black, `check`, `makemigrations --check --dry-run` e a suíte completa.
-- **SQLite**: a suíte, com os testes exclusivos de PostgreSQL pulados.
-- **Gunicorn em Linux**: `scripts/validar-gunicorn-linux.sh`.
-
-Não usa segredos, não acessa Neon nem Render e não faz deploy. O workflow só é considerado validado depois da primeira execução verde no GitHub.
-
-Verificação de produção simulada, em um terminal separado (não conecta ao banco; os valores são fictícios):
+Os 20 casos de teste (CT01–CT20) estão automatizados com Robot Framework e a biblioteca Browser, que controla um Chromium.
 
 ```powershell
-$env:DJANGO_ENV_FILE = ""
-$env:DJANGO_SECRET_KEY = (python -c "import secrets; print(secrets.token_urlsafe(50))")
-$env:DJANGO_DEBUG = "False"
-$env:DJANGO_ALLOWED_HOSTS = "equipafacil.exemplo.test"
-$env:DATABASE_URL = "postgresql://app@127.0.0.1:1/equipafacil?sslmode=require"
-python manage.py check --deploy
-python manage.py collectstatic --noinput
+python -m pip install --requirement requirements-robot.txt
+rfbrowser init chromium
+python scripts/robot/executar.py                         # a suíte inteira
+python scripts/robot/executar.py tests/Cenario16.robot   # um cenário
 ```
 
-A `DATABASE_URL` acima é fictícia e local. Nesta etapa, o único aviso esperado é `security.W004` (HSTS), que só será ligado depois de validar o ambiente real. O `collectstatic` grava em `staticfiles/`, fora do Git. O mesmo roteiro do build do Render está em `scripts/render-build.sh`.
+O primeiro e o segundo comando preparam o ambiente uma única vez; o `rfbrowser` exige Node.js 20 ou mais recente.
 
-### Execução local
+| Pasta | Conteúdo |
+|-------|----------|
+| `tests/CenarioNN.robot` | Um arquivo por caso de teste, sem seletores |
+| `tests/Keywords/*_Steps.robot` | Passos reutilizáveis de cada página |
+| `tests/Pages/*_Page.robot` | Somente variáveis com os seletores XPath de cada página |
+| `scripts/robot/massas/ctNN.py` | Dados fictícios que cada cenário cria antes de rodar |
 
-```powershell
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+**Isolamento:** `scripts/robot/executar.py` sobe um servidor Django temporário em `127.0.0.1`, com um banco SQLite descartável em `resultados-robot/` e usuário e senha fictícios gerados na hora. A suíte ignora o `.env` e a `DATABASE_URL`, e recusa rodar em um banco que não seja o isolado. Cada cenário recria a própria massa; a execução é sequencial.
+
+Os relatórios (`report.html`, `log.html`, `output.xml`) ficam em `resultados-robot/`, fora do Git. Instruções completas em [`docs/testes-robot.md`](docs/testes-robot.md).
+
+Os casos CT01–CT20 também tiveram execução manual em novembro de 2026, com evidências anexadas às atividades do Jira. Esses registros são históricos e independentes da automação.
+
+## Integração contínua (GitHub Actions)
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em Pull Requests para a `main` e em pushes na `main`, em `ubuntu-24.04`, com o Python do `.python-version`. São quatro jobs independentes:
+
+| Job | O que faz |
+|-----|-----------|
+| Qualidade e testes (PostgreSQL 18) | `pip check`, Ruff, Black, `check`, `makemigrations --check --dry-run` e os testes Django em um PostgreSQL do próprio runner |
+| Testes (SQLite, desenvolvimento) | Testes Django com SQLite; os exclusivos de PostgreSQL são pulados |
+| Gunicorn em Linux (produção simulada) | `scripts/validar-gunicorn-linux.sh` |
+| Robot Framework (CT01 a CT20) | Os 20 cenários de interface, em sequência; guarda os relatórios no artefato `relatorios-robot` por 14 dias |
+
+O CI não usa segredos, não acessa o ambiente publicado e não faz deploy. O job do Robot **ainda não é obrigatório** nas regras de proteção da `main`.
+
+Última execução auditada: [44413841611](https://github.com/RickelmeDSC/equipafacil/actions/runs/44413841611), de 18/11/2026, no commit `01d038d` — quatro jobs aprovados; 424 testes Django (`OK` no PostgreSQL, `OK (skipped=25)` no SQLite); Robot com 20 aprovados e nenhuma falha.
+
+## Implantação
+
+O sistema está publicado em https://equipafacil.onrender.com/, em um único Web Service do Render que serve as páginas e os arquivos estáticos.
+
+- **Build:** `bash scripts/render-build.sh` — instala `requirements.txt`, roda `check --deploy` e `collectstatic`. Não acessa o banco e não executa migrations.
+- **Servidor:** Gunicorn; arquivos estáticos servidos pelo WhiteNoise.
+- **Banco:** a configuração de produção exige PostgreSQL, informado ao serviço pela variável `DATABASE_URL`, com TLS. O projeto foi preparado para um banco no Neon ([`docs/deploy-render-neon.md`](docs/deploy-render-neon.md)), mas o provedor em uso não foi confirmado nesta atualização, nem o commit publicado.
+- **Verificação de saúde:** `/healthz/`, que responde sem consultar o banco.
+- **Deploy** somente com autorização explícita do responsável técnico.
+
+Em 18/11/2026 o site publicado foi conferido no navegador com dados fictícios: login, equipamentos, clientes, registro de aluguel, devolução e filtro do histórico funcionaram.
+
+`docs/deploy-render-neon.md` foi escrito antes da publicação e ainda descreve a etapa de preparação; vale como referência de variáveis e comandos, não como retrato do ambiente atual.
+
+## Estrutura de pastas
+
+```text
+equipafacil/
+├── config/              projeto Django: settings, rotas, autenticação, mensagens
+├── equipamentos/        app de equipamentos (models, services, views, forms, testes)
+├── clientes/            app de clientes
+├── alugueis/            app de aluguéis, devoluções e histórico
+├── templates/           páginas HTML (Django Templates)
+├── static/              CSS, JavaScript, fontes e Bootstrap
+├── tests/               automação Robot Framework
+│   ├── Cenario01.robot … Cenario20.robot
+│   ├── Keywords/        passos (*_Steps.robot)
+│   └── Pages/           seletores (*_Page.robot)
+├── scripts/
+│   ├── render-build.sh              build no Render
+│   ├── validar-gunicorn-linux.sh    validação usada no CI
+│   └── robot/                       execução isolada e massas da suíte Robot
+├── docs/                documentação técnica
+├── .github/workflows/ci.yml
+├── requirements.txt, requirements-dev.txt, requirements-robot.txt
+├── pyproject.toml       configuração do Ruff e do Black
+└── manage.py
 ```
 
-Acesse http://127.0.0.1:8000/, que redireciona para o login. O Django Admin (http://127.0.0.1:8000/admin/) é o único meio de criar contas de funcionários; não há cadastro público nem recuperação de senha por e-mail. Crie o superusuário só no seu ambiente local, com senha própria.
+## Requisitos e rastreabilidade
 
-### Templates provisórios
+| ID | Requisito funcional |
+|----|---------------------|
+| RF001 | Cadastrar equipamentos |
+| RF002 | Consultar e pesquisar equipamentos |
+| RF003 | Editar informações de equipamentos |
+| RF004 | Excluir, inativar ou reativar equipamentos |
+| RF005 | Cadastrar, listar, consultar e editar clientes |
+| RF006 | Registrar aluguel |
+| RF007 | Registrar devolução |
+| RF008 | Consultar histórico de aluguéis |
+| RF009 | Pesquisar clientes cadastrados |
+| RF010 | Filtrar histórico de aluguéis por situação |
 
-`templates/registration/login.html` e `templates/inicio.html` existem só para validar a autenticação e serão substituídos pelo frontend. Para a troca não quebrar o backend nem os testes, a nova versão deve manter:
+RF009 e RF010 foram acrescentados em 10/11/2026, a pedido do professor.
 
-- **Login:** o caminho `registration/login.html` (padrão do `LoginView`), formulário `method="post"` com `{% csrf_token %}`, os campos `username` e `password` e o campo oculto `next`.
-- **Saída:** um formulário `method="post"` para `{% url 'logout' %}` com `{% csrf_token %}`; logout por link (GET) não funciona.
-- Saída de dados sempre com o escape automático do Django (sem `|safe` em dados do usuário).
+Regras de negócio: RN001 (aluguéis simultâneos e disponibilidade), RN002 (validação de dados), RN003 (integridade e exclusão ou inativação) e RN004 (datas, duração e valores).
 
-Os nomes `login`, `logout` e `inicio` ainda dependem do aceite do contrato DEV-01.
+Casos de teste: CT01–CT20, dois por requisito funcional (um positivo e um negativo), cada um com um arquivo em `tests/`.
 
-`templates/equipamentos/lista.html`, `formulario.html` e `acoes.html` (DEV-04) `templates/clientes/lista.html` e `formulario.html` (DEV-05) e `templates/alugueis/formulario.html`, `historico.html` e `devolver.html` (DEV-06) também são provisórios, sem Bootstrap. Rotas, variáveis e campos estão em [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md), [`docs/clientes-operacional.md`](docs/clientes-operacional.md) e [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md); a troca pelo frontend deve mantê-los, com `{% csrf_token %}` em todo POST.
+- Resumo dos requisitos, das decisões técnicas e da relação entre RF, RN e CT: [`docs/rastreabilidade.md`](docs/rastreabilidade.md).
+- Comportamento de cada módulo: [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md), [`docs/clientes-operacional.md`](docs/clientes-operacional.md) e [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md).
+- O Documento de Requisitos e o Documento de Casos de Teste são documentos acadêmicos e não são publicados neste repositório.
+- Planejamento e critérios de aceite: [quadro EQF no Jira](https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2) (projeto `EQF`, acesso restrito aos membros). O projeto ainda tem atividades abertas no Jira, principalmente pendências documentais.
 
-### Hospedagem (preparação)
+## Equipe e contribuições
 
-Um único Web Service no Render serve backend e frontend, com Gunicorn, arquivos estáticos pelo WhiteNoise e banco no Neon por `DATABASE_URL`. Comandos, variáveis, health check (`/healthz/`), estratégia de migrations, backup e restrições do plano Free estão em [`docs/deploy-render-neon.md`](docs/deploy-render-neon.md). **Nada foi implantado.**
+### Responsabilidades planejadas
 
-Advertências ainda abertas:
+| Equipe | Integrantes | Responsabilidade |
+|--------|-------------|------------------|
+| Requisitos | Rafael Ferreira, Ivisson | Documento de requisitos (RF e RN) e sua revisão |
+| Desenvolvimento | Rickelme David | Backend, banco de dados, regras de negócio, integração, infraestrutura e coordenação técnica |
+| Desenvolvimento | Raphael Eloi | Frontend: templates, Bootstrap e apresentação |
+| Testes de Software | Alexandre Abreu, Vinícius Soares | Casos de teste em Gherkin, execução e registro de resultados |
 
-- `security.W004` (HSTS): defina `DJANGO_SECURE_HSTS_SECONDS` só depois de confirmar todo o site em HTTPS no ambiente real.
-- No Render, `DJANGO_SECURE_PROXY_SSL_HEADER=True` é obrigatório; sem isso, o redirecionamento para HTTPS entra em laço.
-- O Gunicorn não roda no Windows. Em Linux, valide com `bash scripts/validar-gunicorn-linux.sh` antes do primeiro deploy; o job `gunicorn` do CI executa esse script, mas a validação só vale depois de uma execução verde no GitHub.
-- Não há limite de tentativas de login nem política de segurança de conteúdo (CSP); a sessão dura o padrão do Django (duas semanas). São decisões pendentes, não configuradas.
+### Automação Robot Framework: divisão e autoria
 
-### Limitações desta etapa
+"Responsável designado" é a divisão originalmente planejada pela equipe. "Implementação registrada" segue a autoria dos commits no histórico do Git.
 
-- Modelos `Equipamento`, `Cliente` e `Aluguel` com restrições e migrations iniciais (DEV-03; veja [`docs/modelagem-implementada.md`](docs/modelagem-implementada.md)).
-- Gestão de equipamentos (RF001–RF004, DEV-04; veja [`docs/equipamentos-operacional.md`](docs/equipamentos-operacional.md)) com páginas provisórias.
-- Gestão de clientes (RF005, DEV-05; veja [`docs/clientes-operacional.md`](docs/clientes-operacional.md)), sem detalhe nem exclusão (D14, RN003), com pesquisa por nome ou CPF (RF009, D16, EQF-43).
-- Aluguéis, devoluções e histórico (RF006–RF008, DEV-06; veja [`docs/alugueis-operacional.md`](docs/alugueis-operacional.md)), com prévia calculada no servidor (D13), sem cancelamento nem edição de aluguel; histórico com filtro por situação (RF010, EQF-43).
-- As rotas `login`, `logout` e `inicio` e as páginas `registration/login.html` e `inicio.html` são provisórias até o aceite do contrato DEV-01; o layout definitivo é do frontend.
-- Suíte validada no SQLite e no PostgreSQL 18.6 local; restrições de banco e concorrência dependem dos modelos de DEV-03 (detalhes em [`docs/postgresql-local.md`](docs/postgresql-local.md)).
-- Sem Bootstrap nem arquivos estáticos próprios: o frontend definitivo (DEV-07) e a homologação visual estão pendentes. O contrato técnico (PR #2) continua em rascunho, sem aprovação.
-- Neon e Render preparados, mas sem serviço criado nem deploy.
+| Cenários | Responsável designado | Implementação registrada | Correções posteriores |
+|----------|------------------------|-------------------|-----------------------|
+| CT01, CT03, CT05, CT07 | Rafael Ferreira | Rickelme David, com apoio do Claude Code (PR #23) | — |
+| CT02, CT04, CT06, CT08 | Vinícius Soares | Vinícius Soares (PR #21): cenários e massas | Rickelme David: keywords e validações (PR #25) e formatação (PR #24) |
+| CT09, CT10, CT17, CT18 | Alexandre Abreu | Alexandre Abreu (PR #22) | Rickelme David: formatação (PR #24) |
+| CT11, CT12, CT13 | Rickelme David | Rickelme David (PR #19) | — |
+| CT14, CT15 | Raphael Eloi | Raphael Eloi (PR #20) | — |
+| CT16 e infraestrutura | Rickelme David | Rickelme David (PR #18) | — |
+| CT19, CT20 | Ivisson | Ivisson (PR #26) | Rickelme David: validações e lint (PR #27) |
 
-## Prazos
+- CT01, CT03, CT05 e CT07 foram implementados por Rickelme David, com apoio do Claude Code.
+- A integração do Robot ao GitHub Actions (PR #28) é de Rickelme David.
+- Os commits de Rickelme David e os de Raphael Eloi na automação registram o Claude Code como coautor.
 
-| Entrega | Data |
-|---------|------|
-| Primeira entrega (requisitos, regras de negócio, cenários Gherkin e Jira) | 03/11/2026 |
-| Entrega final do sistema | 15/11/2026 |
+### Revisões
 
-## Jira
+A regra de colaboração do projeto pede revisão por outro integrante antes do merge (veja [Fluxo de qualidade](#fluxo-de-qualidade)). No histórico consultado em 19/11/2026, os Pull Requests #1, #2 e #17 têm aprovação registrada no GitHub, feita por Raphael Eloi; os demais não têm revisão registrada.
 
-Planejamento, atividades e especificação técnica v3: [Quadro EQF no Jira](https://rickelmepe.atlassian.net/jira/software/projects/EQF/boards/2) (acesso restrito aos membros do projeto).
+## Limitações conhecidas
+
+### Produto
+
+- Aluguel registrado não pode ser cancelado nem editado; a devolução não pode ser corrigida.
+- Não há multa por atraso, reserva, pagamento nem exclusão de clientes.
+- Não há cadastro público, recuperação de senha por e-mail, limite de tentativas de login nem política de segurança de conteúdo (CSP).
+- Os campos de data usam o controle nativo do navegador, que exibe o formato conforme o idioma do próprio navegador (dia/mês/ano com o navegador em português).
+- O histórico não tem paginação.
+
+### Testes
+
+- Os cenários Robot usam a data atual de America/Recife; uma execução na virada do dia pode falhar sem que haja defeito.
+- CT07 e CT08 comprovam a exclusão e o bloqueio pela interface, não por consulta ao banco.
+- O controle negativo do CT16 (`scripts/robot/controles/`) é executado manualmente e não roda no CI.
+- A suíte Robot roda em SQLite; as restrições e a concorrência no PostgreSQL são cobertas pelos testes Django.
+
+### Infraestrutura
+
+- O job do Robot não é obrigatório para o merge.
+- A preparação do Chromium no CI depende das bibliotecas de sistema da imagem `ubuntu-24.04`.
+- As dependências indiretas da biblioteca Browser não têm versão fixada.
+- O primeiro acesso ao site publicado pode demorar se o serviço estiver ocioso.
+- Pendência: parte da documentação em `docs/` descreve etapas anteriores do projeto e ainda não foi atualizada (`deploy-render-neon.md`, `GUIA_EQUIPE_AUTOMACAO_ROBOT.md` e `publicacao-e-colaboracao.md`).
 
 ## Como colaborar
 
@@ -229,25 +326,27 @@ Planejamento, atividades e especificação técnica v3: [Quadro EQF no Jira](htt
 
 | Branch | Uso |
 |--------|-----|
-| `main` | Versão integrada e revisada. Protegida: só recebe alterações por Pull Request |
+| `main` | Versão integrada. Protegida: só recebe alterações por Pull Request |
 | `docs/<descricao>` | Documentação |
-| `feat/backend-eqf-NN-<descricao>` | Backend, banco e regras de negócio (ex.: `feat/backend-eqf-16-equipamentos`) |
-| `feat/frontend-eqf-NN-<descricao>` | Templates, estilos e interface (ex.: `feat/frontend-eqf-16-equipamentos`) |
+| `feat/backend-eqf-NN-<descricao>` | Backend, banco e regras de negócio |
+| `feat/frontend-eqf-NN-<descricao>` | Templates, estilos e interface |
 | `fix/eqf-NN-<descricao>` | Correções |
+| `test/<descricao>` | Automação de testes (opcional) |
+| `chore/<descricao>` | Manutenção |
 
 `NN` é o número da atividade no Jira. Crie a branch a partir da `main` atualizada e nunca faça commits diretamente na `main`.
 
-Antes de desenvolver frontend ou backend, leia o [guia de integração frontend ↔ backend](docs/guia-integracao-frontend-backend.md).
+Antes de alterar telas ou regras, leia o [guia de integração frontend ↔ backend](docs/guia-integracao-frontend-backend.md); antes de alterar a automação, leia [`docs/testes-robot.md`](docs/testes-robot.md).
 
 ### Fluxo de qualidade
 
-1. **Planejamento antes da implementação:** confirme a atividade do Jira, os RF/RN/CT envolvidos e, se houver tela, o contrato frontend × backend.
+1. **Planejamento antes da implementação:** confirme a atividade do Jira e os RF, RN e CT envolvidos.
 2. **Testes automatizados** vinculados aos RF e aos cenários CT; nenhuma funcionalidade é concluída sem testes passando.
 3. **Commits semânticos** em português ([Conventional Commits](https://www.conventionalcommits.org/pt-br/)), por exemplo `feat: adiciona cadastro de equipamentos`.
 4. **Verificação de segurança** antes de cada commit e PR: revise o diff e confirme que não há segredos, `.env` ou dados reais.
-5. **Pull Request** com o template, citando a atividade do Jira (ex.: `EQF-16`) e os RF/RN/CT relacionados.
-6. **Code review** humano antes do merge.
-7. **Alterações de requisitos** passam por revisão humana das equipes responsáveis e são registradas no Jira; implemente apenas requisitos aprovados.
+5. **Pull Request** com o template, citando a atividade do Jira e os RF, RN e CT relacionados.
+6. **Code review** humano, por integrante diferente do autor, antes do merge. Esta é a regra para mudanças futuras; o histórico dos Pull Requests anteriores está na seção [Revisões](#revisões).
+7. **Alterações de requisitos** passam por revisão humana das equipes responsáveis e são registradas no Jira.
 8. **Deploy** somente após autorização explícita do responsável técnico (Rickelme David).
 
 **Nunca** publique senhas, tokens, arquivos `.env` ou dados reais de pessoas. Use `.env.example` com valores fictícios.
